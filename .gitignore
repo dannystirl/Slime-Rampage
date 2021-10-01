@@ -2,3 +2,6 @@
 .idea/
 /target/
 /workspace.xml
+
+# Added by cargo
+/target
