@@ -27,7 +27,7 @@ pub fn main() -> Result<(), String> {
         // Copy image texture to canvas, present, timeout
 
         // Title
-        let texture = texture_creator.load_texture("images/credits_title.png")?;
+        let texture = texture_creator.load_texture("imagescredits//credits_title.png")?;
         canvas.copy(&texture, None, None)?;
         canvas.present();
         ::std::thread::sleep(Duration::from_millis(TIMEOUT));
@@ -35,10 +35,15 @@ pub fn main() -> Result<(), String> {
         // Maybe split up people by teams
 
         // Davon
-        let texture = texture_creator.load_texture("images/credits_davon.png")?;
+        let texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
         canvas.copy(&texture, None, None)?;
         canvas.present();
         ::std::thread::sleep(Duration::from_millis(TIMEOUT));
+
+        let texture = texture_creator.load_texture("imagescredits//credits_daniel.png")?;
+        canvas.copy(&texture, None, None)?;
+        canvas.present();
+        ::std::thread::sleep(Duration::from_millis(TIMEOUT/28));
 
         // ...
     }
