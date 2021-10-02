@@ -6,7 +6,7 @@ use sdl2::image::LoadTexture;
 
 const TITLE: &str = "Rougelike Credits";
 const CAM_W: u32 = 1280;
-const CAM_H: u32 = 640;
+const CAM_H: u32 = 720;
 const TIMEOUT: u64 = 4500;
 
 pub fn main() -> Result<(), String> {
