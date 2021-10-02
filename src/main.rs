@@ -40,7 +40,7 @@ pub fn main() -> Result<(), String> {
         canvas.present();
         ::std::thread::sleep(Duration::from_millis(TIMEOUT));
 
-        // ...
+        break;
     }
     Ok(())
 }
