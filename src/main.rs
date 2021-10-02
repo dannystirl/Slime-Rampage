@@ -4,7 +4,7 @@ use sdl2::event::Event;
 use std::time::Duration;
 use sdl2::image::LoadTexture;
 
-const TITLE: &str = "Rougelike Credits";
+const TITLE: &str = "Roguelike Credits";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 640;
 const TIMEOUT: u64 = 4500;
