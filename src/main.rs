@@ -14,17 +14,7 @@ pub fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
-    let window = video_subsystem
-        .window(TITLE, CAM_W, CAM_H)
-        .position_centered()
-        .opengl()
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
-    let texture_creator = canvas.texture_creator();
-
-    'credits_loop: loop {
+    
         for event in sdl_context.event_pump()?.poll_iter() {
             match event {
                 // These keypresses aren't working...can't figure out why!
