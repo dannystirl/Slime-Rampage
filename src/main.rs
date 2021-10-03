@@ -76,11 +76,11 @@ fn run() -> Result<(), String> {
 
 	i += 1;
 
-  if(i > 1000) {
-      i = 0;
-  }
-  }
-  Ok(())
+        if(i > 1000) {
+            i = 0;
+        }
+    }
+    Ok(())
 }
 
 fn main() {
