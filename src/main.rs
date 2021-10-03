@@ -41,7 +41,7 @@ pub fn main() -> Result<(), String> {
             ::std::thread::sleep(Duration::from_millis(TIMEOUT));
     
             // Maybe split up people by teams
-    
+
             // Davon
             texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
             canvas.copy(&texture, None, None)?;
@@ -49,7 +49,13 @@ pub fn main() -> Result<(), String> {
             ::std::thread::sleep(Duration::from_millis(TIMEOUT));
 
             // Daniel 
-            let texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
+            texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
+            canvas.copy(&texture, None, None)?;
+            canvas.present();
+            ::std::thread::sleep(Duration::from_millis(TIMEOUT));
+
+            //Victor
+            texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
             canvas.copy(&texture, None, None)?;
             canvas.present();
             ::std::thread::sleep(Duration::from_millis(TIMEOUT));
