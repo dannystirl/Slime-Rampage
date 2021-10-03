@@ -66,6 +66,12 @@ pub fn main() -> Result<(), String> {
             canvas.present();
             ::std::thread::sleep(Duration::from_millis(TIMEOUT));
 
+            //Yihua
+            texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
+            canvas.copy(&texture, None, None)?;
+            canvas.present();
+            ::std::thread::sleep(Duration::from_millis(TIMEOUT));
+
             break 'credits_loop;
         }
     }
