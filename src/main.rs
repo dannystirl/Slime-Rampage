@@ -8,7 +8,6 @@ use sdl2::keyboard::Keycode;
 const TITLE: &str = "Roguelike Credits";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
-const TIMEOUT: u64 = 4500;
 
 fn run() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -39,7 +38,7 @@ fn run() -> Result<(), String> {
 
         // Title
         match i {
-            i if i < 200 => {
+            i if i < 300 => {
                 texture = texture_creator.load_texture("images/credits/credits_title.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
@@ -49,34 +48,35 @@ fn run() -> Result<(), String> {
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 600 => {
+            i if i < 500 => {
                 texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 800 => {
+            i if i < 600 => {
                 texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 1000 => {
+            i if i < 700 => {
                 texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 1200 => {
+            i if i < 800 => {
                 texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
             _ => {
                 texture = texture_creator.load_texture("images/credits/credits_title.png")?;
+                canvas.copy(&texture, None, None)?;
+                canvas.present();
             }
         }
 
-	i += 1;
-
-        if(i > 1000) {
+	    i += 1;
+        if i > 900 {
             i = 0;
         }
     }
