@@ -9,7 +9,7 @@ const TITLE: &str = "Roguelike Credits";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 
-fn run() -> Result<(), String> {
+fn run_credits() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
@@ -84,5 +84,5 @@ fn run() -> Result<(), String> {
 }
 
 fn main() {
-    run();
+    run_credits();
 }
