@@ -60,6 +60,12 @@ pub fn main() -> Result<(), String> {
             canvas.present();
             ::std::thread::sleep(Duration::from_millis(TIMEOUT));
 
+            //Adam
+            texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
+            canvas.copy(&texture, None, None)?;
+            canvas.present();
+            ::std::thread::sleep(Duration::from_millis(TIMEOUT));
+
             break 'credits_loop;
         }
     }
