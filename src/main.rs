@@ -1,16 +1,16 @@
 extern crate sdl2;
 
 use sdl2::event::Event;
-use std::time::Duration;
 use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
+use sdl2::pixels::Color;
 
 const TITLE: &str = "Roguelike Credits";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
-const TIMEOUT: u64 = 4500;
+const FRAME_GAP: u32 = 200;
 
-fn run() -> Result<(), String> {
+pub fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
@@ -35,54 +35,74 @@ fn run() -> Result<(), String> {
         }
         // Copy image texture to canvas, present, timeout
 
-	let mut texture = texture_creator.load_texture("images/credits/credits_title.png")?;
+	let texture;
 
-        // Title
+	// Clear and redraw the screen every time to avoid stacked images
         match i {
-            i if i < 200 => {
+            i if i < FRAME_GAP * 1 => {
+		// Title
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_title.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 400 => {
+            i if i < FRAME_GAP * 2 => {
+		// Davon Allensworth
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 600 => {
+            i if i < FRAME_GAP * 3 => {
+		// Daniel Stirling
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 800 => {
+            i if i < FRAME_GAP * 4 => {
+		// Victor Mui
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 1000 => {
+            i if i < FRAME_GAP * 5 => {
+		// Adam Wachowicz
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < 1200 => {
+            i if i < FRAME_GAP * 6 => {
+		// Yihua Pu
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            _ => {
-                texture = texture_creator.load_texture("images/credits/credits_title.png")?;
-            }
+	    i if i < FRAME_GAP * 7 => {
+		// Marshall Lentz
+		canvas.set_draw_color(Color::BLACK);
+		canvas.clear();
+		texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
+		canvas.copy(&texture, None, None)?;
+		canvas.present();
+	    }
+            _ => {}
         }
 
 	i += 1;
 
-        if(i > 1000) {
+        if i > FRAME_GAP * 8 {
             i = 0;
         }
     }
     Ok(())
-}
-
-fn main() {
-    run();
 }
