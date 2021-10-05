@@ -79,6 +79,13 @@ pub fn main() -> Result<(), String> {
 		canvas.copy(&texture, None, None)?;
 		canvas.present();
 	    }
+        i if i < FRAME_GAP * 8 => {
+            // Josh Friedman
+            texture = texture_creator.load_texture("images/credits/friedman_credits.png")?;
+            canvas.copy(&texture, None, None)?;
+            canvas.present();
+            }
+        
             _ => {}
         }
 
