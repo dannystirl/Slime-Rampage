@@ -3,7 +3,6 @@ extern crate sdl2;
 use sdl2::event::Event;
 use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
 
 const TITLE: &str = "Roguelike Credits";
 const CAM_W: u32 = 1280;
@@ -37,60 +36,45 @@ pub fn main() -> Result<(), String> {
 
 	let texture;
 
-	// Clear and redraw the screen every time to avoid stacked images
         match i {
             i if i < FRAME_GAP * 1 => {
 		// Title
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_title.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
             i if i < FRAME_GAP * 2 => {
 		// Davon Allensworth
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
             i if i < FRAME_GAP * 3 => {
 		// Daniel Stirling
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
             i if i < FRAME_GAP * 4 => {
 		// Victor Mui
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
             i if i < FRAME_GAP * 5 => {
 		// Adam Wachowicz
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
             i if i < FRAME_GAP * 6 => {
 		// Yihua Pu
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
                 texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
 	    i if i < FRAME_GAP * 7 => {
 		// Marshall Lentz
-		canvas.set_draw_color(Color::BLACK);
-		canvas.clear();
 		texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
 		canvas.copy(&texture, None, None)?;
 		canvas.present();
