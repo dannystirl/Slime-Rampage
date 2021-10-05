@@ -85,13 +85,19 @@ pub fn main() -> Result<(), String> {
             canvas.copy(&texture, None, None)?;
             canvas.present();
             }
+         i if i < FRAME_GAP * 9 => {
+            // Zirui Huang
+            texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
+            canvas.copy(&texture, None, None)?;
+            canvas.present();
+            }
         
             _ => {}
         }
 
 	i += 1;
 
-        if i > FRAME_GAP * 8 {
+        if i > FRAME_GAP * 9 {
             i = 0;
         }
     }
