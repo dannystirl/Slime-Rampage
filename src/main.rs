@@ -99,6 +99,61 @@ fn resist(vel: i32, deltav: i32) -> i32 {
 	}
 }
 
+
+
+
+struct Enemy<'a> {
+	pos: Rect,
+	src: Rect,
+	txtre: Texture<'a>,
+
+}
+
+impl<'a> Enemy<'a> {
+	fn new(pos: Rect, txtre: Texture<'a>) -> Enemy<'a> {
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		Enemy {
+			pos,
+			src,	
+			txtre	
+		}
+	}
+
+	fn enemy_x(&self) -> i32 {
+		self.pos.x()
+	}
+
+	fn enemy_y(&self) -> i32 {
+		self.pos.y()
+	}
+
+	fn enemy_width(&self) -> u32 {
+		self.pos.width()
+	}
+
+	fn enemy_height(&self) -> u32 {
+		self.pos.height()
+	}
+
+	fn update_enemy_pos(&mut self, vel: (i32, i32), x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+		self.pos.set_x((self.pos.x() + vel.0).clamp(x_bounds.0, x_bounds.1));
+		self.pos.set_y((self.pos.y() + vel.1).clamp(y_bounds.0, y_bounds.1));
+	}
+
+	fn src(&self) -> Rect {
+		self.src
+	}
+
+    fn txtre(&self) -> &Texture {
+        &self.txtre
+    }
+
+}
+
+
+
+
+
 pub struct SDL07 {
 	core: SDLCore,
 }
@@ -118,7 +173,16 @@ impl Game for SDL07 {
 
 		let mut x_vel = 0;
 		let mut y_vel = 0;
-
+let mut e = Enemy::new(
+	
+	Rect::new(
+		(CAM_W/2 - TILE_SIZE/2) as i32,
+		(CAM_H/2 - TILE_SIZE/2) as i32,
+		TILE_SIZE,
+		TILE_SIZE,
+	),
+	texture_creator.load_texture("images/place_holder_enemy.png")?,
+);
         let mut p = Player::new(
 			Rect::new(
 				(CAM_W/2 - TILE_SIZE/2) as i32,
@@ -148,6 +212,7 @@ impl Game for SDL07 {
 			let mut y_deltav = 0;
 			if keystate.contains(&Keycode::W) {
 				y_deltav -= ACCEL_RATE;
+				//Move up
 			}
 			if keystate.contains(&Keycode::A) {
 				x_deltav -= ACCEL_RATE;
@@ -195,6 +260,7 @@ impl Game for SDL07 {
 				TILE_SIZE * 2,                      // Size x
 				TILE_SIZE * 2,                      // Size y
 			);
+			self.core.wincan.copy(e.txtre(), e.src(), Rect::new(0,0,TILE_SIZE * 2,TILE_SIZE * 2,))?;
 
             if(*(p.facing_left()))
             {
