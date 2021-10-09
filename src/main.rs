@@ -18,10 +18,69 @@ use rogue_sdl::Game;
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
-const SPEED_LIMIT: i32 = 5;
-const ACCEL_RATE: i32 = 1;
+const SPEED_LIMIT: i32 = 10;
+const ACCEL_RATE: i32 = 3;
 
 const TILE_SIZE: u32 = 32;
+
+struct Player<'a> {
+	pos: Rect,
+	src: Rect,
+	texture_l: Texture<'a>,
+    texture_r: Texture<'a>,
+    facing_left: bool,
+}
+
+impl<'a> Player<'a> {
+	fn new(pos: Rect, texture_l: Texture<'a>, texture_r: Texture<'a>) -> Player<'a> {
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+        let facing_left = false;
+		Player {
+			pos,
+			src,
+			texture_l,
+            texture_r,
+            facing_left,
+		}
+	}
+
+	fn x(&self) -> i32 {
+		self.pos.x()
+	}
+
+	fn y(&self) -> i32 {
+		self.pos.y()
+	}
+
+	fn width(&self) -> u32 {
+		self.pos.width()
+	}
+
+	fn height(&self) -> u32 {
+		self.pos.height()
+	}
+
+	fn update_pos(&mut self, vel: (i32, i32), x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+		self.pos.set_x((self.pos.x() + vel.0).clamp(x_bounds.0, x_bounds.1));
+		self.pos.set_y((self.pos.y() + vel.1).clamp(y_bounds.0, y_bounds.1));
+	}
+
+	fn src(&self) -> Rect {
+		self.src
+	}
+
+	fn texture_l(&self) -> &Texture {
+		&self.texture_l
+	}
+
+    fn texture_r(&self) -> &Texture {
+        &self.texture_r
+    }
+
+    fn facing_left(&self) -> &bool {
+        &self.facing_left
+    }
+}
 
 fn resist(vel: i32, deltav: i32) -> i32 {
 	if deltav == 0 {
@@ -60,6 +119,17 @@ impl Game for SDL07 {
 		let mut x_vel = 0;
 		let mut y_vel = 0;
 
+        let mut p = Player::new(
+			Rect::new(
+				(CAM_W/2 - TILE_SIZE/2) as i32,
+				(CAM_H/2 - TILE_SIZE/2) as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+            texture_creator.load_texture("images/slime_l.png")?,
+			texture_creator.load_texture("images/slime_r.png")?,
+		);
+
 		'gameloop: loop {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -81,12 +151,14 @@ impl Game for SDL07 {
 			}
 			if keystate.contains(&Keycode::A) {
 				x_deltav -= ACCEL_RATE;
+                p.facing_left = true;
 			}
 			if keystate.contains(&Keycode::S) {
 				y_deltav += ACCEL_RATE;
 			}
 			if keystate.contains(&Keycode::D) {
 				x_deltav += ACCEL_RATE;
+                p.facing_left = false;
 			}
 
 			// Slow down to 0 vel if no input and non-zero velocity
@@ -101,18 +173,29 @@ impl Game for SDL07 {
 			x_pos = (x_pos + x_vel).clamp(0, (CAM_W - w) as i32);
 			y_pos = (y_pos + y_vel).clamp(0, (CAM_H - w) as i32);
 
+            p.update_pos((x_vel, y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+
 			self.core.wincan.set_draw_color(Color::BLACK);
 			self.core.wincan.clear();
 
-            let src = Rect::new(10, 10, TILE_SIZE * 2, TILE_SIZE * 2);
-            let texture = texture_creator.load_texture("images/slime_r.png")?;
+            // let fire_texture;
+            let fire_texture = texture_creator.load_texture("images/fireball/Fireball.png")?;
+            self.core.wincan.copy(&fire_texture, None, None)?;
+
+            // Position image in the screen
             let player_cam_pos = Rect::new(
-				100 - 50,
-				100 - 50,
-				TILE_SIZE * 2,
-				TILE_SIZE * 2,
+				p.x(), // Starting position x
+				p.y(), // Starting position y
+				TILE_SIZE * 2,                      // Size x
+				TILE_SIZE * 2,                      // Size y
 			);
-            self.core.wincan.copy(&texture, src, player_cam_pos)?;
+
+            if(*(p.facing_left()))
+            {
+                self.core.wincan.copy(p.texture_l(), p.src(), player_cam_pos)?;
+            } else {
+                self.core.wincan.copy(p.texture_r(), p.src(), player_cam_pos)?;
+            }
 
 			self.core.wincan.present();
 		}
@@ -120,22 +203,6 @@ impl Game for SDL07 {
 		// Out of game loop, return Ok
 		Ok(())
 	}
-}
-
-struct Player<'a> {
-    texture: Texture<'a>,
-}
-
-impl<'a> Player<'a> {
-    fn new(texture: Texture<'a>) -> Player {
-        Player {
-            texture,
-        }
-    }
-
-    fn texture(&self) -> &Texture {
-        &self.texture
-    }
 }
 
 pub fn main() -> Result<(), String> {
