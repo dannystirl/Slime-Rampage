@@ -1,105 +1,116 @@
-extern crate sdl2;
+extern crate rogue_sdl;
 
+mod credits;
+
+use std::collections::HashSet;
+
+use sdl2::pixels::Color;
+use sdl2::rect::Rect;
 use sdl2::event::Event;
-use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
 
-const TITLE: &str = "Roguelike Credits";
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const FRAME_GAP: u32 = 200;
+use rogue_sdl::SDLCore;
+use rogue_sdl::Game;
+
+const TITLE: &str = "SDL07 Key Events";
+const CAM_W: u32 = 640;
+const CAM_H: u32 = 480;
+const SPEED_LIMIT: i32 = 5;
+const ACCEL_RATE: i32 = 1;
+
+fn resist(vel: i32, deltav: i32) -> i32 {
+	if deltav == 0 {
+		if vel > 0 {
+			-1
+		}
+		else if vel < 0 {
+			1
+		}
+		else {
+			deltav
+		}
+	}
+	else {
+		deltav
+	}
+}
+
+pub struct SDL07 {
+	core: SDLCore,
+}
+
+impl Game for SDL07 {
+	fn init() -> Result<Self, String> {
+		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
+		Ok(SDL07{ core })
+	}
+
+	fn run(&mut self) -> Result<(), String> {
+		let w = 25;
+		let mut x_pos = (CAM_W/2 - w/2) as i32;
+		let mut y_pos = (CAM_H/2 - w/2) as i32;
+
+		let mut x_vel = 0;
+		let mut y_vel = 0;
+
+		'gameloop: loop {
+			for event in self.core.event_pump.poll_iter() {
+				match event {
+					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
+					_ => {},
+				}
+			}
+
+			let keystate: HashSet<Keycode> = self.core.event_pump
+				.keyboard_state()
+				.pressed_scancodes()
+				.filter_map(Keycode::from_scancode)
+				.collect();
+
+			let mut x_deltav = 0;
+			let mut y_deltav = 0;
+			if keystate.contains(&Keycode::W) {
+				y_deltav -= ACCEL_RATE;
+			}
+			if keystate.contains(&Keycode::A) {
+				x_deltav -= ACCEL_RATE;
+			}
+			if keystate.contains(&Keycode::S) {
+				y_deltav += ACCEL_RATE;
+			}
+			if keystate.contains(&Keycode::D) {
+				x_deltav += ACCEL_RATE;
+			}
+
+			// Slow down to 0 vel if no input and non-zero velocity
+			x_deltav = resist(x_vel, x_deltav);
+			y_deltav = resist(y_vel, y_deltav);
+
+			// Don't exceed speed limit
+			x_vel = (x_vel + x_deltav).clamp(-SPEED_LIMIT, SPEED_LIMIT);
+			y_vel = (y_vel + y_deltav).clamp(-SPEED_LIMIT, SPEED_LIMIT);
+
+			// Stay inside the viewing window
+			x_pos = (x_pos + x_vel).clamp(0, (CAM_W - w) as i32);
+			y_pos = (y_pos + y_vel).clamp(0, (CAM_H - w) as i32);
+
+			self.core.wincan.set_draw_color(Color::BLACK);
+			self.core.wincan.clear();
+
+			self.core.wincan.set_draw_color(Color::CYAN);
+			self.core.wincan.fill_rect(Rect::new(x_pos, y_pos, w, w))?;
+
+			self.core.wincan.present();
+		}
+
+		// Out of game loop, return Ok
+		Ok(())
+	}
+}
 
 pub fn main() -> Result<(), String> {
-    let sdl_context = sdl2::init()?;
-    let video_subsystem = sdl_context.video()?;
 
-    let window = video_subsystem
-        .window(TITLE, CAM_W, CAM_H)
-        .position_centered()
-        .opengl()
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
-    let texture_creator = canvas.texture_creator();
-
-    let mut i = 0;
-    'credits_loop: loop {
-        for event in sdl_context.event_pump()?.poll_iter() {
-            match event {
-                Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'credits_loop,
-                Event::KeyDown{keycode: Some(Keycode::Q), ..} => break 'credits_loop,
-                _ => {},
-            }
-        }
-        // Copy image texture to canvas, present, timeout
-
-	let texture;
-
-        match i {
-            i if i < FRAME_GAP * 1 => {
-		// Title
-                texture = texture_creator.load_texture("images/credits/credits_title.png")?;
-                canvas.copy(&texture, None, None)?;
-                canvas.present();
-            }
-            i if i < FRAME_GAP * 2 => {
-		// Davon Allensworth
-                texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
-                canvas.copy(&texture, None, None)?;
-                canvas.present();
-            }
-            i if i < FRAME_GAP * 3 => {
-		// Daniel Stirling
-                texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
-                canvas.copy(&texture, None, None)?;
-                canvas.present();
-            }
-            i if i < FRAME_GAP * 4 => {
-		// Victor Mui
-                texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
-                canvas.copy(&texture, None, None)?;
-                canvas.present();
-            }
-            i if i < FRAME_GAP * 5 => {
-		// Adam Wachowicz
-                texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
-                canvas.copy(&texture, None, None)?;
-                canvas.present();
-            }
-            i if i < FRAME_GAP * 6 => {
-		// Yihua Pu
-                texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
-                canvas.copy(&texture, None, None)?;
-                canvas.present();
-            }
-	    i if i < FRAME_GAP * 7 => {
-		// Marshall Lentz
-		texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
-		canvas.copy(&texture, None, None)?;
-		canvas.present();
-	    }
-        i if i < FRAME_GAP * 8 => {
-            // Josh Friedman
-            texture = texture_creator.load_texture("images/credits/friedman_credits.png")?;
-            canvas.copy(&texture, None, None)?;
-            canvas.present();
-            }
-         i if i < FRAME_GAP * 9 => {
-            // Zirui Huang
-            texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
-            canvas.copy(&texture, None, None)?;
-            canvas.present();
-            }
-        
-            _ => {}
-        }
-
-	i += 1;
-
-        if i > FRAME_GAP * 9 {
-            i = 0;
-        }
-    }
+    rogue_sdl::runner(TITLE, SDL07::init);
+    credits::run_credits();
     Ok(())
 }

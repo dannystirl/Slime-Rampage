@@ -10,5 +10,5 @@ version = "0.34.5"
 features = ["ttf","image","mixer"]
 
 [lib]
-name = "credits"
-path = "src/main.rs"
+name = "rogue_sdl"
+path = "src/lib.rs"
