@@ -178,14 +178,20 @@ impl Game for SDL07 {
 			self.core.wincan.set_draw_color(Color::BLACK);
 			self.core.wincan.clear();
 
-            // let fire_texture;
             let fire_texture = texture_creator.load_texture("images/fireball/Fireball.png")?;
             self.core.wincan.copy(&fire_texture, None, None)?;
 
+            /* let cur_bg = Rect::new(
+				((p.x() + ((p.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (CAM_W * 2 - CAM_W) as i32),
+				((p.y() + ((p.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (CAM_H * 2 - CAM_H) as i32),
+				CAM_W,
+				CAM_H,
+			); */
+
             // Position image in the screen
             let player_cam_pos = Rect::new(
-				p.x(), // Starting position x
-				p.y(), // Starting position y
+				p.x() - 0,                          // Starting position x
+				p.y() - 0,                          // Starting position y
 				TILE_SIZE * 2,                      // Size x
 				TILE_SIZE * 2,                      // Size y
 			);
