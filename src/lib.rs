@@ -1,5 +1,5 @@
 extern crate sdl2;
-//Taken from the examples. Just changed Demo to game
+//Taken from the examples. Just changed Demo to Game
 use sdl2::rect::Rect;
 
 pub struct SDLCore {
