@@ -10,17 +10,20 @@ pub struct RangedAttack<'a> {
 	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
-
+	use_ability: bool,
+	frame: i32,
 }
 
  impl<'a> RangedAttack<'a> {
-	pub fn new(startP: Rect, pos: Rect, txtre: Texture<'a>) -> RangedAttack<'a> {
+	pub fn new(startP: Rect, pos: Rect, txtre: Texture<'a>, use_ability:bool, frame:i32) -> RangedAttack<'a> {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		RangedAttack {
 			startP, 
 			pos,
 			src,	
-			txtre	
+			txtre,
+			use_ability,
+			frame,
 		}
 	}
 
@@ -46,18 +49,32 @@ pub struct RangedAttack<'a> {
 		return self.pos.y;
 	}
 
-	pub fn update_RangedAttack_pos(&mut self, frame: i32, x_bounds: (i32, i32)) {
-		if frame<6 {
+	pub fn set_use(&mut self, b:bool){
+		self.use_ability = b;
+	}
+	pub fn in_use(&self) -> bool{
+		return self.use_ability;
+	}
+
+	pub fn set_frame(&mut self, frame:i32){
+		self.frame = frame;
+	}
+	pub fn frame(&self) -> i32 {
+		return self.frame;
+	}
+
+	pub fn update_RangedAttack_pos(&mut self, x_bounds: (i32, i32)) {
+		if self.frame<6 {
 			self.pos.set_x((self.startP.x).clamp(x_bounds.0, x_bounds.1));
 		} else {
-			self.pos.set_x((self.startP.x +(frame-6)*16 ).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_x((self.startP.x +(self.frame-6)*16 ).clamp(x_bounds.0, x_bounds.1));
 		}
 	}
 
-	pub fn src(&self, frame: i32, col: i32, row: i32) -> Rect{
+	pub fn src(&self, col: i32, row: i32) -> Rect{
 		return Rect::new(
-			(frame % col) * (TILE_SIZE as i32) * 3/2,
-			(frame % row) * (TILE_SIZE as i32),
+			(self.frame % col) * (TILE_SIZE as i32) * 3/2,
+			(self.frame % row) * (TILE_SIZE as i32),
 			TILE_SIZE,
 			TILE_SIZE,
 		);

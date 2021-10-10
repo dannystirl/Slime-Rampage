@@ -22,7 +22,7 @@ const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 const TILE_SIZE: u32 = 64;
 
-const SPEED_LIMIT: i32 = 5;
+const SPEED_LIMIT: i32 = 3;
 const ACCEL_RATE: i32 = 3;
 
 pub struct ROGUELIKE {
@@ -63,15 +63,14 @@ impl Game for ROGUELIKE {
 		let mut rng = rand::thread_rng();
 		let mut t = 0;// this is just a timer for the enemys choice of movement
 		let mut e = enemy::Enemy::new(
-	
-	Rect::new(
-		(CAM_W/2 - TILE_SIZE/2) as i32,
-		(CAM_H/2 - TILE_SIZE/2) as i32,
-		TILE_SIZE,
-		TILE_SIZE,
-	),
-	texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-);
+			Rect::new(
+				(CAM_W/2 - TILE_SIZE/2) as i32,
+				(CAM_H/2 - TILE_SIZE/2) as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+		);
         // create sprites
 		let mut p = player::Player::new(
 			Rect::new(
@@ -112,10 +111,10 @@ impl Game for ROGUELIKE {
 				TILE_SIZE,
 			),
             texture_creator.load_texture("images/fireball/fireball.png")?,
+			false,
+			0,
 		);
 
-		let mut ability1_frame = 0;
-		let mut ability1_use = false;
 		'gameloop: loop {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -153,17 +152,17 @@ impl Game for ROGUELIKE {
                 p.facing_left = false;
 			}
             // shoot fireball
-            if keystate.contains(&Keycode::F) && ability1_frame==0{
-				ability1_use=true; 
+            if keystate.contains(&Keycode::F) && fireball.frame()==0{
+				fireball.set_use(true);
 				fireball.start_pos(p.x(), p.y());
 				println!("{}", fireball.x());
 			}
-			if ability1_use==true {
-				ability1_frame=ability1_frame+1; 
-				fireball.update_RangedAttack_pos(ability1_frame, (0, (CAM_W - TILE_SIZE) as i32));
-				if ability1_frame==28 {
-					ability1_use=false; 
-					ability1_frame=0;
+			if fireball.in_use() {
+				fireball.set_frame(fireball.frame()+1); 
+				fireball.update_RangedAttack_pos((0, (CAM_W - TILE_SIZE) as i32));
+				if fireball.frame()==28 {
+					fireball.set_use(false);
+					fireball.set_frame(0);
 				}
 			}
 
@@ -180,11 +179,11 @@ impl Game for ROGUELIKE {
 			p.set_y((p.y() + p.y_vel()).clamp(0, (CAM_H - w) as i32));
 
             p.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			
+		{
 			let mut roll = rng.gen_range(1..4);
 			if(t >50){
-			roll = rng.gen_range(1..5);
-			t=0;
+				roll = rng.gen_range(1..5);
+				t=0;
 			}
 
 			if(roll == 1){
@@ -199,6 +198,7 @@ impl Game for ROGUELIKE {
 			if(roll == 4){
 				e.update_enemy_pos((e_x_vel-1, e_y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 			}
+		}
 			self.core.wincan.set_draw_color(Color::BLACK);
 			self.core.wincan.clear();
 
@@ -216,10 +216,10 @@ impl Game for ROGUELIKE {
 
 			if*(p.facing_left()) {
                 self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
-                if ability1_use {self.core.wincan.copy(fireball.txtre(), fireball.src(ability1_frame, 4, 7), fireball.pos())?;}
+                if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
             } else {
                 self.core.wincan.copy(p.texture_r(), p.src(), p.pos())?;
-                if ability1_use {self.core.wincan.copy(fireball.txtre(), fireball.src(ability1_frame, 4, 7), fireball.pos())?;}
+                if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
             }
 			self.core.wincan.present();
 
