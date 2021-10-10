@@ -81,6 +81,7 @@ impl<'a> Player<'a> {
     pub fn facing_left(&self) -> &bool {
         &self.facing_left
     }
+	
     pub fn pos(&self) -> Rect {
         self.pos
     }

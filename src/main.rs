@@ -59,22 +59,11 @@ impl Game for ROGUELIKE {
         let texture_creator = self.core.wincan.texture_creator();
 		let w = 25;
 		
-		let mut e_x_vel = 0;
-		let mut e_y_vel = 0;
 		let mut rng = rand::thread_rng();
-		let mut t = 0;// this is just a timer for the enemys choice of movement
 		let mut roll = rng.gen_range(1..4);
+		let mut t = 0;// this is just a timer for the enemys choice of movement
 
-		let mut e = enemy::Enemy::new(
-			Rect::new(
-				(CAM_W/2 - TILE_SIZE/2) as i32,
-				(CAM_H/2 - TILE_SIZE/2) as i32,
-				TILE_SIZE,
-				TILE_SIZE,
-			),
-			texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-		);
-        // create sprites
+		// create sprites
 		let mut p = player::Player::new(
 			Rect::new(
 				0, 0, TILE_SIZE, TILE_SIZE,
@@ -88,12 +77,11 @@ impl Game for ROGUELIKE {
 			texture_creator.load_texture("images/player/blue_slime_l.png")?,
 			texture_creator.load_texture("images/player/blue_slime_r.png")?,
 		);
-		p.set_x((CAM_W/2 - w/2) as i32);
-		p.set_y((CAM_H/2 - w/2) as i32);
-		p.set_x_vel(0);
-		p.set_y_vel(0);
 		
         let mut e = enemy::Enemy::new(
+			Rect::new(
+				0, 0, TILE_SIZE, TILE_SIZE,
+			),
             Rect::new(
                 (CAM_W/2 - TILE_SIZE/2) as i32,
                 (CAM_H/2 - TILE_SIZE/2) as i32,
@@ -185,23 +173,11 @@ impl Game for ROGUELIKE {
 			
 
 			if(t >50){
+				roll = rng.gen_range(1..5);
+				t=0;
+			}
+			e.update_pos(roll, (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 
-			roll = rng.gen_range(1..5);
-			t=0;
-			}
-
-			if(roll == 1){
-				e.update_enemy_pos((e_x_vel+1, e_y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			}
-			if(roll == 2){
-				e.update_enemy_pos((e_x_vel, e_y_vel+1), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			}
-			if(roll == 3){
-				e.update_enemy_pos((e_x_vel, e_y_vel-1), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			}
-			if(roll == 4){
-				e.update_enemy_pos((e_x_vel-1, e_y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			}
 			//self.core.wincan.set_draw_color(Color::BLACK);
 			//self.core.wincan.clear();
 
