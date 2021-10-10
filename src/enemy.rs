@@ -1,16 +1,9 @@
 extern crate rogue_sdl;
-use std::time::Duration;
-use std::collections::HashSet;
 
-use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use sdl2::image::LoadTexture;
+
 use sdl2::render::Texture;
 
-use rogue_sdl::SDLCore;
-use rogue_sdl::Game;
 const TILE_SIZE: u32 = 32;
 
 
