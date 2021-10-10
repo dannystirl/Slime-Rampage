@@ -2,7 +2,7 @@ extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
-const TILE_SIZE: u32 = 32;
+const TILE_SIZE: u32 = 64;
 
 pub struct Player<'a> {
 	pos: Rect,
@@ -60,5 +60,8 @@ impl<'a> Player<'a> {
 
     pub fn facing_left(&self) -> &bool {
         &self.facing_left
+    }
+    pub fn pos(&self) -> Rect {
+        self.pos
     }
 }

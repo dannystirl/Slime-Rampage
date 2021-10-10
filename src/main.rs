@@ -21,7 +21,7 @@ const CAM_H: u32 = 720;
 const SPEED_LIMIT: i32 = 10;
 const ACCEL_RATE: i32 = 3;
 
-const TILE_SIZE: u32 = 32;
+const TILE_SIZE: u32 = 64;
 
 
 fn resist(vel: i32, deltav: i32) -> i32 {
@@ -135,7 +135,12 @@ let mut e = enemy::Enemy::new(
 			y_pos = (y_pos + y_vel).clamp(0, (CAM_H - w) as i32);
 
             p.update_pos((x_vel, y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			e.update_enemy_pos((x_vel, y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+			
+			
+			
+			//e.update_enemy_pos((x_vel, y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+			
+			
 			self.core.wincan.set_draw_color(Color::BLACK);
 			self.core.wincan.clear();
 
@@ -149,20 +154,13 @@ let mut e = enemy::Enemy::new(
 				CAM_H,
 			); */
 
-            // Position image in the screen
-            let player_cam_pos = Rect::new(
-				p.x() - 0,                          // Starting position x
-				p.y() - 0,                          // Starting position y
-				TILE_SIZE * 2,                      // Size x
-				TILE_SIZE * 2,                      // Size y
-			);
-			self.core.wincan.copy(e.txtre(), e.src(), Rect::new(0,0,TILE_SIZE * 2,TILE_SIZE * 2,))?;
+			self.core.wincan.copy(e.txtre(), e.src(), e.pos())?;
 
             if*(p.facing_left())
             {
-                self.core.wincan.copy(p.texture_l(), p.src(), player_cam_pos)?;
+                self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
             } else {
-                self.core.wincan.copy(p.texture_r(), p.src(), player_cam_pos)?;
+                self.core.wincan.copy(p.texture_r(), p.src(), p.pos())?;
             }
 
 			self.core.wincan.present();

@@ -4,7 +4,7 @@ use sdl2::rect::Rect;
 
 use sdl2::render::Texture;
 
-const TILE_SIZE: u32 = 32;
+const TILE_SIZE: u32 = 64;
 
 
 pub struct Enemy<'a> {
@@ -52,5 +52,7 @@ pub struct Enemy<'a> {
     pub fn txtre(&self) -> &Texture {
         &self.txtre
     }
-
+    pub fn pos(&self) -> Rect {
+        self.pos
+    }
 }
