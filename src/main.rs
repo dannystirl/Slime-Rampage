@@ -20,7 +20,7 @@ const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 const SPEED_LIMIT: i32 = 10;
-const ACCEL_RATE: i32 = 3;
+const ACCEL_RATE: i32 = 1;
 
 const TILE_SIZE: u32 = 64;
 
@@ -82,7 +82,7 @@ impl Game for ROGUELIKE {
 		TILE_SIZE,
 		TILE_SIZE,
 	),
-	texture_creator.load_texture("images/place_holder_enemy.png")?,
+	texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
 );
         let mut p = player::Player::new(
 			Rect::new(
@@ -91,8 +91,8 @@ impl Game for ROGUELIKE {
 				TILE_SIZE,
 				TILE_SIZE,
 			),
-            texture_creator.load_texture("images/slime_l.png")?,
-			texture_creator.load_texture("images/slime_r.png")?,
+            texture_creator.load_texture("images/player/blue_slime_l.png")?,
+			texture_creator.load_texture("images/player/blue_slime_r.png")?,
 		);
 		let mut roll = rng.gen_range(1..4);
 
@@ -164,8 +164,8 @@ impl Game for ROGUELIKE {
 			self.core.wincan.set_draw_color(Color::BLACK);
 			self.core.wincan.clear();
 
-            let fire_texture = texture_creator.load_texture("images/fireball/Fireball.png")?;
-            self.core.wincan.copy(&fire_texture, None, None)?;
+            let background = texture_creator.load_texture("images/background/black_background.jpg")?;
+            self.core.wincan.copy(&background, None, None)?;
 
             /* let cur_bg = Rect::new(
 				((p.x() + ((p.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (CAM_W * 2 - CAM_W) as i32),
