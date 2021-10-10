@@ -1,11 +1,9 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
-
 use sdl2::render::Texture;
 
 const TILE_SIZE: u32 = 64;
-
 
 pub struct Enemy<'a> {
 	pos: Rect,
