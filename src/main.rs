@@ -43,14 +43,6 @@ fn resist(vel: i32, deltav: i32) -> i32 {
 }
 
 
-
-
-
-
-
-
-
-
 pub struct ROGUELIKE {
 	core: SDLCore,
 }
@@ -161,8 +153,8 @@ impl Game for ROGUELIKE {
 			if(roll == 4){
 				e.update_enemy_pos((e_x_vel-1, e_y_vel), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 			}
-			self.core.wincan.set_draw_color(Color::BLACK);
-			self.core.wincan.clear();
+			//self.core.wincan.set_draw_color(Color::BLACK);
+			//self.core.wincan.clear();
 
             let background = texture_creator.load_texture("images/background/bb.png")?;
             self.core.wincan.copy(&background, None, None)?;
