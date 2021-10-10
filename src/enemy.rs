@@ -13,7 +13,8 @@ pub struct Enemy<'a> {
 }
 
  impl<'a> Enemy<'a> {
-	pub fn new(vel: Rect, pos: Rect, txtre: Texture<'a>) -> Enemy<'a> {
+	pub fn new(pos: Rect, txtre: Texture<'a>) -> Enemy<'a> {
+		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let facing_left = false;
 		Enemy {

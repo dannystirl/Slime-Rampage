@@ -30,21 +30,12 @@ pub struct ROGUELIKE {
 }
 
 // calculate velocity resistance
-fn resist(vel: i32, deltav: i32) -> i32 {
-	if deltav == 0 {
-		if vel > 0 {
-			-1
-		}
-		else if vel < 0 {
-			1
-		}
-		else {
-			deltav
-		}
-	}
-	else {
-		deltav
-	}
+fn resist(vel: i32, delta: i32) -> i32 {
+	if delta == 0 {
+		if vel > 0 {-1}
+		else if vel < 0 {1}
+		else {delta}
+	} else {delta}
 }
 
 impl Game for ROGUELIKE {
@@ -65,9 +56,6 @@ impl Game for ROGUELIKE {
 		// create sprites
 		let mut p = player::Player::new(
 			Rect::new(
-				0, 0, TILE_SIZE, TILE_SIZE,
-			),
-			Rect::new(
 				(CAM_W/2 - TILE_SIZE/2) as i32,
 				(CAM_H/2 - TILE_SIZE/2) as i32,
 				TILE_SIZE,
@@ -78,9 +66,6 @@ impl Game for ROGUELIKE {
 		);
 		
         let mut e = enemy::Enemy::new(
-			Rect::new(
-				0, 0, TILE_SIZE, TILE_SIZE,
-			),
             Rect::new(
                 (CAM_W/2 - TILE_SIZE/2) as i32,
                 (CAM_H/2 - TILE_SIZE/2) as i32,
@@ -113,32 +98,31 @@ impl Game for ROGUELIKE {
 				}
 			}
 
+			p.set_x_delta(0);
+			p.set_y_delta(0);
+
 			let keystate: HashSet<Keycode> = self.core.event_pump
 				.keyboard_state()
 				.pressed_scancodes()
 				.filter_map(Keycode::from_scancode)
 				.collect();
 
-			let mut x_deltav = 0;
-			let mut y_deltav = 0;
-            
-
-            // move up
+			// move up
 			if keystate.contains(&Keycode::W) {
-				y_deltav -= ACCEL_RATE;
+				p.set_y_delta(p.y_delta()-ACCEL_RATE);
 			}
             // move left
 			if keystate.contains(&Keycode::A) {
-				x_deltav -= ACCEL_RATE;
+				p.set_x_delta(p.x_delta()-ACCEL_RATE);
                 p.facing_left = true;
 			}
             // move down
 			if keystate.contains(&Keycode::S) {
-				y_deltav += ACCEL_RATE;
+				p.set_y_delta(p.y_delta()+ACCEL_RATE);
 			}
             // move right
 			if keystate.contains(&Keycode::D) {
-				x_deltav += ACCEL_RATE;
+				p.set_x_delta(p.x_delta()+ACCEL_RATE);
                 p.facing_left = false;
 			}
             // shoot fireball
@@ -157,12 +141,12 @@ impl Game for ROGUELIKE {
 			}
 
 			// Slow down to 0 vel if no input and non-zero velocity
-			x_deltav = resist(p.x_vel(), x_deltav);
-			y_deltav = resist(p.y_vel(), y_deltav);
+			p.set_x_delta(resist(p.x_vel(), p.x_delta()));
+			p.set_y_delta(resist(p.y_vel(), p.y_delta()));
 
 			// Don't exceed speed limit
-			p.set_x_vel((p.x_vel() + x_deltav).clamp(-SPEED_LIMIT, SPEED_LIMIT));
-			p.set_y_vel((p.y_vel() + y_deltav).clamp(-SPEED_LIMIT, SPEED_LIMIT));
+			p.set_x_vel((p.x_vel() + p.x_delta()).clamp(-SPEED_LIMIT, SPEED_LIMIT));
+			p.set_y_vel((p.y_vel() + p.y_delta()).clamp(-SPEED_LIMIT, SPEED_LIMIT));
 
 			// Stay inside the viewing window
 			p.set_x((p.x() + p.x_vel()).clamp(0, (CAM_W - w) as i32));
