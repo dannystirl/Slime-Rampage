@@ -164,7 +164,7 @@ impl Game for ROGUELIKE {
 			self.core.wincan.set_draw_color(Color::BLACK);
 			self.core.wincan.clear();
 
-            let background = texture_creator.load_texture("images/background/black_background.jpg")?;
+            let background = texture_creator.load_texture("images/background/bb.png")?;
             self.core.wincan.copy(&background, None, None)?;
 
             /* let cur_bg = Rect::new(
