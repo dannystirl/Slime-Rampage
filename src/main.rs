@@ -47,6 +47,18 @@ fn resist(vel: i32, deltav: i32) -> i32 {
 	}
 }
 
+fn check_collision(a: &Rect, b: &Rect) -> bool {
+	if a.bottom() < b.top()
+		|| a.top() > b.bottom()
+		|| a.right() < b.left()
+		|| a.left() > b.right()
+	{
+		false
+	}
+	else {
+		true
+	}
+}
 
 impl Game for ROGUELIKE {
 	fn init() -> Result<Self, String> {
@@ -63,7 +75,33 @@ impl Game for ROGUELIKE {
 		let mut roll = rng.gen_range(1..4);
 		let mut t = 0;// this is just a timer for the enemys choice of movement
 
+<<<<<<< HEAD
 		// create sprites
+=======
+		let mut e = enemy::Enemy::new(
+<<<<<<< HEAD
+	
+	Rect::new(
+		(CAM_W/2 - TILE_SIZE/2 + 100) as i32,
+		(CAM_H/2 - TILE_SIZE/2 + 100) as i32,
+		TILE_SIZE,
+		TILE_SIZE,
+	),
+	texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+);
+        let mut p = player::Player::new(
+=======
+>>>>>>> b30ba03af22b645477989adc9cf08b9cf3590955
+			Rect::new(
+				(CAM_W/2 - TILE_SIZE/2) as i32,
+				(CAM_H/2 - TILE_SIZE/2) as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+		);
+        // create sprites
+>>>>>>> 62e736ec4b244e43e751e206a9499cf2095577c5
 		let mut p = player::Player::new(
 			Rect::new(
 				0, 0, TILE_SIZE, TILE_SIZE,
@@ -190,6 +228,27 @@ impl Game for ROGUELIKE {
 				CAM_W,
 				CAM_H,
 			); */
+
+
+			
+
+			if check_collision(&p.pos(), &e.pos())
+				|| p.pos().left() < 0
+				|| p.pos().right() > CAM_W as i32
+			{
+				p.update_pos((x_vel, y_vel), (0, p.x() - x_vel), (0, p.y()));
+			}
+
+			
+			if check_collision(&p.pos(), &e.pos())
+				|| p.pos().top() < 0
+				|| p.pos().bottom() > CAM_H as i32
+			{
+				p.update_pos((x_vel, y_vel), (0, p.x()), (0, p.y() - y_vel));
+			}	
+
+			
+
 
 			self.core.wincan.copy(e.txtre(), e.src(), e.pos())?;
 
