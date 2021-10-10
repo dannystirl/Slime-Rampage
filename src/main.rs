@@ -1,4 +1,5 @@
 extern crate rogue_sdl;
+mod enemy;
 
 mod credits;
 
@@ -14,7 +15,6 @@ use sdl2::render::Texture;
 
 use rogue_sdl::SDLCore;
 use rogue_sdl::Game;
-
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
@@ -102,53 +102,7 @@ fn resist(vel: i32, deltav: i32) -> i32 {
 
 
 
-struct Enemy<'a> {
-	pos: Rect,
-	src: Rect,
-	txtre: Texture<'a>,
 
-}
-
-impl<'a> Enemy<'a> {
-	fn new(pos: Rect, txtre: Texture<'a>) -> Enemy<'a> {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-		Enemy {
-			pos,
-			src,	
-			txtre	
-		}
-	}
-
-	fn enemy_x(&self) -> i32 {
-		self.pos.x()
-	}
-
-	fn enemy_y(&self) -> i32 {
-		self.pos.y()
-	}
-
-	fn enemy_width(&self) -> u32 {
-		self.pos.width()
-	}
-
-	fn enemy_height(&self) -> u32 {
-		self.pos.height()
-	}
-
-	fn update_enemy_pos(&mut self, vel: (i32, i32), x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.set_x((self.pos.x() + vel.0).clamp(x_bounds.0, x_bounds.1));
-		self.pos.set_y((self.pos.y() + vel.1).clamp(y_bounds.0, y_bounds.1));
-	}
-
-	fn src(&self) -> Rect {
-		self.src
-	}
-
-    fn txtre(&self) -> &Texture {
-        &self.txtre
-    }
-
-}
 
 
 
@@ -173,7 +127,7 @@ impl Game for SDL07 {
 
 		let mut x_vel = 0;
 		let mut y_vel = 0;
-let mut e = Enemy::new(
+let mut e = enemy::Enemy::new(
 	
 	Rect::new(
 		(CAM_W/2 - TILE_SIZE/2) as i32,
