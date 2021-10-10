@@ -48,10 +48,6 @@ fn resist(vel: i32, deltav: i32) -> i32 {
 }
 
 
-pub struct ROGUELIKE {
-	core: SDLCore,
-}
-
 impl Game for ROGUELIKE {
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
@@ -67,6 +63,8 @@ impl Game for ROGUELIKE {
 		let mut e_y_vel = 0;
 		let mut rng = rand::thread_rng();
 		let mut t = 0;// this is just a timer for the enemys choice of movement
+		let mut roll = rng.gen_range(1..4);
+
 		let mut e = enemy::Enemy::new(
 	
 	Rect::new(
@@ -186,8 +184,9 @@ impl Game for ROGUELIKE {
 
             p.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 			
-			let mut roll = rng.gen_range(1..4);
+
 			if(t >50){
+
 			roll = rng.gen_range(1..5);
 			t=0;
 			}
