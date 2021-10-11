@@ -11,17 +11,20 @@ pub struct Player<'a> {
 	src: Rect,
 	texture_l: Texture<'a>,
     texture_r: Texture<'a>,
-	texture_a: Texture<'a>,
+	texture_a_l: Texture<'a>,
+	texture_a_r: Texture<'a>,
 	pub facing_left: bool,
+	pub facing_right: bool,
 	pub is_still: bool,
 }
 
 impl<'a> Player<'a> {
-	pub fn new(pos: Rect, texture_l: Texture<'a>, texture_r: Texture<'a>, texture_a: Texture<'a>) -> Player<'a> {
+	pub fn new(pos: Rect, texture_l: Texture<'a>, texture_r: Texture<'a>, texture_a_l: Texture<'a>, texture_a_r: Texture<'a>) -> Player<'a> {
 		let delta = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
         let facing_left = false;
+		let facing_right = false;
 		let is_still = true;
 		Player {
 			delta, 
@@ -30,8 +33,10 @@ impl<'a> Player<'a> {
 			src,
 			texture_l,
             texture_r,
-			texture_a,
+			texture_a_l,
+			texture_a_r,
             facing_left,
+			facing_right,
 			is_still,
 		}
 	}
@@ -103,12 +108,20 @@ impl<'a> Player<'a> {
         &self.facing_left
     }
 
+	pub fn facing_right(&self) -> &bool {
+        &self.facing_right
+    }
+
     pub fn pos(&self) -> Rect {
         self.pos
     }
 
-	pub fn texture_a(&self) -> &Texture {
-        &self.texture_a
+	pub fn texture_a_l(&self) -> &Texture {
+        &self.texture_a_l
+    }
+
+	pub fn texture_a_r(&self) -> &Texture {
+        &self.texture_a_r
     }
 
 	pub fn is_still(&self) -> &bool {

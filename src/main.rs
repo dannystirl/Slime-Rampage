@@ -80,7 +80,8 @@ impl Game for ROGUELIKE {
 			),
 			texture_creator.load_texture("images/player/blue_slime_l.png")?,
 			texture_creator.load_texture("images/player/blue_slime_r.png")?,
-			texture_creator.load_texture("images/player/slime_animation.png")?,
+			texture_creator.load_texture("images/player/slime_animation_l.png")?,
+			texture_creator.load_texture("images/player/slime_animation_r.png")?,
 		);
 		
         let mut e = enemy::Enemy::new(
@@ -134,6 +135,7 @@ impl Game for ROGUELIKE {
 			if keystate.contains(&Keycode::A) {
 				p.set_x_delta(p.x_delta()-ACCEL_RATE);
                 p.facing_left = true;
+				p.facing_right = false;
 				p.is_still = false;
 			}
             // move down
@@ -145,6 +147,7 @@ impl Game for ROGUELIKE {
 			if keystate.contains(&Keycode::D) {
 				p.set_x_delta(p.x_delta()+ACCEL_RATE);
                 p.facing_left = false;
+				p.facing_right = true;
 				p.is_still = false;
 			}
 
@@ -188,14 +191,14 @@ impl Game for ROGUELIKE {
 				|| p.pos().left() < 0
 				|| p.pos().right() > CAM_W as i32
 			{
-				p.set_x(p.x() - p.x_vel());
+				p.set_x(  (p.x() - p.x_vel())  );
 			}
 			
 			if check_collision(&p.pos(), &e.pos())
 				|| p.pos().top() < 0
 				|| p.pos().bottom() > CAM_H as i32
 			{
-				p.set_y(p.y() - p.y_vel());
+				p.set_y(  (p.y() - p.y_vel())   );
 			}
 
 
@@ -227,14 +230,22 @@ impl Game for ROGUELIKE {
 			self.core.wincan.copy(e.txtre(), e.src(), e.pos())?;
 
 			
-
+			/*
 			if*(p.facing_left()) {
 			p.set_src(0, 0);
                 self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
                 if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
             
-			}else if *(p.is_still()){
-			    self.core.wincan.copy(p.texture_a(), p.src(), p.pos())?;
+			}*/
+			if *(p.is_still()){
+
+				if*(p.facing_right()) {
+					self.core.wincan.copy(p.texture_a_r(), p.src(), p.pos())?;
+				}
+				else {
+					self.core.wincan.copy(p.texture_a_l(), p.src(), p.pos())?;
+				}
+			    
 				//display animation when not moving
 				match count{
 					count if count < f_display => {p.set_src(0 as i32, 0 as i32);}
@@ -252,7 +263,13 @@ impl Game for ROGUELIKE {
 			
 			else {
 			p.set_src(0, 0);
-                self.core.wincan.copy(p.texture_r(), p.src(), p.pos())?;
+				if*(p.facing_right()) {
+					self.core.wincan.copy(p.texture_r(), p.src(), p.pos())?;
+				}
+				else {
+					self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
+				}
+                
                 if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
             }
 			self.core.wincan.present();
@@ -267,6 +284,6 @@ impl Game for ROGUELIKE {
 
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
-     credits::run_credits();
+     //credits::run_credits();
     Ok(())
 }
