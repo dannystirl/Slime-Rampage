@@ -138,4 +138,8 @@ impl<'a> Player<'a> {
 	pub fn get_hp(&self) -> f32 {
 		return self.hp
 	}
+
+	pub fn minus_hp(&mut self, dmg: f32) {
+		self.hp -= dmg;
+	}
 }
