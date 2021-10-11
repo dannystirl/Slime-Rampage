@@ -47,6 +47,20 @@ fn resist(vel: i32, deltav: i32) -> i32 {
 	}
 }
 
+fn check_collision(a: &Rect, b: &Rect) -> bool {
+	if a.bottom() < b.top()
+		|| a.top() > b.bottom()
+		|| a.right() < b.left()
+		|| a.left() > b.right()
+	{
+		false
+	}
+	else {
+		true
+	}
+}
+
+
 impl Game for ROGUELIKE {
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
@@ -61,6 +75,7 @@ impl Game for ROGUELIKE {
 		let mut rng = rand::thread_rng();
 		let mut roll = rng.gen_range(1..4);
 		let mut t = 0;// this is just a timer for the enemys choice of movement
+		
 
 		// create sprites
 		let mut p = player::Player::new(
@@ -82,8 +97,8 @@ impl Game for ROGUELIKE {
 				0, 0, TILE_SIZE, TILE_SIZE,
 			),
             Rect::new(
-                (CAM_W/2 - TILE_SIZE/2) as i32,
-                (CAM_H/2 - TILE_SIZE/2) as i32,
+                (CAM_W/2 - TILE_SIZE/2 + 100) as i32,
+                (CAM_H/2 - TILE_SIZE/2 + 100) as i32,
                 TILE_SIZE,
                 TILE_SIZE,
             ),
@@ -169,6 +184,24 @@ impl Game for ROGUELIKE {
 			p.set_y((p.y() + p.y_vel()).clamp(0, (CAM_H - w) as i32));
 
             p.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+
+			if check_collision(&p.pos(), &e.pos())
+				|| p.pos().left() < 0
+				|| p.pos().right() > CAM_W as i32
+			{
+				p.set_x(p.x() - x_deltav);
+			}
+			
+			if check_collision(&p.pos(), &e.pos())
+				|| p.pos().top() < 0
+				|| p.pos().bottom() > CAM_H as i32
+			{
+				p.set_y(p.y() - y_deltav);
+			}
+
+
+			
+		
 			
 
 			if(t >50){
@@ -177,6 +210,8 @@ impl Game for ROGUELIKE {
 			}
 			e.update_pos(roll, (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 
+			
+			
 			//self.core.wincan.set_draw_color(Color::BLACK);
 			//self.core.wincan.clear();
 
@@ -191,6 +226,8 @@ impl Game for ROGUELIKE {
 			); */
 
 			self.core.wincan.copy(e.txtre(), e.src(), e.pos())?;
+
+			
 
 			if*(p.facing_left()) {
                 self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
