@@ -115,9 +115,6 @@ impl Game for ROGUELIKE {
 					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
 					_ => {},
 				}
-				if p.get_hp() <= 0.0 {
-					break 'gameloop		
-				}
 			}
 			println!("hp = {}", p.get_hp());
 			
@@ -283,6 +280,9 @@ impl Game for ROGUELIKE {
 
 			t +=1 ;
 
+			if p.get_hp() <= 0.0 {
+				break 'gameloop		
+			}
 		}
 		// Out of game loop, return Ok
 		Ok(())
