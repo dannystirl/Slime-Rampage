@@ -173,14 +173,14 @@ impl Game for ROGUELIKE {
 				|| p.pos().left() < 0
 				|| p.pos().right() > CAM_W as i32
 			{
-				p.set_x(p.x() - x_deltav);
+				p.set_x(p.x() - p.x_vel());
 			}
 			
 			if check_collision(&p.pos(), &e.pos())
 				|| p.pos().top() < 0
 				|| p.pos().bottom() > CAM_H as i32
 			{
-				p.set_y(p.y() - y_deltav);
+				p.set_y(p.y() - p.y_vel());
 			}
 
 
