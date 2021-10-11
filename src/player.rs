@@ -16,6 +16,7 @@ pub struct Player<'a> {
 	pub facing_left: bool,
 	pub facing_right: bool,
 	pub is_still: bool,
+	pub hp: f32,
 }
 
 impl<'a> Player<'a> {
@@ -26,6 +27,7 @@ impl<'a> Player<'a> {
         let facing_left = false;
 		let facing_right = false;
 		let is_still = true;
+		let mut hp = 100.0;
 		Player {
 			delta, 
 			vel, 
@@ -38,6 +40,7 @@ impl<'a> Player<'a> {
             facing_left,
 			facing_right,
 			is_still,
+			hp,
 		}
 	}
 
@@ -130,5 +133,9 @@ impl<'a> Player<'a> {
 
 	pub fn set_src(&mut self, x: i32, y: i32){
 		self.src = Rect::new(x as i32, y as i32, TILE_SIZE, TILE_SIZE);
+	}
+
+	pub fn get_hp(&self) -> f32 {
+		return self.hp
 	}
 }

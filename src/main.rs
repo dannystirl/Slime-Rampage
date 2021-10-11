@@ -115,7 +115,12 @@ impl Game for ROGUELIKE {
 					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
 					_ => {},
 				}
+				if p.get_hp() <= 0.0 {
+					break 'gameloop		
+				}
 			}
+			println!("hp = {}", p.get_hp());
+			
 
 			p.set_x_delta(0);
 			p.set_y_delta(0);
@@ -192,6 +197,7 @@ impl Game for ROGUELIKE {
 				|| p.pos().right() > CAM_W as i32
 			{
 				p.set_x(  (p.x() - p.x_vel())  );
+				p.hp -= 0.1;
 			}
 			
 			if check_collision(&p.pos(), &e.pos())
@@ -199,6 +205,7 @@ impl Game for ROGUELIKE {
 				|| p.pos().bottom() > CAM_H as i32
 			{
 				p.set_y(  (p.y() - p.y_vel())   );
+				p.hp -=0.1;
 			}
 
 
