@@ -67,6 +67,8 @@ impl Game for ROGUELIKE {
 		let mut roll = rng.gen_range(1..4);
 		let mut t = 0;// this is just a timer for the enemys choice of movement
 		
+		let mut count = 0;
+		let f_display = 15;
 
 		// create sprites
 		let mut p = player::Player::new(
@@ -78,6 +80,7 @@ impl Game for ROGUELIKE {
 			),
 			texture_creator.load_texture("images/player/blue_slime_l.png")?,
 			texture_creator.load_texture("images/player/blue_slime_r.png")?,
+			texture_creator.load_texture("images/player/slime_animation.png")?,
 		);
 		
         let mut e = enemy::Enemy::new(
@@ -125,21 +128,29 @@ impl Game for ROGUELIKE {
 			// move up
 			if keystate.contains(&Keycode::W) {
 				p.set_y_delta(p.y_delta()-ACCEL_RATE);
+				p.is_still = false;
 			}
             // move left
 			if keystate.contains(&Keycode::A) {
 				p.set_x_delta(p.x_delta()-ACCEL_RATE);
                 p.facing_left = true;
+				p.is_still = false;
 			}
             // move down
 			if keystate.contains(&Keycode::S) {
 				p.set_y_delta(p.y_delta()+ACCEL_RATE);
+				p.is_still = false;
 			}
             // move right
 			if keystate.contains(&Keycode::D) {
 				p.set_x_delta(p.x_delta()+ACCEL_RATE);
                 p.facing_left = false;
+				p.is_still = false;
 			}
+
+	
+			
+
             // shoot fireball
             if keystate.contains(&Keycode::F) && fireball.frame()==0{
 				fireball.set_use(true);
@@ -158,6 +169,10 @@ impl Game for ROGUELIKE {
 			// Slow down to 0 vel if no input and non-zero velocity
 			p.set_x_delta(resist(p.x_vel(), p.x_delta()));
 			p.set_y_delta(resist(p.y_vel(), p.y_delta()));
+			
+			//when player is not moving
+			//print!("{},{}", p.x_vel(), p.y_vel());
+			if(p.x_vel() == 0  && p.y_vel() == 0 ){p.is_still = true;}//?
 
 			// Don't exceed speed limit
 			p.set_x_vel((p.x_vel() + p.x_delta()).clamp(-SPEED_LIMIT, SPEED_LIMIT));
@@ -214,9 +229,29 @@ impl Game for ROGUELIKE {
 			
 
 			if*(p.facing_left()) {
+			p.set_src(0, 0);
                 self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
                 if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
-            } else {
+            
+			}else if *(p.is_still()){
+			    self.core.wincan.copy(p.texture_a(), p.src(), p.pos())?;
+				//display animation when not moving
+				match count{
+					count if count < f_display => {p.set_src(0 as i32, 0 as i32);}
+					count if count < f_display*2 => {p.set_src(TILE_SIZE as i32, 0 as i32);}
+					count if count < f_display*3 => {p.set_src(0 as i32, TILE_SIZE as i32);}
+					count if count < f_display*4 => {p.set_src(TILE_SIZE as i32, TILE_SIZE as i32);}
+					_ =>{p.set_src(0, 0);}	
+				}
+				count = count + 1;
+				if(count > f_display * 5){
+					count = 0;
+				}
+				if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
+			}  
+			
+			else {
+			p.set_src(0, 0);
                 self.core.wincan.copy(p.texture_r(), p.src(), p.pos())?;
                 if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
             }
