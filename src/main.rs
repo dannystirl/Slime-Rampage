@@ -1,14 +1,13 @@
 extern crate rogue_sdl;
 mod enemy;
 mod player;
-mod RangedAttack;
+mod ranged_attack;
 mod credits;
-use rand::Rng;
 
-use std::time::Duration;
 use std::collections::HashSet;
 
-use sdl2::pixels::Color;
+use rand::Rng;
+
 use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -94,7 +93,7 @@ impl Game for ROGUELIKE {
             texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
         );
 	
-        let mut fireball = RangedAttack::RangedAttack::new(
+        let mut fireball = ranged_attack::RangedAttack::new(
 			Rect::new(
 				0, 0, TILE_SIZE, TILE_SIZE,
 			),
@@ -164,7 +163,7 @@ impl Game for ROGUELIKE {
 			}
 			if fireball.in_use() {
 				fireball.set_frame(fireball.frame()+1); 
-				fireball.update_RangedAttack_pos((0, (CAM_W - TILE_SIZE) as i32));
+				fireball.update_ranged_attack_pos((0, (CAM_W - TILE_SIZE) as i32));
 				if fireball.frame()==28 {
 					fireball.set_use(false);
 					fireball.set_frame(0);
@@ -177,7 +176,7 @@ impl Game for ROGUELIKE {
 			
 			//when player is not moving
 			//print!("{},{}", p.x_vel(), p.y_vel());
-			if(p.x_vel() == 0  && p.y_vel() == 0 ){p.is_still = true;}//?
+			if p.x_vel() == 0 && p.y_vel() == 0 {p.is_still = true;}//?
 
 			// Don't exceed speed limit
 			p.set_x_vel((p.x_vel() + p.x_delta()).clamp(-SPEED_LIMIT, SPEED_LIMIT));
@@ -193,7 +192,7 @@ impl Game for ROGUELIKE {
 				|| p.pos().left() < 0
 				|| p.pos().right() > CAM_W as i32
 			{
-				p.set_x(  (p.x() - p.x_vel())  );
+				p.set_x(p.x() - p.x_vel());
 				p.minus_hp(0.2);
 				println!("hp = {}", p.get_hp());
 			}
@@ -202,7 +201,7 @@ impl Game for ROGUELIKE {
 				|| p.pos().top() < 0
 				|| p.pos().bottom() > CAM_H as i32
 			{
-				p.set_y(  (p.y() - p.y_vel())   );
+				p.set_y(p.y() - p.y_vel());
 				p.minus_hp(0.2);
 				println!("hp = {}", p.get_hp());
 			}
@@ -212,7 +211,7 @@ impl Game for ROGUELIKE {
 		
 			
 
-			if(t >50){
+			if t >50 {
 				roll = rng.gen_range(1..5);
 				t=0;
 			}
@@ -261,10 +260,10 @@ impl Game for ROGUELIKE {
 					_ =>{p.set_src(0, 0);}	
 				}
 				count = count + 1;
-				if(count > f_display * 5){
+				if count > f_display * 5 {
 					count = 0;
 				}
-				if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
+				if fireball.in_use() {self.core.wincan.copy(fireball.texture(), fireball.src(4, 7), fireball.pos())?;}
 			}  
 			
 			else {
@@ -276,7 +275,7 @@ impl Game for ROGUELIKE {
 					self.core.wincan.copy(p.texture_l(), p.src(), p.pos())?;
 				}
                 
-                if fireball.in_use() {self.core.wincan.copy(fireball.txtre(), fireball.src(4, 7), fireball.pos())?;}
+                if fireball.in_use() {self.core.wincan.copy(fireball.texture(), fireball.src(4, 7), fireball.pos())?;}
             }
 			self.core.wincan.present();
 
