@@ -293,6 +293,6 @@ impl Game for ROGUELIKE {
 
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
-     //credits::run_credits();
+    credits::run_credits();
     Ok(())
 }
