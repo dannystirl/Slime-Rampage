@@ -116,7 +116,7 @@ impl Game for ROGUELIKE {
 					_ => {},
 				}
 			}
-			println!("hp = {}", p.get_hp());
+			
 			
 
 			p.set_x_delta(0);
@@ -194,7 +194,8 @@ impl Game for ROGUELIKE {
 				|| p.pos().right() > CAM_W as i32
 			{
 				p.set_x(  (p.x() - p.x_vel())  );
-				p.minus_hp(0.1);
+				p.minus_hp(0.2);
+				println!("hp = {}", p.get_hp());
 			}
 			
 			if check_collision(&p.pos(), &e.pos())
@@ -202,7 +203,8 @@ impl Game for ROGUELIKE {
 				|| p.pos().bottom() > CAM_H as i32
 			{
 				p.set_y(  (p.y() - p.y_vel())   );
-				p.minus_hp(0.1);
+				p.minus_hp(0.2);
+				println!("hp = {}", p.get_hp());
 			}
 
 
