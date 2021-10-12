@@ -27,7 +27,7 @@ impl<'a> Player<'a> {
         let facing_left = false;
 		let facing_right = false;
 		let is_still = true;
-		let mut hp = 100.0;
+		let /*mut*/ hp = 100.0; // Change to mutable when enemy attacks implemented
 		Player {
 			delta, 
 			vel, 
@@ -63,9 +63,9 @@ impl<'a> Player<'a> {
 	pub fn x_delta(&self) -> i32 {
 		return self.delta.x;
 	}
-	pub fn width(&self) -> u32 {
+	/*pub fn width(&self) -> u32 {
 		self.pos.width()
-	}
+	}*/
 	
 	// player y values
 	pub fn set_y(&mut self, y:i32){
@@ -86,9 +86,9 @@ impl<'a> Player<'a> {
 	pub fn y_delta(&self) -> i32 {
 		return self.delta.y;
 	}
-	pub fn height(&self) -> u32 {
+	/*pub fn height(&self) -> u32 {
 		self.pos.height()
-	}
+	}*/
 
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
 		self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
@@ -107,9 +107,9 @@ impl<'a> Player<'a> {
         &self.texture_r
     }
 
-    pub fn facing_left(&self) -> &bool {
+    /*pub fn facing_left(&self) -> &bool {
         &self.facing_left
-    }
+    }*/
 
 	pub fn facing_right(&self) -> &bool {
         &self.facing_right

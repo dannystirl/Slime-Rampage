@@ -6,48 +6,48 @@ use sdl2::render::Texture;
 const TILE_SIZE: u32 = 64;
 
 pub struct RangedAttack<'a> {
-	startP: Rect, 
+	start_p: Rect, 
 	pos: Rect,
-	src: Rect,
-	txtre: Texture<'a>,
+	// src: Rect, FIELD NOT YET READ
+	texture: Texture<'a>,
 	use_ability: bool,
 	frame: i32,
 }
 
  impl<'a> RangedAttack<'a> {
-	pub fn new(startP: Rect, pos: Rect, txtre: Texture<'a>, use_ability:bool, frame:i32) -> RangedAttack<'a> {
+	pub fn new(start_p: Rect, pos: Rect, texture: Texture<'a>, use_ability:bool, frame:i32) -> RangedAttack<'a> {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		RangedAttack {
-			startP, 
+			start_p, 
 			pos,
-			src,	
-			txtre,
+			// src,	FIELD NOT YET READ
+			texture,
 			use_ability,
 			frame,
 		}
 	}
 
 	pub fn start_pos(&mut self, x:i32, y:i32) {
-		self.startP.x = x;
+		self.start_p.x = x;
 		self.pos.x = x;
-		self.startP.y = y;
+		self.start_p.y = y;
 		self.pos.y = y;
 	}
 
 	// x values
-	pub fn set_x(&mut self, x:i32){
+	/*pub fn set_x(&mut self, x:i32){
 		self.pos.x = x;
-	}
+	}*/
 	pub fn x(&self) -> i32 {
 		return self.pos.x;
 	}
 	// y values
-	pub fn set_y(&mut self, y:i32){
+	/*pub fn set_y(&mut self, y:i32){
 		self.pos.y = y;
-	}
-	pub fn y(&self) -> i32 {
+	}*/
+	/*pub fn y(&self) -> i32 {
 		return self.pos.y;
-	}
+	}*/
 
 	pub fn set_use(&mut self, b:bool){
 		self.use_ability = b;
@@ -63,11 +63,11 @@ pub struct RangedAttack<'a> {
 		return self.frame;
 	}
 
-	pub fn update_RangedAttack_pos(&mut self, x_bounds: (i32, i32)) {
+	pub fn update_ranged_attack_pos(&mut self, x_bounds: (i32, i32)) {
 		if self.frame<6 {
-			self.pos.set_x((self.startP.x).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_x((self.start_p.x).clamp(x_bounds.0, x_bounds.1));
 		} else {
-			self.pos.set_x((self.startP.x +(self.frame-6)*16 ).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_x((self.start_p.x +(self.frame-6)*16 ).clamp(x_bounds.0, x_bounds.1));
 		}
 	}
 
@@ -80,8 +80,8 @@ pub struct RangedAttack<'a> {
 		);
 	}
 
-    pub fn txtre(&self) -> &Texture {
-        &self.txtre
+    pub fn texture(&self) -> &Texture {
+        &self.texture
     }
     pub fn pos(&self) -> Rect {
 		self.pos

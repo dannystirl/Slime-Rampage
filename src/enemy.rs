@@ -61,19 +61,19 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn update_pos(&mut self, roll:i32, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		if(roll == 1){
+		if roll == 1 {
 			self.pos.set_x((self.x() + self.x_vel()+1).clamp(x_bounds.0, x_bounds.1));
 			self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
 		}
-		if(roll == 2){
+		if roll == 2 {
 			self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
 			self.pos.set_y((self.y() + self.y_vel()+1).clamp(y_bounds.0, y_bounds.1));
 		}
-		if(roll == 3){
+		if roll == 3 {
 			self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
 			self.pos.set_y((self.y() + self.y_vel()-1).clamp(y_bounds.0, y_bounds.1));
 		}
-		if(roll == 4){
+		if roll == 4 {
 			self.pos.set_x((self.x() + self.x_vel()-1).clamp(x_bounds.0, x_bounds.1));
 			self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
 		}

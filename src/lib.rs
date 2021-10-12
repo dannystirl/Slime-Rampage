@@ -3,7 +3,7 @@ extern crate sdl2;
 use sdl2::rect::Rect;
 
 pub struct SDLCore {
-	sdl_cxt: sdl2::Sdl,
+	// sdl_cxt: sdl2::Sdl, NOT CURRENTLY READ
 	pub wincan: sdl2::render::WindowCanvas,
 	pub event_pump: sdl2::EventPump,
 	pub cam: Rect,
@@ -42,7 +42,7 @@ impl SDLCore {
 		let cam = Rect::new(0, 0, width, height);
 
 		Ok(SDLCore{
-			sdl_cxt,
+			// sdl_cxt, NOT CURRENTLY READ
 			wincan,
 			event_pump,
 			cam,
