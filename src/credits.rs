@@ -44,60 +44,70 @@ pub fn run_credits() -> Result<(), String> {
                 canvas.present();
             }
             i if i < FRAME_GAP * 2 => {
+        // Physics Engine Team
+                texture = texture_creator.load_texture("images/credits/credits_physics.png")?;
+                canvas.copy(&texture, None, None)?;
+                canvas.present();
+            }
+            i if i < FRAME_GAP * 3 => {
 		// Davon Allensworth
                 texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < FRAME_GAP * 3 => {
-		// Daniel Stirling
-                texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
+            i if i < FRAME_GAP * 4 => {
+        // Zirui Huang
+                texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < FRAME_GAP * 4 => {
+            i if i < FRAME_GAP * 5 => {
 		// Victor Mui
                 texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < FRAME_GAP * 5 => {
+            i if i < FRAME_GAP * 6 => {
 		// Adam Wachowicz
                 texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-            i if i < FRAME_GAP * 6 => {
+            i if i < FRAME_GAP * 7 => {
+        // Procedural Generation Team
+                texture = texture_creator.load_texture("images/credits/credits_procedural_gen.png")?;
+                canvas.copy(&texture, None, None)?;
+                canvas.present();
+            }
+            i if i < FRAME_GAP * 8 => {
 		// Yihua Pu
                 texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
                 canvas.copy(&texture, None, None)?;
                 canvas.present();
             }
-	    i if i < FRAME_GAP * 7 => {
+            i if i < FRAME_GAP * 9 => {
 		// Marshall Lentz
-		texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
-		canvas.copy(&texture, None, None)?;
-		canvas.present();
-	    }
-        i if i < FRAME_GAP * 8 => {
-            // Josh Friedman
+            texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
+            canvas.copy(&texture, None, None)?;
+            canvas.present();
+            }
+            i if i < FRAME_GAP * 10 => {
+        // Josh Friedman
             texture = texture_creator.load_texture("images/credits/friedman_credits.png")?;
             canvas.copy(&texture, None, None)?;
             canvas.present();
             }
-         i if i < FRAME_GAP * 9 => {
-            // Zirui Huang
-            texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
+            i if i < FRAME_GAP * 11 => {
+        // Daniel Stirling
+            texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
             canvas.copy(&texture, None, None)?;
             canvas.present();
-            }
-        
-            _ => {}
         }
+            _ => {}
+    }
 
 	i += 1;
-
-        if i > FRAME_GAP * 9 {
+        if i > FRAME_GAP * 12 {
             i = 0;
         }
     }
