@@ -27,7 +27,7 @@ impl<'a> Player<'a> {
         let facing_left = false;
 		let facing_right = false;
 		let is_still = true;
-		let /*mut*/ hp = 100.0; // Change to mutable when enemy attacks implemented
+		let hp = 100.0;
 		Player {
 			delta, 
 			vel, 
