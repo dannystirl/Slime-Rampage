@@ -140,7 +140,8 @@ impl Game for ROGUELIKE {
 
 				// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 				if keystate.contains(&Keycode::P) {
-					println!("x:{} y:{} ", enemies[0].x(), enemies[0].y());
+					println!("\nx:{} y:{} ", enemies[0].x(), enemies[0].y());
+					println!("{} {} {} {}", enemies[0].x(), enemies[0].x() + (enemies[0].width() as i32), enemies[0].y(), enemies[0].y() + (enemies[0].height() as i32)); 
 				}
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
@@ -262,7 +263,6 @@ impl ROGUELIKE {
 			{
 				player.set_x(player.x() - player.x_vel());
 				player.minus_hp(0.2);
-				println!("hp = {}", player.get_hp());
 			}
 
 			if check_collision(&player.pos(), &enemy.pos())
@@ -271,7 +271,6 @@ impl ROGUELIKE {
 			{
 				player.set_y(player.y() - player.y_vel());
 				player.minus_hp(0.2);
-				println!("hp = {}", player.get_hp());
 			}
 		}
 	}
@@ -331,10 +330,10 @@ impl ROGUELIKE {
 // force enemy movement
 impl ROGUELIKE {
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
-		if  enemy.x() == 0 || 
-		enemy.x() + (enemy.width() as i32) ==  ((CAM_W - TILE_SIZE) as i32) ||
-		enemy.y() - (enemy.height() as i32) == 0 || 
-		enemy.y() == ((CAM_H - TILE_SIZE) as i32)
+		if  enemy.x() <= 0 || 
+		enemy.x() >=  ((CAM_W - TILE_SIZE) as i32) ||
+		enemy.y() <= 0 || 
+		enemy.y() >= ((CAM_H - TILE_SIZE) as i32)
 		{return true;}
 		else {return false;}
 	}
