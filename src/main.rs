@@ -5,7 +5,6 @@ mod ranged_attack;
 mod credits;
 
 use std::collections::HashSet;
-
 use rand::Rng;
 use crate::enemy::*;
 use crate::ranged_attack::*;
@@ -20,14 +19,16 @@ use sdl2::image::LoadTexture;
 use rogue_sdl::SDLCore;
 use rogue_sdl::Game;
 
-
+// window globals
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 const TILE_SIZE: u32 = 64;
 
+// game globals
 const SPEED_LIMIT: i32 = 3;
 const ACCEL_RATE: i32 = 3;
+
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -68,9 +69,6 @@ impl Game for ROGUELIKE {
 		let screen_width = 25;
 		
 		let mut rng = rand::thread_rng();
-		let mut roll = rng.gen_range(1..4);
-		let mut move_timer = 0;// this is just a timer for the enemys choice of movement
-		
 		let mut count = 0;
 		let f_display = 15;
 
@@ -89,8 +87,10 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(1);	// Size is max number of enemies
-		for _ in 0..1{
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(2);	// Size is max number of enemies
+		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
+		let mut i=1; 
+		for _ in 0..enemies.capacity(){
 			let e = enemy::Enemy::new(
 				Rect::new(
 					(CAM_W/2 - TILE_SIZE/2 + 100) as i32,
@@ -101,13 +101,13 @@ impl Game for ROGUELIKE {
 				texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
 			);
 			enemies.push(e);
+			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
+			i+=1;
 		}
+		
 
 		// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
         let mut fireball = ranged_attack::RangedAttack::new(
-			Rect::new(
-				0, 0, TILE_SIZE, TILE_SIZE,
-			),
 			Rect::new(
 				(CAM_W/2 - TILE_SIZE/2) as i32,
 				(CAM_H/2 - TILE_SIZE/2) as i32,
@@ -137,6 +137,12 @@ impl Game for ROGUELIKE {
 				.filter_map(Keycode::from_scancode)
 				.collect();
 
+				// FOR TESTING ONLY: USE TO FOR PRINT VALUES
+				if keystate.contains(&Keycode::P) {
+					println!("x:{} y:{} ", enemies[0].x(), enemies[0].y());
+					println!("x:{} y:{} ", enemies[1].x(), enemies[1].y());
+				}
+
 			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
 			ROGUELIKE::check_collisions(&mut player, &mut enemies);
@@ -149,12 +155,8 @@ impl Game for ROGUELIKE {
             self.core.wincan.copy(&background, None, None)?;
 
 			// UPDATE ENEMIES
-			if move_timer > 50 {
-				roll = rng.gen_range(1..5);
-				move_timer = 0;
-			}
-			ROGUELIKE::update_enemies(self, &roll, &mut enemies);
-			move_timer += 1;
+			
+			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies);
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
@@ -176,19 +178,30 @@ impl Game for ROGUELIKE {
 
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
-	credits::run_credits()
-
+	//credits::run_credits()
+	Ok(())
 }
 
+// update enemies
 impl ROGUELIKE {
-	pub fn update_enemies(&mut self, roll: &i32, enemies: &mut Vec<Enemy>){
+	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>) -> Vec<i32>{
+		let mut i=1;
+		let mut rng = rand::thread_rng();
 		for enemy in enemies {
-			enemy.update_pos(*roll, (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+			if rngt[0] > 47 || ROGUELIKE::check_edge(&enemy){
+				rngt[i] = rng.gen_range(1..5);
+				rngt[0] = 0;
+			}
+			enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 			self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
+			i+=1;
 		}
+		rngt[0]+=1;
+		return rngt;
 	}
 }
 
+// check input values
 impl ROGUELIKE {
 	pub fn check_inputs(fireball: &mut RangedAttack, keystate: HashSet<Keycode>, mut player: &mut Player) {
 		// move up
@@ -218,15 +231,13 @@ impl ROGUELIKE {
 
 		// shoot fireball
 		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
-
-
 			fireball.set_use(true);
 			fireball.start_pos(player.x(), player.y());
-			println!("{}", fireball.x());
 		}
 	}
 }
 
+// update projectiles
 impl ROGUELIKE {
 	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
 		if fireball.in_use() {
@@ -241,6 +252,7 @@ impl ROGUELIKE {
 	}
 }
 
+// check collisions
 impl ROGUELIKE {
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
@@ -265,6 +277,7 @@ impl ROGUELIKE {
 	}
 }
 
+// update player
 impl ROGUELIKE {
 	fn update_player(w: &u32, mut player: &mut Player) {
 		// Slow down to 0 vel if no input and non-zero velocity
@@ -286,6 +299,7 @@ impl ROGUELIKE {
 	}
 }
 
+// draw player
 impl ROGUELIKE {
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player) {
 		if *(player.is_still()) {
@@ -311,5 +325,17 @@ impl ROGUELIKE {
 				self.core.wincan.copy(player.texture_l(), player.src(), player.pos()).unwrap();
 			}
 		}
+	}
+}
+
+// force enemy movement
+impl ROGUELIKE {
+	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
+		if  enemy.x() == 0 || 
+		enemy.x() + (enemy.width() as i32) ==  ((CAM_W - TILE_SIZE) as i32) ||
+		enemy.y() - (enemy.height() as i32) == 0 || 
+		enemy.y() == ((CAM_H - TILE_SIZE) as i32)
+		{return true;}
+		else {return false;}
 	}
 }

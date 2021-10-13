@@ -8,19 +8,17 @@ const TILE_SIZE: u32 = 64;
 pub struct RangedAttack<'a> {
 	start_p: Rect, 
 	pos: Rect,
-	// src: Rect, FIELD NOT YET READ
 	texture: Texture<'a>,
 	use_ability: bool,
 	frame: i32,
 }
 
  impl<'a> RangedAttack<'a> {
-	pub fn new(start_p: Rect, pos: Rect, texture: Texture<'a>, use_ability:bool, frame:i32) -> RangedAttack<'a> {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+	pub fn new(pos: Rect, texture: Texture<'a>, use_ability:bool, frame:i32) -> RangedAttack<'a> {
+		let start_p = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		RangedAttack {
 			start_p, 
 			pos,
-			// src,	FIELD NOT YET READ
 			texture,
 			use_ability,
 			frame,
