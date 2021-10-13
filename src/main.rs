@@ -43,6 +43,7 @@ fn resist(vel: i32, delta: i32) -> i32 {
 	} else {delta}
 }
 
+// check collision
 fn check_collision(a: &Rect, b: &Rect) -> bool {
 	if a.bottom() < b.top()
 		|| a.top() > b.bottom()
@@ -105,7 +106,6 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 		
-
 		// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
         let mut fireball = ranged_attack::RangedAttack::new(
 			Rect::new(
@@ -114,9 +114,10 @@ impl Game for ROGUELIKE {
 				TILE_SIZE,
 				TILE_SIZE,
 			),
-            texture_creator.load_texture("images/fireball/fireball.png")?,
+			false,
 			false,
 			0,
+            texture_creator.load_texture("images/fireball/fireball.png")?,
 		);
 
 		// MAIN GAME LOOP
@@ -140,7 +141,6 @@ impl Game for ROGUELIKE {
 				// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 				if keystate.contains(&Keycode::P) {
 					println!("x:{} y:{} ", enemies[0].x(), enemies[0].y());
-					println!("x:{} y:{} ", enemies[1].x(), enemies[1].y());
 				}
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
@@ -155,7 +155,6 @@ impl Game for ROGUELIKE {
             self.core.wincan.copy(&background, None, None)?;
 
 			// UPDATE ENEMIES
-			
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies);
 
 			// Should be switched to take in array of active fireballs, bullets, etc.

@@ -8,26 +8,33 @@ const TILE_SIZE: u32 = 64;
 pub struct RangedAttack<'a> {
 	start_p: Rect, 
 	pos: Rect,
-	texture: Texture<'a>,
 	use_ability: bool,
+	pub facing_left: bool,
 	frame: i32,
+    texture: Texture<'a>,
 }
 
  impl<'a> RangedAttack<'a> {
-	pub fn new(pos: Rect, texture: Texture<'a>, use_ability:bool, frame:i32) -> RangedAttack<'a> {
+	pub fn new(pos: Rect, use_ability:bool, facing_left: bool, frame:i32, texture: Texture<'a>) -> RangedAttack<'a> {
 		let start_p = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		RangedAttack {
 			start_p, 
-			pos,
-			texture,
+			pos,	
 			use_ability,
+			facing_left,
 			frame,
+			texture, 
 		}
 	}
 
 	pub fn start_pos(&mut self, x:i32, y:i32) {
-		self.start_p.x = x;
-		self.pos.x = x;
+		if self.facing_left {
+			self.start_p.x = x-64;
+			self.pos.x = x-64;
+		}else{
+			self.start_p.x = x+64;
+			self.pos.x = x+64;
+		}
 		self.start_p.y = y;
 		self.pos.y = y;
 	}
