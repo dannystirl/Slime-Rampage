@@ -139,6 +139,10 @@ impl<'a> Player<'a> {
 		return self.hp
 	}
 
+	pub fn is_dead(&self) -> bool {
+		return self.hp <= 0.0;
+	}
+
 	pub fn minus_hp(&mut self, dmg: f32) {
 		self.hp -= dmg;
 	}
