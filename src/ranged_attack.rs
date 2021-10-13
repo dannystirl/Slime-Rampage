@@ -2,7 +2,6 @@ extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
-
 const TILE_SIZE: u32 = 64;
 
 pub struct RangedAttack<'a> {
@@ -27,11 +26,13 @@ pub struct RangedAttack<'a> {
 		}
 	}
 
-	pub fn start_pos(&mut self, x:i32, y:i32) {
-		if self.facing_left {
+	pub fn start_pos(&mut self, x:i32, y:i32, fl:bool) {
+		if fl {
+			self.facing_left = true;
 			self.start_p.x = x-64;
 			self.pos.x = x-64;
 		}else{
+			self.facing_left = false;
 			self.start_p.x = x+64;
 			self.pos.x = x+64;
 		}
@@ -68,11 +69,21 @@ pub struct RangedAttack<'a> {
 		return self.frame;
 	}
 
-	pub fn update_ranged_attack_pos(&mut self, x_bounds: (i32, i32)) {
+	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
+	pub fn update_pos(&mut self, x_bounds: (i32, i32)) {
+		// form 
 		if self.frame<6 {
 			self.pos.set_x((self.start_p.x).clamp(x_bounds.0, x_bounds.1));
+		// collision
+		} else if self.frame>19 {
+			self.pos.set_x((self.x()).clamp(x_bounds.0, x_bounds.1));
+		// growing / loop 
 		} else {
-			self.pos.set_x((self.start_p.x +(self.frame-6)*16 ).clamp(x_bounds.0, x_bounds.1));
+			if self.facing_left {
+				self.pos.set_x((self.start_p.x -(self.frame-6)*4 ).clamp(x_bounds.0, x_bounds.1));
+			}else{
+				self.pos.set_x((self.start_p.x +(self.frame-6)*4 ).clamp(x_bounds.0, x_bounds.1));
+			}
 		}
 	}
 

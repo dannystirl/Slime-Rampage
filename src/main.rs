@@ -231,7 +231,7 @@ impl ROGUELIKE {
 		// shoot fireball
 		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
 			fireball.set_use(true);
-			fireball.start_pos(player.x(), player.y());
+			fireball.start_pos(player.x(), player.y(), player.facing_left);
 		}
 	}
 }
@@ -241,11 +241,12 @@ impl ROGUELIKE {
 	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
 		if fireball.in_use() {
 			fireball.set_frame(fireball.frame() + 1);
-			fireball.update_ranged_attack_pos((0, (CAM_W - TILE_SIZE) as i32));
+			fireball.update_pos((0, (CAM_W - TILE_SIZE) as i32));
 			if fireball.frame() == 28 {
 				fireball.set_use(false);
 				fireball.set_frame(0);
 			}
+			// this needs to be mirrored
 			self.core.wincan.copy(fireball.texture(), fireball.src(4, 7), fireball.pos()).unwrap();
 		}
 	}
