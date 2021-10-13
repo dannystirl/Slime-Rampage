@@ -151,9 +151,12 @@ impl Game for ROGUELIKE {
 				break 'gameloop;
 			}
 
-			// SET BACKGROUND
+			// CLEAR BACKGROUND
             let background = texture_creator.load_texture("images/background/bb.png")?;
             self.core.wincan.copy(&background, None, None)?;
+
+			// SET BACKGROUND
+			ROGUELIKE::create_map(self);
 
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies);
@@ -180,6 +183,29 @@ pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
 	//credits::run_credits()
 	Ok(())
+}
+
+// Create map
+impl ROGUELIKE {
+	pub fn create_map(&mut self) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		for i in 2..18 {
+			for j in 2..9 {
+				let num = rand::thread_rng().gen_range(0..2);
+				let texture;
+				match num {
+					0 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+					// TODO: change below to floor tile 2 to allow for random tiling
+					1 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+					_ => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+				}
+				let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+				let pos = Rect::new(i * TILE_SIZE as i32, j * TILE_SIZE as i32, TILE_SIZE, TILE_SIZE);
+				self.core.wincan.copy(&texture, src, pos)?;
+			}
+		}
+		Ok(())
+	}
 }
 
 // update enemies
@@ -284,7 +310,7 @@ impl ROGUELIKE {
 		player.set_y_delta(resist(player.y_vel(), player.y_delta()));
 
 		//when player is not moving
-		if player.x_vel() == 0 && player.y_vel() == 0 { player.is_still = true; }//?
+		if player.x_vel() == 0 && player.y_vel() == 0 { player.is_still = true; } // What does this line do?
 
 		// Don't exceed speed limit
 		player.set_x_vel((player.x_vel() + player.x_delta()).clamp(-SPEED_LIMIT, SPEED_LIMIT));
