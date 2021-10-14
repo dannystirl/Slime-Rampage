@@ -206,10 +206,7 @@ impl ROGUELIKE {
 		}
 		Ok(())
 	}
-}
-
 // update enemies
-impl ROGUELIKE {
 	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>) -> Vec<i32>{
 		let mut i=1;
 		let mut rng = rand::thread_rng();
@@ -225,10 +222,10 @@ impl ROGUELIKE {
 		rngt[0]+=1;
 		return rngt;
 	}
-}
+
 
 // check input values
-impl ROGUELIKE {
+
 	pub fn check_inputs(fireball: &mut RangedAttack, keystate: HashSet<Keycode>, mut player: &mut Player) {
 		// move up
 		if keystate.contains(&Keycode::W) {
@@ -261,10 +258,10 @@ impl ROGUELIKE {
 			fireball.start_pos(player.x(), player.y(), player.facing_left);
 		}
 	}
-}
+
 
 // update projectiles
-impl ROGUELIKE {
+
 	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
 		if fireball.in_use() {
 			fireball.set_frame(fireball.frame() + 1);
@@ -277,10 +274,10 @@ impl ROGUELIKE {
 			self.core.wincan.copy(fireball.texture(), fireball.src(4, 7), fireball.pos()).unwrap();
 		}
 	}
-}
+
 
 // check collisions
-impl ROGUELIKE {
+
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos())
@@ -300,10 +297,10 @@ impl ROGUELIKE {
 			}
 		}
 	}
-}
+
 
 // update player
-impl ROGUELIKE {
+
 	fn update_player(w: &u32, mut player: &mut Player) {
 		// Slow down to 0 vel if no input and non-zero velocity
 		player.set_x_delta(resist(player.x_vel(), player.x_delta()));
@@ -322,10 +319,10 @@ impl ROGUELIKE {
 
 		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 	}
-}
+
 
 // draw player
-impl ROGUELIKE {
+
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player) {
 		if *(player.is_still()) {
 			if *(player.facing_right()) {
@@ -351,10 +348,10 @@ impl ROGUELIKE {
 			}
 		}
 	}
-}
+
 
 // force enemy movement
-impl ROGUELIKE {
+
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
 		if  enemy.x() <= 0 || 
 		enemy.x() >=  ((CAM_W - TILE_SIZE) as i32) ||
