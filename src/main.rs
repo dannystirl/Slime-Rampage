@@ -182,7 +182,7 @@ impl Game for ROGUELIKE {
 			ROGUELIKE::create_map(self);
 
 			// UPDATE ENEMIES
-			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies,&mut player);
+			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
@@ -241,7 +241,7 @@ impl ROGUELIKE {
 	}
 // update enemies
 	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
-		let mut i=1;
+		let mut i = 1;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
 			if enemy.is_alive() {
@@ -258,10 +258,10 @@ impl ROGUELIKE {
 					enemy.aggro(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
 				}
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
-				i+=1;
+				i += 1;
 			}
 		}
-		rngt[0]+=1;
+		rngt[0] += 1;
 		return rngt;
 	}
 
