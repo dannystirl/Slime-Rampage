@@ -81,10 +81,10 @@ impl Game for ROGUELIKE {
 				TILE_SIZE,
 				TILE_SIZE,
 			),
-			texture_creator.load_texture("images/player/blue_slime_l.png")?,
-			texture_creator.load_texture("images/player/blue_slime_r.png")?,
-			texture_creator.load_texture("images/player/slime_animation_l.png")?,
-			texture_creator.load_texture("images/player/slime_animation_r.png")?,
+			texture_creator.load_texture("images/player/Slime l.png")?,
+			texture_creator.load_texture("images/player/Slime r.png")?,
+			texture_creator.load_texture("images/player/Slime left.png")?,
+			texture_creator.load_texture("images/player/Slime right.png")?,
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
@@ -341,9 +341,19 @@ impl ROGUELIKE {
 			//display animation when not moving
 			match count {
 				count if count < f_display => { player.set_src(0 as i32, 0 as i32); }
-				count if count < &(f_display * 2) => { player.set_src(TILE_SIZE as i32, 0 as i32); }
-				count if count < &(f_display * 3) => { player.set_src(0 as i32, TILE_SIZE as i32); }
-				count if count < &(f_display * 4) => { player.set_src(TILE_SIZE as i32, TILE_SIZE as i32); }
+				count if count < &(f_display * 2) => { player.set_src(64 as i32, 0 as i32); }
+				count if count < &(f_display * 3) => { player.set_src(128 as i32, 0 as i32); }
+				count if count < &(f_display * 4) => { player.set_src(0 as i32, 64 as i32); }
+				count if count < &(f_display * 5) => { player.set_src(64 as i32, 64 as i32); }
+				count if count < &(f_display * 6) => { player.set_src(128 as i32, 64 as i32); }
+				count if count < &(f_display * 7) => { player.set_src(0 as i32, 128 as i32); }
+				count if count < &(f_display * 8) => { player.set_src(64 as i32, 128 as i32); }
+				count if count < &(f_display * 9) => { player.set_src(128 as i32, 128 as i32); }
+				count if count < &(f_display * 10) => { player.set_src(0 as i32, 192 as i32); }
+				count if count < &(f_display * 11) => { player.set_src(64 as i32, 192 as i32); }
+				count if count < &(f_display * 12) => { player.set_src(128 as i32, 192 as i32); }
+
+
 				_ => { player.set_src(0, 0); }
 			}
 		} else {
