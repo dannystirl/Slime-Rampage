@@ -1,5 +1,6 @@
 extern crate rogue_sdl;
 mod enemy;
+mod background;
 mod player;
 mod ranged_attack;
 mod credits;
@@ -10,6 +11,7 @@ use rand::Rng;
 use crate::enemy::*;
 use crate::ranged_attack::*;
 use crate::player::*;
+use crate::background::*;
 
 use sdl2::rect::Rect;
 use sdl2::event::Event;
@@ -269,8 +271,7 @@ impl ROGUELIKE {
 	}
 
 
-// update projectiles
-
+	// update projectiles
 	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
 		if fireball.in_use() {
 			fireball.set_frame(fireball.frame() + 1);
@@ -285,8 +286,7 @@ impl ROGUELIKE {
 	}
 
 
-// check collisions
-
+	// check collisions
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos())
@@ -307,9 +307,7 @@ impl ROGUELIKE {
 		}
 	}
 
-
-// update player
-
+	// update player
 	fn update_player(w: &u32, mut player: &mut Player) {
 		// Slow down to 0 vel if no input and non-zero velocity
 		player.set_x_delta(resist(player.x_vel(), player.x_delta()));
@@ -329,18 +327,8 @@ impl ROGUELIKE {
 		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 	}
 
-//update background
-	pub fn update_background(&mut self, mut player: &mut Player)
-	{
-		let keystate: HashSet<Keycode> = self.core.event_pump
-					.keyboard_state()
-					.pressed_scancodes()
-					.filter_map(Keycode::from_scancode)
-					.collect();
-
-		let mut x_deltav = 0;
-		let mut y_deltav = 0;
-
+	//update background
+	pub fn update_background(&mut self, mut player: &mut Player) -> Result<(), String> {
 		let cur_bg = Rect::new(
 			((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (BG_W - CAM_W) as i32),
 			((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (BG_H - CAM_H) as i32),
@@ -356,14 +344,21 @@ impl ROGUELIKE {
 			TILE_SIZE,
 		);
 
-		self.core.wincan.set_draw_color(Color::BLACK);
-			self.core.wincan.clear();
+		let texture_creator = self.core.wincan.texture_creator();
+		let background = background::Background::new(
+			texture_creator.load_texture("images/background/floor_tile_1.png")?,
+			texture_creator.load_texture("images/background/floor_tile_1.png")?,
+			texture_creator.load_texture("images/background/floor_tile_1.png")?,
+			1, 
+			1, 
+		);
 
-			// Draw subset of bg
-			let texture_creator = self.core.wincan.texture_creator();
-			let texture = texture_creator.load_texture("images/background/floor_tile_1.png");
-			self.core.wincan.copy(&texture, cur_bg, None);
-		
+		self.core.wincan.set_draw_color(Color::BLACK);
+		self.core.wincan.clear();
+
+		// Draw subset of bg
+		self.core.wincan.copy(background.texture(), cur_bg, None).unwrap();
+		Ok(())
 	}
 
 
