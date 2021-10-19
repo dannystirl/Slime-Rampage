@@ -1,14 +1,31 @@
 extern crate rogue_sdl;
 
+use std::time::Duration;
+use std::time::Instant;
+
+use sdl2::image::LoadTexture;
+use sdl2::render::WindowCanvas;
+
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
+use sdl2::rect::Point;
+
+use rogue_sdl::{Game, SDLCore};
+
 const TILE_SIZE: u32 = 64;
+const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
+const COOLDOWN: u128 = 250;
+const TITLE: &str = "Roguelike";
+const CAM_W: u32 = 1280;
+const CAM_H: u32 = 720;
 
 pub struct Player<'a> {
 	delta: Rect, 
 	vel: Rect, 
 	pos: Rect,
 	src: Rect,
+	attack_box: Rect,
+	attack_timer: Instant,
 	texture_l: Texture<'a>,
     texture_r: Texture<'a>,
 	texture_a_l: Texture<'a>,
@@ -17,6 +34,7 @@ pub struct Player<'a> {
 	pub facing_right: bool,
 	pub is_still: bool,
 	pub hp: f32,
+	pub is_attacking: bool,
 }
 
 impl<'a> Player<'a> {
@@ -28,11 +46,16 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_still = true;
 		let hp = 100.0;
+		let is_attacking = false;
+		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+		let attack_timer = Instant::now();
 		Player {
 			delta, 
 			vel, 
 			pos,
 			src,
+			attack_box,
+			attack_timer,
 			texture_l,
             texture_r,
 			texture_a_l,
@@ -41,6 +64,7 @@ impl<'a> Player<'a> {
 			facing_right,
 			is_still,
 			hp,
+			is_attacking,
 		}
 	}
 
@@ -95,6 +119,32 @@ impl<'a> Player<'a> {
 		self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
 	}
 
+	pub fn draw(&mut self, core: &mut SDLCore, count: &i32, f_display: &i32){
+		if *(self.is_still()) {
+			if *(self.facing_right()) {
+				core.wincan.copy(self.texture_a_r(), self.src(), self.pos()).unwrap();
+			} else {
+				core.wincan.copy(self.texture_a_l(), self.src(), self.pos()).unwrap();
+			}
+
+			//display animation when not moving
+			match count {
+				count if count < f_display => { self.set_src(0 as i32, 0 as i32); }
+				count if count < &(f_display * 2) => { self.set_src(TILE_SIZE as i32, 0 as i32); }
+				count if count < &(f_display * 3) => { self.set_src(0 as i32, TILE_SIZE as i32); }
+				count if count < &(f_display * 4) => { self.set_src(TILE_SIZE as i32, TILE_SIZE as i32); }
+				_ => { self.set_src(0, 0); }
+			}
+		} else {
+			self.set_src(0, 0);
+			if *(self.facing_right()) {
+				core.wincan.copy(self.texture_r(), self.src(), self.pos()).unwrap();
+			} else {
+				core.wincan.copy(self.texture_l(), self.src(), self.pos()).unwrap();
+			}
+		}
+	}
+
 	pub fn src(&self) -> Rect {
 		self.src
 	}
@@ -131,7 +181,36 @@ impl<'a> Player<'a> {
         &self.is_still
     }
 
-	pub fn set_src(&mut self, x: i32, y: i32){
+	pub fn is_attacking(&self) -> &bool {
+		&self.is_attacking
+	}
+
+	pub fn get_attack_timer(&self) -> u128 {
+		self.attack_timer.elapsed().as_millis()
+	}
+
+	pub fn get_attack_box(&self) -> Rect {
+		self.attack_box
+	}
+
+	pub fn set_attack_box(&mut self, x: i32, y: i32) {
+		if *self.facing_right()
+		{
+			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		}
+	}
+
+	pub fn clear_attack_box(&mut self) {
+		self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+	}
+
+	pub fn get_cooldown(&self) -> u128 {
+		COOLDOWN
+	}
+
+	pub fn set_src(&mut self, x: i32, y: i32) {
 		self.src = Rect::new(x as i32, y as i32, TILE_SIZE, TILE_SIZE);
 	}
 
@@ -146,4 +225,36 @@ impl<'a> Player<'a> {
 	pub fn minus_hp(&mut self, dmg: f32) {
 		self.hp -= dmg;
 	}
+
+	pub fn attack(&mut self) {
+		if(self.get_attack_timer() < COOLDOWN)
+		{
+			return;
+		}
+		self.is_attacking = true;
+		if *self.facing_right()
+		{
+			self.attack_box = Rect::new(self.x() + TILE_SIZE as i32, self.y() as i32, ATTACK_LENGTH, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(self.x() - ATTACK_LENGTH as i32, self.y() as i32, ATTACK_LENGTH, TILE_SIZE);
+		}
+		self.attack_timer = Instant::now();
+	}
+
+	pub fn cooldown(&mut self) {
+		self.is_attacking = false;
+		self.clear_attack_box();
+	}
+
+	/*pub fn base_attack(&mut self, x: i32, y: i32) {
+		self.is_attacking = true;
+
+		// create hitbox with set width and length between player(x,y) and clickpoint(x,y)
+		self.attack_box = new Rect::from_center(
+			Point::new((self.x() + x)/2, (self.y() + y)/2),
+			(self.x() - x).abs(),
+			(self.y() - y).abs());
+
+		println!("Attacked!");
+	}*/
 }
