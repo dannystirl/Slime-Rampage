@@ -242,8 +242,14 @@ impl ROGUELIKE {
 					rngt[i] = rng.gen_range(1..5);
 					rngt[0] = 0;
 				}
-				// enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-				enemy.aggro(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
+				let x_d = (enemy.x() as i32 - player.x()).pow(2);
+				let y_d = (enemy.y() as i32 - player.y()).pow(2);
+				let distance = ((x_d + y_d) as f64).sqrt();
+				if distance > 250.0 {
+					enemy.update_pos(rngt[i], XBOUNDS, YBOUNDS);
+				} else {
+					enemy.aggro(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
+				}
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
 				i+=1;
 			}
