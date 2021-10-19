@@ -13,11 +13,14 @@ use crate::player::*;
 use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::mouse::{MouseButton, MouseState};
+use sdl2::mouse::MouseButtonIterator;
+use sdl2::mouse::PressedMouseButtonIterator;
 use sdl2::image::LoadTexture;
+use sdl2::render::WindowCanvas;
 //use sdl2::render::Texture;
 
-use rogue_sdl::SDLCore;
-use rogue_sdl::Game;
+use rogue_sdl::{Game, SDLCore};
 
 // window globals
 const TITLE: &str = "Roguelike";
@@ -59,6 +62,7 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // CREATE GAME
 impl Game for ROGUELIKE {
+
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
 		Ok(ROGUELIKE{ core })
@@ -132,6 +136,8 @@ impl Game for ROGUELIKE {
 			player.set_x_delta(0);
 			player.set_y_delta(0);
 
+			let mousestate= self.core.event_pump.mouse_state();
+
 			let keystate: HashSet<Keycode> = self.core.event_pump
 				.keyboard_state()
 				.pressed_scancodes()
@@ -144,7 +150,7 @@ impl Game for ROGUELIKE {
 					println!("{} {} {} {}", enemies[0].x(), enemies[0].x() + (enemies[0].width() as i32), enemies[0].y(), enemies[0].y() + (enemies[0].height() as i32)); 
 				}
 
-			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
+			ROGUELIKE::check_inputs(&mut fireball, keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
 			ROGUELIKE::check_collisions(&mut player, &mut enemies);
 			if player.is_dead(){
@@ -163,7 +169,9 @@ impl Game for ROGUELIKE {
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
-			self.draw_player(&count, &f_display, &mut player);
+
+			// DRAW PLAYER
+			player.draw(&mut self.core, &count, &f_display);
 			count = count + 1;
 			if count > f_display * 5 {
 				count = 0;
@@ -211,13 +219,15 @@ impl ROGUELIKE {
 		let mut i=1;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
-			if rngt[0] > 47 || ROGUELIKE::check_edge(&enemy){
-				rngt[i] = rng.gen_range(1..5);
-				rngt[0] = 0;
+			if enemy.is_alive() {
+				if rngt[0] > 47 || ROGUELIKE::check_edge(&enemy){
+					rngt[i] = rng.gen_range(1..5);
+					rngt[0] = 0;
+				}
+				enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+				self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
+				i+=1;
 			}
-			enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
-			self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
-			i+=1;
 		}
 		rngt[0]+=1;
 		return rngt;
@@ -226,7 +236,7 @@ impl ROGUELIKE {
 
 // check input values
 
-	pub fn check_inputs(fireball: &mut RangedAttack, keystate: HashSet<Keycode>, mut player: &mut Player) {
+	pub fn check_inputs(fireball: &mut RangedAttack, keystate: HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - ACCEL_RATE);
@@ -251,7 +261,17 @@ impl ROGUELIKE {
 			player.facing_right = true;
 			player.is_still = false;
 		}
-
+		// basic attack
+		if mousestate.left(){
+			if !(player.is_attacking()) {
+				println!(
+					"X = {:?}, Y = {:?}",
+					mousestate.x(),
+					mousestate.y(),
+				);
+				player.base_attack(mousestate.x(), mousestate.y());
+			}
+		}
 		// shoot fireball
 		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
 			fireball.set_use(true);
@@ -320,42 +340,12 @@ impl ROGUELIKE {
 		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 	}
 
-
-// draw player
-
-	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player) {
-		if *(player.is_still()) {
-			if *(player.facing_right()) {
-				self.core.wincan.copy(player.texture_a_r(), player.src(), player.pos()).unwrap();
-			} else {
-				self.core.wincan.copy(player.texture_a_l(), player.src(), player.pos()).unwrap();
-			}
-
-			//display animation when not moving
-			match count {
-				count if count < f_display => { player.set_src(0 as i32, 0 as i32); }
-				count if count < &(f_display * 2) => { player.set_src(TILE_SIZE as i32, 0 as i32); }
-				count if count < &(f_display * 3) => { player.set_src(0 as i32, TILE_SIZE as i32); }
-				count if count < &(f_display * 4) => { player.set_src(TILE_SIZE as i32, TILE_SIZE as i32); }
-				_ => { player.set_src(0, 0); }
-			}
-		} else {
-			player.set_src(0, 0);
-			if *(player.facing_right()) {
-				self.core.wincan.copy(player.texture_r(), player.src(), player.pos()).unwrap();
-			} else {
-				self.core.wincan.copy(player.texture_l(), player.src(), player.pos()).unwrap();
-			}
-		}
-	}
-
-
 // force enemy movement
 
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
-		if  enemy.x() <= 0 || 
+		if  enemy.x() <= 0 ||
 		enemy.x() >=  ((CAM_W - TILE_SIZE) as i32) ||
-		enemy.y() <= 0 || 
+		enemy.y() <= 0 ||
 		enemy.y() >= ((CAM_H - TILE_SIZE) as i32)
 		{return true;}
 		else {return false;}

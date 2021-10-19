@@ -10,6 +10,8 @@ pub struct Enemy<'a> {
 	src: Rect,
 	txtre: Texture<'a>,
 	pub facing_left: bool,
+	pub hp: f32,
+	pub alive: bool,
 }
 
  impl<'a> Enemy<'a> {
@@ -17,12 +19,16 @@ pub struct Enemy<'a> {
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let facing_left = false;
+		let hp = 50.0;
+		let alive = true;
 		Enemy {
 			vel, 
 			pos,
 			src,	
 			txtre,
 			facing_left,
+			hp,
+			alive,
 		}
 	}
 
@@ -94,4 +100,21 @@ pub struct Enemy<'a> {
     pub fn pos(&self) -> Rect {
         self.pos
     }
+
+	 pub fn minus_hp(&mut self, dmg: f32) {
+		 self.hp -= dmg;
+
+		 if self.hp <= 0.0{
+			 self.die();
+		 }
+	 }
+
+	 pub fn die(&mut self){
+		 // Set death animation when created
+		 self.alive = false;
+	 }
+
+	 pub fn is_alive(&mut self) -> bool{
+		 return self.alive;
+	 }
 }
