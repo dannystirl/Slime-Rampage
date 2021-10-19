@@ -302,19 +302,23 @@ impl ROGUELIKE {
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos())
-				|| player.pos().left() < 0
-				|| player.pos().right() > CAM_W as i32
 			{
 				player.set_x(player.x() - player.x_vel());
 				player.minus_hp(0.2);
 			}
 
 			if check_collision(&player.pos(), &enemy.pos())
-				|| player.pos().top() < 0
-				|| player.pos().bottom() > CAM_H as i32
 			{
 				player.set_y(player.y() - player.y_vel());
 				player.minus_hp(0.2);
+			}
+
+			if player.is_attacking
+			{
+				if check_collision(&player.get_attack_box(), &enemy.pos())
+				{
+					enemy.die();
+				}
 			}
 		}
 	}

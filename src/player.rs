@@ -174,7 +174,11 @@ impl<'a> Player<'a> {
     }
 
 	pub fn is_attacking(&self) -> &bool {
-		&self.is_still
+		&self.is_attacking
+	}
+
+	pub fn get_attack_box(&self) -> &Rect {
+		&self.attack_box
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32){
