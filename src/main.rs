@@ -223,11 +223,7 @@ impl ROGUELIKE {
 				rngt[i] = rng.gen_range(1..5);
 				rngt[0] = 0;
 			}
-			enemy.update_pos(rngt[i], 
-						   ( (XWALLS.0*TILE_SIZE as i32) , 
-						  	 ( (XWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32), 
-						   ( (YWALLS.0*TILE_SIZE as i32) , 
-						   	 ( (YWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32) );
+			enemy.update_pos(rngt[i], XBOUNDS, YBOUNDS);
 			self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
 			i+=1;
 		}
@@ -330,10 +326,6 @@ impl ROGUELIKE {
 		player.set_y((player.y() + player.y_vel()).clamp(0, (CAM_H - w) as i32));
 
 		player.update_pos(XBOUNDS, YBOUNDS);
-		/* player.update_pos( ( (XWALLS.0*TILE_SIZE as i32) , 
-						  	 ( (XWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32), 
-						   ( (YWALLS.0*TILE_SIZE as i32) , 
-						   	 ( (YWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32) ); */
 	}
 
 
