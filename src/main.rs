@@ -85,10 +85,10 @@ impl Game for ROGUELIKE {
 				TILE_SIZE,
 				TILE_SIZE,
 			),
-			texture_creator.load_texture("images/player/blue_slime_l.png")?,
-			texture_creator.load_texture("images/player/blue_slime_r.png")?,
-			texture_creator.load_texture("images/player/slime_animation_l.png")?,
-			texture_creator.load_texture("images/player/slime_animation_r.png")?,
+			texture_creator.load_texture("images/player/Slime l.png")?,
+			texture_creator.load_texture("images/player/Slime r.png")?,
+			texture_creator.load_texture("images/player/Slime left.png")?,
+			texture_creator.load_texture("images/player/Slime right.png")?,
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
@@ -340,6 +340,46 @@ impl ROGUELIKE {
 
 		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 	}
+
+
+// draw player
+
+	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player) {
+		if *(player.is_still()) {
+			if *(player.facing_right()) {
+				self.core.wincan.copy(player.texture_a_r(), player.src(), player.pos()).unwrap();
+			} else {
+				self.core.wincan.copy(player.texture_a_l(), player.src(), player.pos()).unwrap();
+			}
+
+			//display animation when not moving
+			match count {
+				count if count < f_display => { player.set_src(0 as i32, 0 as i32); }
+				count if count < &(f_display * 2) => { player.set_src(64 as i32, 0 as i32); }
+				count if count < &(f_display * 3) => { player.set_src(128 as i32, 0 as i32); }
+				count if count < &(f_display * 4) => { player.set_src(0 as i32, 64 as i32); }
+				count if count < &(f_display * 5) => { player.set_src(64 as i32, 64 as i32); }
+				count if count < &(f_display * 6) => { player.set_src(128 as i32, 64 as i32); }
+				count if count < &(f_display * 7) => { player.set_src(0 as i32, 128 as i32); }
+				count if count < &(f_display * 8) => { player.set_src(64 as i32, 128 as i32); }
+				count if count < &(f_display * 9) => { player.set_src(128 as i32, 128 as i32); }
+				count if count < &(f_display * 10) => { player.set_src(0 as i32, 192 as i32); }
+				count if count < &(f_display * 11) => { player.set_src(64 as i32, 192 as i32); }
+				count if count < &(f_display * 12) => { player.set_src(128 as i32, 192 as i32); }
+
+
+				_ => { player.set_src(0, 0); }
+			}
+		} else {
+			player.set_src(0, 0);
+			if *(player.facing_right()) {
+				self.core.wincan.copy(player.texture_r(), player.src(), player.pos()).unwrap();
+			} else {
+				self.core.wincan.copy(player.texture_l(), player.src(), player.pos()).unwrap();
+			}
+		}
+	}
+
 
 // force enemy movement
 
