@@ -330,7 +330,7 @@ impl ROGUELIKE {
 			player.is_still = false;
 		}
 		// basic attack
-		if mousestate.left(){
+		if mousestate.left() || keystate.contains(&Keycode::Space) {
 			if !(player.is_attacking()) {
 				/*println!(
 					"X = {:?}, Y = {:?}",
