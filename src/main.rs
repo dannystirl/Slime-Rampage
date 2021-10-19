@@ -347,7 +347,8 @@ impl ROGUELIKE {
 		let texture_creator = self.core.wincan.texture_creator();
 		let background = background::Background::new(
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
-			texture_creator.load_texture("images/background/floor_tile_1.png")?,
+			// temp files bc i didn't feel like editing >>>>>
+			texture_creator.load_texture("images/background/floor_tile_2.png")?,	
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
 			1, 
 			1, 
