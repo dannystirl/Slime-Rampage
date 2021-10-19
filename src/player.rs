@@ -9,6 +9,7 @@ use sdl2::rect::Point;
 use rogue_sdl::{Game, SDLCore};
 
 const TILE_SIZE: u32 = 64;
+const ATTACK_LENGTH: u32 = TILE_SIZE;
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
@@ -192,7 +193,13 @@ impl<'a> Player<'a> {
 		self.hp -= dmg;
 	}
 
-	pub fn base_attack(&mut self, x: i32, y: i32){
+	pub fn attack(&mut self) {
+		self.is_attacking = true;
+		self.attack_box = Rect::new(self.x() as i32, self.y() as i32, TILE_SIZE, ATTACK_LENGTH);
+		println!("Attacked basically!");
+	}
+
+	/*pub fn base_attack(&mut self, x: i32, y: i32) {
 		self.is_attacking = true;
 
 		// create hitbox with set width and length between player(x,y) and clickpoint(x,y)
@@ -202,5 +209,5 @@ impl<'a> Player<'a> {
 			(self.y() - y).abs());
 
 		println!("Attacked!");
-	}
+	}*/
 }

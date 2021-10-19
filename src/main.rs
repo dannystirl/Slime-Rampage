@@ -264,12 +264,13 @@ impl ROGUELIKE {
 		// basic attack
 		if mousestate.left(){
 			if !(player.is_attacking()) {
-				println!(
+				/*println!(
 					"X = {:?}, Y = {:?}",
 					mousestate.x(),
 					mousestate.y(),
-				);
-				player.base_attack(mousestate.x(), mousestate.y());
+				);*/
+				// player.base_attack(mousestate.x(), mousestate.y());
+				player.attack();
 			}
 		}
 		// shoot fireball
