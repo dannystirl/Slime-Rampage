@@ -83,8 +83,8 @@ impl Game for ROGUELIKE {
 			),
 			texture_creator.load_texture("images/player/Slime l.png")?,
 			texture_creator.load_texture("images/player/Slime r.png")?,
-			texture_creator.load_texture("images/player/Slime right.png")?,
 			texture_creator.load_texture("images/player/Slime left.png")?,
+			texture_creator.load_texture("images/player/Slime right.png")?,
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
