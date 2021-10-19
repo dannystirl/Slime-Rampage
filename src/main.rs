@@ -19,6 +19,9 @@ use sdl2::image::LoadTexture;
 use rogue_sdl::SDLCore;
 use rogue_sdl::Game;
 
+
+use sdl2::render::Texture;
+
 // window globals
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
@@ -143,6 +146,7 @@ impl Game for ROGUELIKE {
 					println!("\nx:{} y:{} ", enemies[0].x(), enemies[0].y());
 					println!("{} {} {} {}", enemies[0].x(), enemies[0].x() + (enemies[0].width() as i32), enemies[0].y(), enemies[0].y() + (enemies[0].height() as i32)); 
 				}
+
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
@@ -284,8 +288,19 @@ impl ROGUELIKE {
 				|| player.pos().left() < 0
 				|| player.pos().right() > CAM_W as i32
 			{
-				player.set_x(player.x() - player.x_vel());
+		
+				print!("\ncolide.");
+			
+				//player.set_x(player.x() - player.x_vel());
 				player.minus_hp(0.2);
+
+				let mut i = 0;
+				while i < 50 {
+					player.set_x(player.x() - 1);
+					i = i + 1;
+				}				
+				
+				
 			}
 
 			if check_collision(&player.pos(), &enemy.pos())
