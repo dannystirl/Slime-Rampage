@@ -14,7 +14,7 @@ use rogue_sdl::{Game, SDLCore};
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
-const COOLDOWN: u128 = 1000;
+const COOLDOWN: u128 = 250;
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;

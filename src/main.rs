@@ -245,7 +245,23 @@ impl ROGUELIKE {
 				let x_d = (enemy.x() as i32 - player.x()).pow(2);
 				let y_d = (enemy.y() as i32 - player.y()).pow(2);
 				let distance = ((x_d + y_d) as f64).sqrt();
-				if distance > 250.0 {
+				if enemy.get_stun_timer() > 1000 {
+					enemy.set_stunned(false);
+				} else {
+					enemy.slow_vel(0.1);
+					let angle = enemy.angle();
+					let mut x = (enemy.get_vel() * -1.0) * angle.sin();
+					if(enemy.x_flipped) {
+						x *= -1.0;
+					}
+					let mut y = (enemy.get_vel() * -1.0) * angle.cos();
+					if(enemy.y_flipped) {
+						y *= -1.0;
+					}
+					enemy.pos.set_x(((enemy.x() + x) as i32).clamp(XBOUNDS.0, XBOUNDS.1));
+					enemy.pos.set_y(((enemy.y() + y) as i32).clamp(YBOUNDS.0, YBOUNDS.1));
+				}
+				if distance > 300.0 {
 					enemy.update_pos(rngt[i], XBOUNDS, YBOUNDS);
 				} else {
 					enemy.aggro(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
@@ -338,11 +354,10 @@ impl ROGUELIKE {
 
 			if player.is_attacking
 			{
-				println!("Player is attacking...");
 				if check_collision(&player.get_attack_box(), &enemy.pos())
 				{
-					println!("Enemy is dead...");
-					enemy.die();
+					enemy.knockback(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
+					// enemy.die();
 				}
 			}
 		}
