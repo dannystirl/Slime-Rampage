@@ -3,6 +3,7 @@ mod enemy;
 mod player;
 mod ranged_attack;
 mod credits;
+mod top_down_scroll;
 
 use std::collections::HashSet;
 use rand::Rng;
@@ -14,6 +15,7 @@ use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::image::LoadTexture;
+use sdl2::pixels::Color;	//for drawing background
 //use sdl2::render::Texture;
 
 use rogue_sdl::SDLCore;
@@ -24,6 +26,10 @@ const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 const TILE_SIZE: u32 = 64;
+
+//background globals
+const BG_W: u32 = 1920;
+const BG_H: u32 = 1080;
 
 // game globals
 const SPEED_LIMIT: i32 = 3;
@@ -143,17 +149,20 @@ impl Game for ROGUELIKE {
 					println!("\nx:{} y:{} ", enemies[0].x(), enemies[0].y());
 					println!("{} {} {} {}", enemies[0].x(), enemies[0].x() + (enemies[0].width() as i32), enemies[0].y(), enemies[0].y() + (enemies[0].height() as i32)); 
 				}
+			// CLEAR BACKGROUND
+            let background = texture_creator.load_texture("images/background/bb.png")?;
+            self.core.wincan.copy(&background, None, None)?;
+
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
+			ROGUELIKE::update_background(self, &mut player);
 			ROGUELIKE::check_collisions(&mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
 			}
 
-			// CLEAR BACKGROUND
-            let background = texture_creator.load_texture("images/background/bb.png")?;
-            self.core.wincan.copy(&background, None, None)?;
+			
 
 			// SET BACKGROUND
 			ROGUELIKE::create_map(self);
@@ -318,6 +327,43 @@ impl ROGUELIKE {
 		player.set_y((player.y() + player.y_vel()).clamp(0, (CAM_H - w) as i32));
 
 		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+	}
+
+//update background
+	pub fn update_background(&mut self, mut player: &mut Player)
+	{
+		let keystate: HashSet<Keycode> = self.core.event_pump
+					.keyboard_state()
+					.pressed_scancodes()
+					.filter_map(Keycode::from_scancode)
+					.collect();
+
+		let mut x_deltav = 0;
+		let mut y_deltav = 0;
+
+		let cur_bg = Rect::new(
+			((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (BG_W - CAM_W) as i32),
+			((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (BG_H - CAM_H) as i32),
+			CAM_W,
+			CAM_H,
+		);
+
+		// Convert player's map position to be camera-relative
+		let player_cam_pos = Rect::new(
+			player.x() - cur_bg.x(),
+			player.y() - cur_bg.y(),
+			TILE_SIZE,
+			TILE_SIZE,
+		);
+
+		self.core.wincan.set_draw_color(Color::BLACK);
+			self.core.wincan.clear();
+
+			// Draw subset of bg
+			let texture_creator = self.core.wincan.texture_creator();
+			let texture = texture_creator.load_texture("images/background/floor_tile_1.png");
+			self.core.wincan.copy(&texture, cur_bg, None);
+		
 	}
 
 

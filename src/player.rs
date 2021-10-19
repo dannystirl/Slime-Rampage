@@ -8,6 +8,8 @@ pub struct Player<'a> {
 	delta: Rect, 
 	vel: Rect, 
 	pos: Rect,
+	height: u32,
+	width: u32,
 	src: Rect,
 	texture_l: Texture<'a>,
     texture_r: Texture<'a>,
@@ -23,6 +25,8 @@ impl<'a> Player<'a> {
 	pub fn new(pos: Rect, texture_l: Texture<'a>, texture_r: Texture<'a>, texture_a_l: Texture<'a>, texture_a_r: Texture<'a>) -> Player<'a> {
 		let delta = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+		let height = 32;
+		let width = 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
         let facing_left = false;
 		let facing_right = false;
@@ -32,6 +36,8 @@ impl<'a> Player<'a> {
 			delta, 
 			vel, 
 			pos,
+			height,
+			width,
 			src,
 			texture_l,
             texture_r,
@@ -63,9 +69,9 @@ impl<'a> Player<'a> {
 	pub fn x_delta(&self) -> i32 {
 		return self.delta.x;
 	}
-	/*pub fn width(&self) -> u32 {
+	pub fn width(&self) -> u32 {
 		self.pos.width()
-	}*/
+	}
 	
 	// player y values
 	pub fn set_y(&mut self, y:i32){
@@ -86,9 +92,9 @@ impl<'a> Player<'a> {
 	pub fn y_delta(&self) -> i32 {
 		return self.delta.y;
 	}
-	/*pub fn height(&self) -> u32 {
+	pub fn height(&self) -> u32 {
 		self.pos.height()
-	}*/
+	}
 
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
 		self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
