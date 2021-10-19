@@ -2,6 +2,8 @@ extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
+use std::f64;
+
 const TILE_SIZE: u32 = 64;
 
 pub struct Enemy<'a> {
@@ -79,8 +81,12 @@ pub struct Enemy<'a> {
 		}
 	}
 	pub fn aggro(&mut self, player_pos_x: i32, player_pos_y:i32){
-		//let vec = vec![(player_pos_x - self.x())as usize][(player_pos_y-self.y())as usize];
+		let vec = vec![(player_pos_x - self.x()), (player_pos_y-self.y())];
+		let mag: i64 = f64::sqrt((vec[0]+vec[1]) as f64)as i64;
+
 		
+		//println!("{}", mag);
+
 	}
 	pub fn src(&self) -> Rect {
 		self.src
