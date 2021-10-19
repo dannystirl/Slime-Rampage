@@ -35,34 +35,34 @@ pub struct Enemy<'a> {
 	}
 
 	// x values
-	pub fn set_x(&mut self, x:i32){
-		self.pos.x = x;
+	pub fn set_x(&mut self, x:f64){
+		self.pos.x = x as i32;
 	}
-	pub fn x(&self) -> i32 {
-		return self.pos.x;
+	pub fn x(&self) -> f64 {
+		return self.pos.x.into();
 	}
-	pub fn set_x_vel(&mut self, x:i32){
-		self.vel.x = x;
+	pub fn set_x_vel(&mut self, x:f64){
+		self.vel.x = x as i32;
 	}
-	pub fn x_vel(&self) -> i32 {
-		return self.vel.x;
+	pub fn x_vel(&self) -> f64 {
+		return self.vel.x.into();
 	}
 	pub fn width(&self) -> u32 {
 		self.pos.width()
 	}
 
 	// y values
-	pub fn set_y(&mut self, y:i32){
-		self.pos.y = y;
+	pub fn set_y(&mut self, y:f64){
+		self.pos.y = y as i32;
 	}
-	pub fn y(&self) -> i32 {
-		return self.pos.y;
+	pub fn y(&self) -> f64 {
+		return self.pos.y.into();
 	}
-	pub fn set_y_vel(&mut self, y:i32){
-		self.vel.y = y;
+	pub fn set_y_vel(&mut self, y:f64){
+		self.vel.y = y as i32;
 	}
-	pub fn y_vel(&self) -> i32 {
-		return self.vel.y;
+	pub fn y_vel(&self) -> f64 {
+		return self.vel.y.into();
 	}
 	pub fn height(&self) -> u32 {
 		self.pos.height()
@@ -70,30 +70,41 @@ pub struct Enemy<'a> {
 
 	pub fn update_pos(&mut self, roll:i32, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
 		if roll == 1 {
-			self.pos.set_x((self.x() + self.x_vel()+1).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + (self.x_vel() as i32) + 1).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_y((self.y() as i32 + self.y_vel() as i32).clamp(y_bounds.0, y_bounds.1));
 		}
 		if roll == 2 {
-			self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() + self.y_vel()+1).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + self.x_vel() as i32).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_y((self.y() as i32 + (self.y_vel() as i32) + 1).clamp(y_bounds.0, y_bounds.1));
 		}
 		if roll == 3 {
-			self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() + self.y_vel()-1).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + self.x_vel() as i32).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_y((self.y() as i32 + (self.y_vel() as i32) - 1).clamp(y_bounds.0, y_bounds.1));
 		}
 		if roll == 4 {
-			self.pos.set_x((self.x() + self.x_vel()-1).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + (self.x_vel() as i32) - 1).clamp(x_bounds.0, x_bounds.1));
+			self.pos.set_y((self.y() as i32 + self.y_vel() as i32).clamp(y_bounds.0, y_bounds.1));
 		}
 	}
-	pub fn aggro(&mut self, player_pos_x: i32, player_pos_y:i32){
-		let vec = vec![(player_pos_x - self.x()), (player_pos_y-self.y())];
-		let mag: i64 = f64::sqrt((vec[0]+vec[1]) as f64)as i64;
 
+	pub fn aggro(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
+		let speed: f64 = 3.0;
+		let angle = ((vec[0] / vec[1]).abs()).atan();
+		let mut x = speed * angle.sin();
+		if(vec[0] < 0.0) {
+			x *= -1.0;
+		}
+		let mut y = speed * angle.cos();
+		if(vec[1] < 0.0) {
+			y *= -1.0;
+		}
+		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
+		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
 		
 		//println!("{}", mag);
-
 	}
+
 	pub fn src(&self) -> Rect {
 		self.src
 	}

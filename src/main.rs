@@ -149,8 +149,8 @@ impl Game for ROGUELIKE {
 
 				// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 				if keystate.contains(&Keycode::P) {
-					println!("\nx:{} y:{} ", enemies[0].x(), enemies[0].y());
-					println!("{} {} {} {}", enemies[0].x(), enemies[0].x() + (enemies[0].width() as i32), enemies[0].y(), enemies[0].y() + (enemies[0].height() as i32)); 
+					println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
+					println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32)); 
 				}
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, mousestate, &mut player);
@@ -225,7 +225,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 // update enemies
-	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>,player: &mut Player) -> Vec<i32>{
+	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
 		
 		
 
@@ -237,7 +237,8 @@ impl ROGUELIKE {
 					rngt[i] = rng.gen_range(1..5);
 					rngt[0] = 0;
 				}
-				enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+				// enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+				enemy.aggro(player.x().into(), player.y().into(), (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
 				i+=1;
 			}
@@ -316,13 +317,11 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos())
 			{
-				player.set_x(player.x() - player.x_vel());
 				player.minus_hp(0.2);
 			}
 
 			if check_collision(&player.pos(), &enemy.pos())
 			{
-				player.set_y(player.y() - player.y_vel());
 				player.minus_hp(0.2);
 			}
 
@@ -409,10 +408,10 @@ impl ROGUELIKE {
 // force enemy movement
 
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
-		if  enemy.x() <= 0 ||
-		enemy.x() >=  ((CAM_W - TILE_SIZE) as i32) ||
-		enemy.y() <= 0 ||
-		enemy.y() >= ((CAM_H - TILE_SIZE) as i32)
+		if enemy.x() as i32 <= 0 ||
+		enemy.x() as i32 >=  ((CAM_W - TILE_SIZE) as i32) ||
+		enemy.y() as i32 <= 0 ||
+		enemy.y() as i32 >= ((CAM_H - TILE_SIZE) as i32)
 		{return true;}
 		else {return false;}
 	}
