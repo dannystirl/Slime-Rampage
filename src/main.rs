@@ -5,6 +5,8 @@ mod ranged_attack;
 mod credits;
 
 use std::collections::HashSet;
+use std::time::Duration;
+use std::time::Instant;
 use rand::Rng;
 use crate::enemy::*;
 use crate::ranged_attack::*;
@@ -17,6 +19,7 @@ use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::mouse::MouseButtonIterator;
 use sdl2::mouse::PressedMouseButtonIterator;
 use sdl2::image::LoadTexture;
+use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 //use sdl2::render::Texture;
 
@@ -177,6 +180,12 @@ impl Game for ROGUELIKE {
 				count = 0;
 			}
 
+			// let r = Rect::new(player.get_attack_box().x, player.get_attack_box().y, player.get_attack_box().width, player.get_attack_box().height);
+			if player.is_attacking {
+				self.core.wincan.set_draw_color(Color::RED);
+				self.core.wincan.fill_rect(player.get_attack_box());
+			}
+
 			// UPDATE FRAME
 			self.core.wincan.present();
 
@@ -315,8 +324,10 @@ impl ROGUELIKE {
 
 			if player.is_attacking
 			{
+				println!("Player is attacking...");
 				if check_collision(&player.get_attack_box(), &enemy.pos())
 				{
+					println!("Enemy is dead...");
 					enemy.die();
 				}
 			}
@@ -343,6 +354,12 @@ impl ROGUELIKE {
 		player.set_y((player.y() + player.y_vel()).clamp(0, (CAM_H - w) as i32));
 
 		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+
+		player.set_attack_box(player.x(), player.y());
+
+		if player.get_attack_timer() > player.get_cooldown() {
+			player.cooldown();
+		}
 	}
 
 

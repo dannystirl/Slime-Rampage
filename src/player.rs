@@ -1,4 +1,8 @@
 extern crate rogue_sdl;
+
+use std::time::Duration;
+use std::time::Instant;
+
 use sdl2::image::LoadTexture;
 use sdl2::render::WindowCanvas;
 
@@ -9,7 +13,8 @@ use sdl2::rect::Point;
 use rogue_sdl::{Game, SDLCore};
 
 const TILE_SIZE: u32 = 64;
-const ATTACK_LENGTH: u32 = TILE_SIZE;
+const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
+const COOLDOWN: u128 = 1000;
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
@@ -20,6 +25,7 @@ pub struct Player<'a> {
 	pos: Rect,
 	src: Rect,
 	attack_box: Rect,
+	attack_timer: Instant,
 	texture_l: Texture<'a>,
     texture_r: Texture<'a>,
 	texture_a_l: Texture<'a>,
@@ -42,12 +48,14 @@ impl<'a> Player<'a> {
 		let hp = 100.0;
 		let is_attacking = false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+		let attack_timer = Instant::now();
 		Player {
 			delta, 
 			vel, 
 			pos,
 			src,
 			attack_box,
+			attack_timer,
 			texture_l,
             texture_r,
 			texture_a_l,
@@ -177,11 +185,32 @@ impl<'a> Player<'a> {
 		&self.is_attacking
 	}
 
-	pub fn get_attack_box(&self) -> &Rect {
-		&self.attack_box
+	pub fn get_attack_timer(&self) -> u128 {
+		self.attack_timer.elapsed().as_millis()
 	}
 
-	pub fn set_src(&mut self, x: i32, y: i32){
+	pub fn get_attack_box(&self) -> Rect {
+		self.attack_box
+	}
+
+	pub fn set_attack_box(&mut self, x: i32, y: i32) {
+		if *self.facing_right()
+		{
+			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		}
+	}
+
+	pub fn clear_attack_box(&mut self) {
+		self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+	}
+
+	pub fn get_cooldown(&self) -> u128 {
+		COOLDOWN
+	}
+
+	pub fn set_src(&mut self, x: i32, y: i32) {
 		self.src = Rect::new(x as i32, y as i32, TILE_SIZE, TILE_SIZE);
 	}
 
@@ -198,9 +227,23 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn attack(&mut self) {
+		if(self.get_attack_timer() < COOLDOWN)
+		{
+			return;
+		}
 		self.is_attacking = true;
-		self.attack_box = Rect::new(self.x() as i32, self.y() as i32, TILE_SIZE, ATTACK_LENGTH);
-		println!("Attacked basically!");
+		if *self.facing_right()
+		{
+			self.attack_box = Rect::new(self.x() + TILE_SIZE as i32, self.y() as i32, ATTACK_LENGTH, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(self.x() - ATTACK_LENGTH as i32, self.y() as i32, ATTACK_LENGTH, TILE_SIZE);
+		}
+		self.attack_timer = Instant::now();
+	}
+
+	pub fn cooldown(&mut self) {
+		self.is_attacking = false;
+		self.clear_attack_box();
 	}
 
 	/*pub fn base_attack(&mut self, x: i32, y: i32) {
