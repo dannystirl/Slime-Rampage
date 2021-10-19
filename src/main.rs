@@ -30,8 +30,8 @@ const CAM_H: u32 = 720;
 const TILE_SIZE: u32 = 64;
 
 //background globals
-const BG_W: u32 = 1920;
-const BG_H: u32 = 1080;
+const BG_W: u32 = 2400;
+const BG_H: u32 = 1440;
 
 // game globals
 const SPEED_LIMIT: i32 = 3;
@@ -158,23 +158,28 @@ impl Game for ROGUELIKE {
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
-			ROGUELIKE::update_background(self, &mut player);
+			//ROGUELIKE::update_background(self, &mut player);
 			ROGUELIKE::check_collisions(&mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
 			}
 
-			
-
 			// SET BACKGROUND
-			ROGUELIKE::create_map(self);
+			let cur_bg = Rect::new(
+				((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)),
+				((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)),
+				CAM_W,
+				CAM_H,
+			);
+
+			ROGUELIKE::create_map(self, &cur_bg);
 
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies);
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
-			self.draw_player(&count, &f_display, &mut player);
+			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
 				count = 0;
@@ -198,7 +203,7 @@ pub fn main() -> Result<(), String> {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_map(&mut self) -> Result<(), String> {
+	pub fn create_map(&mut self, cur_bg: &Rect) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		for i in 2..18 {
 			for j in 2..9 {
@@ -364,16 +369,22 @@ impl ROGUELIKE {
 
 
 // draw player
+	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
+		let player_cam_pos = Rect::new(
+			player.x() - cur_bg.x(),
+			player.y() - cur_bg.y(),
+			TILE_SIZE,
+			TILE_SIZE,
+		);
 
-	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player) {
 		if *(player.is_still()) {
 			if *(player.facing_right()) {
-				self.core.wincan.copy(player.texture_a_r(), player.src(), player.pos()).unwrap();
+				self.core.wincan.copy(player.texture_a_r(), player.src(), player_cam_pos).unwrap();
 			} else {
-				self.core.wincan.copy(player.texture_a_l(), player.src(), player.pos()).unwrap();
+				self.core.wincan.copy(player.texture_a_l(), player.src(), player_cam_pos).unwrap();
 			}
 
-			//display animation when not moving
+			//display animation when not movinga
 			match count {
 				count if count < f_display => { player.set_src(0 as i32, 0 as i32); }
 				count if count < &(f_display * 2) => { player.set_src(TILE_SIZE as i32, 0 as i32); }
@@ -384,11 +395,13 @@ impl ROGUELIKE {
 		} else {
 			player.set_src(0, 0);
 			if *(player.facing_right()) {
-				self.core.wincan.copy(player.texture_r(), player.src(), player.pos()).unwrap();
+				self.core.wincan.copy(player.texture_r(), player.src(), player_cam_pos).unwrap();
 			} else {
-				self.core.wincan.copy(player.texture_l(), player.src(), player.pos()).unwrap();
+				self.core.wincan.copy(player.texture_l(), player.src(), player_cam_pos).unwrap();
 			}
 		}
+
+		println!("\nx:{} y:{} ", player.x(), player.y());
 	}
 
 
