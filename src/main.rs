@@ -29,6 +29,9 @@ const TILE_SIZE: u32 = 64;
 const SPEED_LIMIT: i32 = 3;
 const ACCEL_RATE: i32 = 3;
 
+const XWALLS: (i32, i32) = (1,19);
+const YWALLS: (i32, i32) = (1,9);
+
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -189,19 +192,21 @@ pub fn main() -> Result<(), String> {
 impl ROGUELIKE {
 	pub fn create_map(&mut self) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
-		for i in 2..18 {
-			for j in 2..9 {
-				let num = rand::thread_rng().gen_range(0..2);
-				let texture;
-				match num {
-					0 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
-					// TODO: change below to floor tile 2 to allow for random tiling
-					1 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
-					_ => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+		for i in XWALLS.0..XWALLS.1 {
+			for j in YWALLS.0..YWALLS.1 {
+				if( i==XWALLS.0 || i==XWALLS.1-1 || j==YWALLS.0 || j==YWALLS.1-1 ){
+					let num = rand::thread_rng().gen_range(0..2);
+					let texture;
+					match num {
+						0 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+						// TODO: change below to floor tile 2 to allow for random tiling
+						1 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+						_ => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+					}
+					let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+					let pos = Rect::new(i * TILE_SIZE as i32, j * TILE_SIZE as i32, TILE_SIZE, TILE_SIZE);
+					self.core.wincan.copy(&texture, src, pos)?;
 				}
-				let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-				let pos = Rect::new(i * TILE_SIZE as i32, j * TILE_SIZE as i32, TILE_SIZE, TILE_SIZE);
-				self.core.wincan.copy(&texture, src, pos)?;
 			}
 		}
 		Ok(())
@@ -317,7 +322,10 @@ impl ROGUELIKE {
 		player.set_x((player.x() + player.x_vel()).clamp(0, (CAM_W - w) as i32));
 		player.set_y((player.y() + player.y_vel()).clamp(0, (CAM_H - w) as i32));
 
-		player.update_pos((0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+		player.update_pos( ( (XWALLS.0*TILE_SIZE as i32) , 
+						  	 ( (XWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32), 
+						   ( (YWALLS.0*TILE_SIZE as i32) , 
+						   	 ( (YWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32) );
 	}
 
 
