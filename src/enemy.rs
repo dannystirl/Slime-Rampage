@@ -78,7 +78,10 @@ pub struct Enemy<'a> {
 			self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
 		}
 	}
-
+	pub fn aggro(&mut self, player_pos_x: i32, player_pos_y:i32){
+		//let vec = vec![(player_pos_x - self.x())as usize][(player_pos_y-self.y())as usize];
+		
+	}
 	pub fn src(&self) -> Rect {
 		self.src
 	}
