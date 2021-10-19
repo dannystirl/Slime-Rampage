@@ -492,8 +492,7 @@ impl ROGUELIKE {
 				self.core.wincan.copy(player.texture_l(), player.src(), player_cam_pos).unwrap();
 			}
 		}
-
-		println!("\nx:{} y:{} ", player.x(), player.y());
+		//println!("\nx:{} y:{} ", player.x(), player.y());
 	}
 
 
