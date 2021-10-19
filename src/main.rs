@@ -135,7 +135,7 @@ impl Game for ROGUELIKE {
 					_ => {},
 				}
 			}
-
+		
 			player.set_x_delta(0);
 			player.set_y_delta(0);
 
@@ -163,12 +163,13 @@ impl Game for ROGUELIKE {
 			// CLEAR BACKGROUND
             let background = texture_creator.load_texture("images/background/bb.png")?;
             self.core.wincan.copy(&background, None, None)?;
-
+			
+			
 			// SET BACKGROUND
 			ROGUELIKE::create_map(self);
 
 			// UPDATE ENEMIES
-			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies);
+			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies,&mut player);
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
@@ -224,7 +225,10 @@ impl ROGUELIKE {
 		Ok(())
 	}
 // update enemies
-	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>) -> Vec<i32>{
+	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>,player: &mut Player) -> Vec<i32>{
+		
+		
+
 		let mut i=1;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
