@@ -31,6 +31,9 @@ const ACCEL_RATE: i32 = 3;
 
 const XWALLS: (i32, i32) = (1,19);
 const YWALLS: (i32, i32) = (1,9);
+const XBOUNDS: (i32,i32) = ((XWALLS.0*TILE_SIZE as i32), ( (XWALLS.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
+const YBOUNDS: (i32,i32) = ((YWALLS.0*TILE_SIZE as i32), ( (YWALLS.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
+
 
 
 pub struct ROGUELIKE {
@@ -220,7 +223,11 @@ impl ROGUELIKE {
 				rngt[i] = rng.gen_range(1..5);
 				rngt[0] = 0;
 			}
-			enemy.update_pos(rngt[i], (0, (CAM_W - TILE_SIZE) as i32), (0, (CAM_H - TILE_SIZE) as i32));
+			enemy.update_pos(rngt[i], 
+						   ( (XWALLS.0*TILE_SIZE as i32) , 
+						  	 ( (XWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32), 
+						   ( (YWALLS.0*TILE_SIZE as i32) , 
+						   	 ( (YWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32) );
 			self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
 			i+=1;
 		}
@@ -322,10 +329,11 @@ impl ROGUELIKE {
 		player.set_x((player.x() + player.x_vel()).clamp(0, (CAM_W - w) as i32));
 		player.set_y((player.y() + player.y_vel()).clamp(0, (CAM_H - w) as i32));
 
-		player.update_pos( ( (XWALLS.0*TILE_SIZE as i32) , 
+		player.update_pos(XBOUNDS, YBOUNDS);
+		/* player.update_pos( ( (XWALLS.0*TILE_SIZE as i32) , 
 						  	 ( (XWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32), 
 						   ( (YWALLS.0*TILE_SIZE as i32) , 
-						   	 ( (YWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32) );
+						   	 ( (YWALLS.1 as u32 *TILE_SIZE) - TILE_SIZE) as i32) ); */
 	}
 
 
@@ -361,10 +369,10 @@ impl ROGUELIKE {
 // force enemy movement
 
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
-		if  enemy.x() <= 0 || 
-		enemy.x() >=  ((CAM_W - TILE_SIZE) as i32) ||
-		enemy.y() <= 0 || 
-		enemy.y() >= ((CAM_H - TILE_SIZE) as i32)
+		if  enemy.x() <= XBOUNDS.0 || 
+		enemy.x() >=  XBOUNDS.1 ||
+		enemy.y() <= YBOUNDS.0 || 
+		enemy.y() >= YBOUNDS.1
 		{return true;}
 		else {return false;}
 	}
