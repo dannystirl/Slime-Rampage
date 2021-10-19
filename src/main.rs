@@ -33,6 +33,10 @@ const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 const TILE_SIZE: u32 = 64;
+const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
+
+const START_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
+const START_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 
 //background globals
 const BG_W: u32 = 2400;
@@ -96,8 +100,8 @@ impl Game for ROGUELIKE {
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		let mut player = player::Player::new(
 			Rect::new(
-				(CAM_W/2 - TILE_SIZE/2) as i32,
-				(CAM_H/2 - TILE_SIZE/2) as i32,
+				START_W,
+				START_H,
 				TILE_SIZE,
 				TILE_SIZE,
 			),
@@ -186,7 +190,7 @@ impl Game for ROGUELIKE {
 				CAM_H,
 			);
 
-			ROGUELIKE::create_map(self, &cur_bg);
+			ROGUELIKE::create_map(self, &cur_bg, player.x(), player.y());
 
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
@@ -199,10 +203,16 @@ impl Game for ROGUELIKE {
 				count = 0;
 			}
 
-			// let r = Rect::new(player.get_attack_box().x, player.get_attack_box().y, player.get_attack_box().width, player.get_attack_box().height);
 			if player.is_attacking {
-				self.core.wincan.set_draw_color(Color::RED);
-				self.core.wincan.fill_rect(player.get_attack_box());
+				if *player.facing_right() {
+					let r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
+					self.core.wincan.set_draw_color(Color::RED);
+					self.core.wincan.fill_rect(r);
+				} else {
+					let r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
+					self.core.wincan.set_draw_color(Color::RED);
+					self.core.wincan.fill_rect(r);
+				}
 			}
 
 			// UPDATE FRAME
@@ -223,7 +233,7 @@ pub fn main() -> Result<(), String> {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_map(&mut self, cur_bg: &Rect) -> Result<(), String> {
+	pub fn create_map(&mut self, cur_bg: &Rect, player_pos_x: i32, player_pos_y: i32) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		for i in XWALLS.0..XWALLS.1 {
 			for j in YWALLS.0..YWALLS.1 {
@@ -237,7 +247,9 @@ impl ROGUELIKE {
 						_ => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
 					}
 					let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-					let pos = Rect::new(i * TILE_SIZE as i32, j * TILE_SIZE as i32, TILE_SIZE, TILE_SIZE);
+					let pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
+										j * TILE_SIZE as i32 + (START_H - player_pos_y),
+										TILE_SIZE, TILE_SIZE);
 					self.core.wincan.copy(&texture, src, pos)?;
 				}
 			}
@@ -278,7 +290,10 @@ impl ROGUELIKE {
 				} else {
 					enemy.aggro(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
 				}
-				self.core.wincan.copy(enemy.txtre(), enemy.src(), enemy.pos()).unwrap();
+				let pos = Rect::new(enemy.x() as i32 + (START_W - player.x()),
+									enemy.y() as i32 + (START_H - player.y()),
+									TILE_SIZE, TILE_SIZE);
+				self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
 				i += 1;
 			}
 		}
@@ -367,7 +382,7 @@ impl ROGUELIKE {
 				if check_collision(&player.get_attack_box(), &enemy.pos())
 				{
 					enemy.knockback(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
-					// enemy.die();
+					enemy.minus_hp(1.0);
 				}
 			}
 		}

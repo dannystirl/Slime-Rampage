@@ -7,7 +7,7 @@ use sdl2::render::Texture;
 use std::f64;
 
 const TILE_SIZE: u32 = 64;
-const STUN_TIME: u32 = 1000;
+const STUN_TIME: u32 = 2000;
 
 pub struct Enemy<'a> {
 	vel: Rect, 
