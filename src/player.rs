@@ -15,6 +15,7 @@ use rogue_sdl::{Game, SDLCore};
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
 const COOLDOWN: u128 = 250;
+const DMG_COOLDOWN: u128 = 1000;
 const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
@@ -28,6 +29,7 @@ pub struct Player<'a> {
 	src: Rect,
 	attack_box: Rect,
 	attack_timer: Instant,
+	damage_timer: Instant,
 	texture_l: Texture<'a>,
     texture_r: Texture<'a>,
 	texture_a_l: Texture<'a>,
@@ -53,6 +55,7 @@ impl<'a> Player<'a> {
 		let is_attacking = false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
+		let damage_timer = Instant::now();
 		Player {
 			delta, 
 			vel, 
@@ -62,6 +65,7 @@ impl<'a> Player<'a> {
 			src,
 			attack_box,
 			attack_timer,
+			damage_timer,
 			texture_l,
             texture_r,
 			texture_a_l,
@@ -195,6 +199,10 @@ impl<'a> Player<'a> {
 		self.attack_timer.elapsed().as_millis()
 	}
 
+	pub fn get_damage_timer(&self) -> u128 {
+		self.damage_timer.elapsed().as_millis()
+	}
+
 	pub fn get_attack_box(&self) -> Rect {
 		self.attack_box
 	}
@@ -229,7 +237,14 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: f32) {
+		if(self.get_damage_timer() < DMG_COOLDOWN)
+		{
+			return;
+		}
+
 		self.hp -= dmg;
+		
+		self.damage_timer = Instant::now();
 	}
 
 	pub fn attack(&mut self) {
@@ -251,6 +266,8 @@ impl<'a> Player<'a> {
 		self.is_attacking = false;
 		self.clear_attack_box();
 	}
+
+	
 
 	/*pub fn base_attack(&mut self, x: i32, y: i32) {
 		self.is_attacking = true;

@@ -369,14 +369,15 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos())
 			{
-				player.minus_hp(0.2);
+				player.minus_hp(5.0);
+				//println!("Health: {}", player.get_hp()); //for debugging
 			}
 
 			if check_collision(&player.pos(), &enemy.pos())
 			{
-				player.minus_hp(0.2);
+				player.minus_hp(5.0);
+				//println!("Health: {}", player.get_hp()); //for debugging
 			}
-
 			if player.is_attacking
 			{
 				if check_collision(&player.get_attack_box(), &enemy.pos())
@@ -386,6 +387,7 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		//player.set_invincible_f()
 	}
 
 	// update player
