@@ -141,7 +141,7 @@ impl Game for ROGUELIKE {
 			false,
 			false,
 			0,
-            texture_creator.load_texture("images/fireball/fireball.png")?,
+            texture_creator.load_texture("images/abilities/fireball.png")?,
 		);
 
 		// MAIN GAME LOOP
