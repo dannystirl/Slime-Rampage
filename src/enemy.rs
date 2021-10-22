@@ -7,6 +7,7 @@ use sdl2::render::Texture;
 use std::f64;
 
 const TILE_SIZE: u32 = 64;
+#[allow(dead_code)]
 const STUN_TIME: u32 = 2000;
 
 pub struct Enemy<'a> {
@@ -119,17 +120,15 @@ pub struct Enemy<'a> {
 		let speed: f64 = 3.0;
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		let mut x = speed * angle.sin();
-		if(vec[0] < 0.0) {
+		if vec[0] < 0.0 {
 			x *= -1.0;
 		}
 		let mut y = speed * angle.cos();
-		if(vec[1] < 0.0) {
+		if vec[1] < 0.0  {
 			y *= -1.0;
 		}
 		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
 		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
-		
-		//println!("{}", mag);
 	}
 
 	pub fn src(&self) -> Rect {
@@ -182,12 +181,12 @@ pub struct Enemy<'a> {
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		self.angle = angle;
 		let mut x = -5.0 * angle.sin();
-		if(vec[0] < 0.0) {
+		if vec[0] < 0.0 {
 			x *= -1.0;
 			self.x_flipped = true;
 		}
 		let mut y = -5.0 * angle.cos();
-		if(vec[1] < 0.0) {
+		if vec[1] < 0.0 {
 			y *= -1.0;
 			self.y_flipped = false;
 		}
