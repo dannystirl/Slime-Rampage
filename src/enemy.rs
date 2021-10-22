@@ -19,7 +19,7 @@ pub struct Enemy<'a> {
 	angle: f64,
 	pub x_flipped: bool,
 	pub y_flipped: bool,
-	pub facing_left: bool,
+	pub facing_right: bool,
 	pub is_stunned: bool,
 	pub hp: f32,
 	pub alive: bool,
@@ -34,7 +34,7 @@ pub struct Enemy<'a> {
 		let angle = 0.0;
 		let x_flipped = false;
 		let y_flipped = false;
-		let facing_left = false;
+		let facing_right = false;
 		let is_stunned = false;
 		let hp = 50.0;
 		let alive = true;
@@ -48,7 +48,7 @@ pub struct Enemy<'a> {
 			angle,
 			x_flipped,
 			y_flipped,
-			facing_left,
+			facing_right,
 			is_stunned,
 			hp,
 			alive,
@@ -138,10 +138,6 @@ pub struct Enemy<'a> {
 
     pub fn txtre(&self) -> &Texture {
         &self.txtre
-    }
-
-	pub fn facing_left(&self) -> &bool {
-        &self.facing_left
     }
 
     pub fn pos(&self) -> Rect {

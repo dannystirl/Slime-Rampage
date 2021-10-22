@@ -99,16 +99,9 @@ impl Game for ROGUELIKE {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		let mut player = player::Player::new(
-			Rect::new(
-				START_W,
-				START_H,
-				TILE_SIZE,
-				TILE_SIZE,
-			),
-			texture_creator.load_texture("images/player/Slime l.png")?,
-			texture_creator.load_texture("images/player/Slime r.png")?,
-			texture_creator.load_texture("images/player/Slime left.png")?,
-			texture_creator.load_texture("images/player/Slime right.png")?,
+			(START_W-200, START_H,),
+			texture_creator.load_texture("images/player/slime_single.png")?,
+			texture_creator.load_texture("images/player/slime_sheet.png")?,
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
@@ -118,8 +111,8 @@ impl Game for ROGUELIKE {
 		for _ in 0..enemies.capacity(){
 			let e = enemy::Enemy::new(
 				Rect::new(
-					(CAM_W/2 - TILE_SIZE/2 + 100) as i32,
-					(CAM_H/2 - TILE_SIZE/2 + 100) as i32,
+					(CAM_W/2 - TILE_SIZE/2 + 200) as i32,
+					(CAM_H/2 - TILE_SIZE/2) as i32,
 					TILE_SIZE,
 					TILE_SIZE,
 				),
@@ -204,7 +197,7 @@ impl Game for ROGUELIKE {
 			}
 
 			if player.is_attacking {
-				if *player.facing_right() {
+				if player.facing_right {
 					let r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 					self.core.wincan.set_draw_color(Color::RED);
 					self.core.wincan.fill_rect(r);
@@ -313,7 +306,6 @@ impl ROGUELIKE {
 		// move left
 		if keystate.contains(&Keycode::A) {
 			player.set_x_delta(player.x_delta() - ACCEL_RATE);
-			player.facing_left = true;
 			player.facing_right = false;
 			player.is_still = false;
 		}
@@ -325,13 +317,12 @@ impl ROGUELIKE {
 		// move right
 		if keystate.contains(&Keycode::D) {
 			player.set_x_delta(player.x_delta() + ACCEL_RATE);
-			player.facing_left = false;
 			player.facing_right = true;
 			player.is_still = false;
 		}
 		// basic attack
 		if mousestate.left() || keystate.contains(&Keycode::Space) {
-			if !(player.is_attacking()) {
+			if !(player.is_attacking) {
 				/*println!(
 					"X = {:?}, Y = {:?}",
 					mousestate.x(),
@@ -344,7 +335,7 @@ impl ROGUELIKE {
 		// shoot fireball
 		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
 			fireball.set_use(true);
-			fireball.start_pos(player.x(), player.y(), player.facing_left);
+			fireball.start_pos(player.x(), player.y(), player.facing_right);
 		}
 	}
 
@@ -461,12 +452,8 @@ impl ROGUELIKE {
 			TILE_SIZE,
 		);
 
-		if *(player.is_still()) {
-			if *(player.facing_right()) {
-				self.core.wincan.copy(player.texture_a_r(), player.src(), player_cam_pos).unwrap();
-			} else {
-				self.core.wincan.copy(player.texture_a_l(), player.src(), player_cam_pos).unwrap();
-			}
+		if player.is_still {
+			self.core.wincan.copy_ex(player.texture(), player.src(), player_cam_pos, 0.0, None, player.facing_right, false).unwrap();
 
 			//display animation when not movinga
 			match count {
@@ -488,11 +475,7 @@ impl ROGUELIKE {
 			}
 		} else {
 			player.set_src(0, 0);
-			if *(player.facing_right()) {
-				self.core.wincan.copy(player.texture_r(), player.src(), player_cam_pos).unwrap();
-			} else {
-				self.core.wincan.copy(player.texture_l(), player.src(), player_cam_pos).unwrap();
-			}
+			self.core.wincan.copy_ex(player.texture(), player.src(), player_cam_pos, 0.0, None, player.facing_right, false).unwrap();
 		}
 		//println!("\nx:{} y:{} ", player.x(), player.y());
 	}

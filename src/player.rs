@@ -1,40 +1,31 @@
 extern crate rogue_sdl;
 
-use std::time::Duration;
 use std::time::Instant;
-
-use sdl2::image::LoadTexture;
-use sdl2::render::WindowCanvas;
 
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
-use sdl2::rect::Point;
 
-use rogue_sdl::{Game, SDLCore};
+use rogue_sdl::{SDLCore};
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
 const COOLDOWN: u128 = 250;
 const DMG_COOLDOWN: u128 = 1000;
-const TITLE: &str = "Roguelike";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 
 pub struct Player<'a> {
-	delta: Rect, 
-	vel: Rect, 
-	pos: Rect,
+	pos: (i32, i32),
+	vel: (i32, i32), 
+	delta: (i32, i32), 
 	height: u32,
 	width: u32,
 	src: Rect,
 	attack_box: Rect,
 	attack_timer: Instant,
 	damage_timer: Instant,
-	texture_l: Texture<'a>,
-    texture_r: Texture<'a>,
-	texture_a_l: Texture<'a>,
-	texture_a_r: Texture<'a>,
-	pub facing_left: bool,
+	texture: Texture<'a>,
+	texture_all: Texture<'a>,
 	pub facing_right: bool,
 	pub is_still: bool,
 	pub hp: f32,
@@ -42,35 +33,31 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new(pos: Rect, texture_l: Texture<'a>, texture_r: Texture<'a>, texture_a_l: Texture<'a>, texture_a_r: Texture<'a>) -> Player<'a> {
-		let delta = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+	pub fn new(pos: (i32,i32), texture: Texture<'a>, texture_all: Texture<'a>) -> Player<'a> {
+		let vel = (0,0);
+		let delta = (0, 0);
 		let height = 32;
 		let width = 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-        let facing_left = false;
+		let hp = 100.0;
 		let facing_right = false;
 		let is_still = true;
-		let hp = 100.0;
 		let is_attacking = false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
 		let damage_timer = Instant::now();
 		Player {
-			delta, 
-			vel, 
 			pos,
+			vel, 
+			delta, 
 			height,
 			width,
 			src,
 			attack_box,
 			attack_timer,
 			damage_timer,
-			texture_l,
-            texture_r,
-			texture_a_l,
-			texture_a_r,
-            facing_left,
+			texture,
+			texture_all,
 			facing_right,
 			is_still,
 			hp,
@@ -80,78 +67,69 @@ impl<'a> Player<'a> {
 
 	// player x values
 	pub fn set_x(&mut self, x:i32){
-		self.pos.x = x;
+		self.pos.0 = x;
 	}
 	pub fn x(&self) -> i32 {
-		return self.pos.x;
+		return self.pos.0;
 	}
 	pub fn set_x_vel(&mut self, x:i32){
-		self.vel.x = x;
+		self.vel.0 = x;
 	}
 	pub fn x_vel(&self) -> i32 {
-		return self.vel.x;
+		return self.vel.0;
 	}
 	pub fn set_x_delta(&mut self, x:i32){
-		self.delta.x = x;
+		self.delta.0 = x;
 	}
 	pub fn x_delta(&self) -> i32 {
-		return self.delta.x;
+		return self.delta.0;
 	}
 	pub fn width(&self) -> u32 {
-		self.pos.width()
+		self.width
 	}
 	
 	// player y values
 	pub fn set_y(&mut self, y:i32){
-		self.pos.y = y;
+		self.pos.1 = y;
 	}
 	pub fn y(&self) -> i32 {
-		return self.pos.y;
+		return self.pos.1;
 	}
 	pub fn set_y_vel(&mut self, y:i32){
-		self.vel.y = y;
+		self.vel.1 = y;
 	}
 	pub fn y_vel(&self) -> i32 {
-		return self.vel.y;
+		return self.vel.1;
 	}
 	pub fn set_y_delta(&mut self, y:i32){
-		self.delta.y = y;
+		self.delta.1 = y;
 	}
 	pub fn y_delta(&self) -> i32 {
-		return self.delta.y;
+		return self.delta.1;
 	}
 	pub fn height(&self) -> u32 {
-		self.pos.height()
+		self.height
 	}
 
+	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.set_x((self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1));
-		self.pos.set_y((self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1));
+		self.pos.0 = (self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1);
+		self.pos.1 = (self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1);
 	}
 
 	pub fn draw(&mut self, core: &mut SDLCore, count: &i32, f_display: &i32){
-		if *(self.is_still()) {
-			if *(self.facing_right()) {
-				core.wincan.copy(self.texture_a_r(), self.src(), self.pos()).unwrap();
-			} else {
-				core.wincan.copy(self.texture_a_l(), self.src(), self.pos()).unwrap();
-			}
-
+		if self.is_still {
+			core.wincan.copy_ex(self.texture_all(), self.src(), self.pos(), 0.0, None, self.facing_right, false).unwrap();
 			//display animation when not moving
-			match count {
-				count if count < f_display => { self.set_src(0 as i32, 0 as i32); }
-				count if count < &(f_display * 2) => { self.set_src(TILE_SIZE as i32, 0 as i32); }
-				count if count < &(f_display * 3) => { self.set_src(0 as i32, TILE_SIZE as i32); }
-				count if count < &(f_display * 4) => { self.set_src(TILE_SIZE as i32, TILE_SIZE as i32); }
-				_ => { self.set_src(0, 0); }
-			}
+			if count < f_display { self.set_src(0 as i32, 0 as i32); }
+			else if count < &(f_display * 2) { self.set_src(TILE_SIZE as i32, 0 as i32); }
+			else if count < &(f_display * 3) { self.set_src(0 as i32, TILE_SIZE as i32); }
+			else if count < &(f_display * 4) { self.set_src(TILE_SIZE as i32, TILE_SIZE as i32); }
+			else { self.set_src(0, 0); }
+			
 		} else {
 			self.set_src(0, 0);
-			if *(self.facing_right()) {
-				core.wincan.copy(self.texture_r(), self.src(), self.pos()).unwrap();
-			} else {
-				core.wincan.copy(self.texture_l(), self.src(), self.pos()).unwrap();
-			}
+			core.wincan.copy_ex(self.texture(), self.src(), self.pos(), 0.0, None, self.facing_right, false).unwrap();
 		}
 	}
 
@@ -159,41 +137,26 @@ impl<'a> Player<'a> {
 		self.src
 	}
 
-	pub fn texture_l(&self) -> &Texture {
-		&self.texture_l
+	pub fn texture(&self) -> &Texture {
+		&self.texture
 	}
 
-    pub fn texture_r(&self) -> &Texture {
-        &self.texture_r
-    }
-
-    /*pub fn facing_left(&self) -> &bool {
-        &self.facing_left
-    }*/
-
-	pub fn facing_right(&self) -> &bool {
-        &self.facing_right
+	pub fn texture_all(&self) -> &Texture {
+        &self.texture_all
     }
 
     pub fn pos(&self) -> Rect {
-        self.pos
-    }
-
-	pub fn texture_a_l(&self) -> &Texture {
-        &self.texture_a_l
-    }
-
-	pub fn texture_a_r(&self) -> &Texture {
-        &self.texture_a_r
+        return Rect::new(
+			self.x(),
+			self.y(),
+			TILE_SIZE,
+			TILE_SIZE,
+		)
     }
 
 	pub fn is_still(&self) -> &bool {
         &self.is_still
     }
-
-	pub fn is_attacking(&self) -> &bool {
-		&self.is_attacking
-	}
 
 	pub fn get_attack_timer(&self) -> u128 {
 		self.attack_timer.elapsed().as_millis()
@@ -208,7 +171,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		if *self.facing_right()
+		if self.facing_right
 		{
 			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
 		} else {
@@ -237,7 +200,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: f32) {
-		if(self.get_damage_timer() < DMG_COOLDOWN)
+		if self.get_damage_timer() < DMG_COOLDOWN
 		{
 			return;
 		}
@@ -248,12 +211,12 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn attack(&mut self) {
-		if(self.get_attack_timer() < COOLDOWN)
+		if self.get_attack_timer() < COOLDOWN
 		{
 			return;
 		}
 		self.is_attacking = true;
-		if *self.facing_right()
+		if self.facing_right
 		{
 			self.attack_box = Rect::new(self.x() + TILE_SIZE as i32, self.y() as i32, ATTACK_LENGTH, TILE_SIZE);
 		} else {
