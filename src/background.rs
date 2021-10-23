@@ -4,42 +4,61 @@ use sdl2::render::Texture;
 use rand::Rng;
 
 pub struct Background<'a> {
+	pub black: Texture<'a>,
 	pub texture_0: Texture<'a>,
 	pub texture_1: Texture<'a>,
-    pub texture_2: Texture<'a>,
-	pub x_tiles: i32,
-	pub y_tiles: i32,
-	pub tiles: Vec<i32>,
+	pub texture_2: Texture<'a>,
+	pub texture_3: Texture<'a>,
+	pub x_tiles: (i32,i32),
+	pub y_tiles: (i32,i32),
+	pub tiles: Vec<(bool,i32)>,
 }
 
 impl<'a> Background<'a> {
-	pub fn new(texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, x_tiles: i32, y_tiles: i32) -> Background<'a> {
-		let tiles: Vec<i32> = Vec::with_capacity((x_tiles as usize)*(y_tiles as usize));
+	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32)) -> Background<'a> {
+		let tiles: Vec<(bool,i32)> = vec![(false,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize];
 		Background {
-			texture_0,
-			texture_1,
-            texture_2,
+			black,
+			texture_0, 
+			texture_1, 
+			texture_2, 
+			texture_3, 
 			x_tiles,
 			y_tiles,
 			tiles,
 		}
 	}
 
-	#[allow(dead_code)]
-	pub fn unused(&mut self, tile_x:i32, tile_y:i32) {
-		let mut tiles: Vec<i32> = Vec::with_capacity((tile_x*tile_y) as usize);	// per room tile mapping
-		println!("\n{} * {} = {}", tile_x, tile_y, tiles.capacity());
-		self.x_tiles=tile_x;
-		self.y_tiles=tile_y;
-		
+	pub fn create_new_map(&mut self, xwalls: (i32,i32), ywalls: (i32,i32)) -> Vec<(i32,i32)> {
+		let mut obs: Vec<(i32,i32)> = vec![(0,0);0];
 		let mut n = 0;
-		for i in 1..(tile_x*tile_y) {
-			let num = rand::thread_rng().gen_range(0..2);
-			println!("{}",n);
-			tiles[n] = num;
-			n+=1;
-			println!("{}: {}", i, num);
+		for i in 0..xwalls.1+1 {
+			for j in 0..ywalls.1+1 {
+				if i==0 || i==xwalls.1 || j==0 || j==ywalls.1 { // border
+					self.tiles[n].0 = true;
+					self.tiles[n].1 = 6;
+				} else if i==xwalls.0 || i==xwalls.1-1 || j==ywalls.0 || j==ywalls.1-1 { // random tiles
+					let num = rand::thread_rng().gen_range(0..5);
+					self.tiles[n].0 = true;
+					self.tiles[n].1 = num;
+				} else { // obstacles / nothing
+					let num = rand::thread_rng().gen_range(0..100);
+					if self.tiles[n-1].1!=7 && num==7 && // prevent overlap
+					   self.tiles[n+(self.x_tiles.1 as usize)].1!=7 && self.tiles[n+(self.x_tiles.1 as usize)-1].1!=7 && 
+					   i<self.x_tiles.1-1 { 
+						// prevent edge case
+						self.tiles[n].1 = num;
+						self.tiles[n].0 = true;
+						obs.push((i,j));				
+					} else {
+						self.tiles[n].0 = false;
+					}
+				}
+				n+=1;
+			}
 		}
+		return obs;
+		
 	}
 
 	pub fn texture(&self) -> &Texture {

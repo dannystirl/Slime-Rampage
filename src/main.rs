@@ -12,7 +12,7 @@ use rand::Rng;
 use crate::enemy::*;
 use crate::ranged_attack::*;
 use crate::player::*;
-//use crate::background::*;
+use crate::background::*;
 
 use sdl2::rect::Rect;
 use sdl2::event::Event;
@@ -45,12 +45,10 @@ const BG_H: u32 = 1440;
 const SPEED_LIMIT: i32 = 3;
 const ACCEL_RATE: i32 = 3;
 
-const XWALLS: (i32, i32) = (1,19);
-const YWALLS: (i32, i32) = (1,9);
+const XWALLS: (i32, i32) = (1,24);
+const YWALLS: (i32, i32) = (1,16);
 const XBOUNDS: (i32,i32) = ((XWALLS.0*TILE_SIZE as i32), ( (XWALLS.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
 const YBOUNDS: (i32,i32) = ((YWALLS.0*TILE_SIZE as i32), ( (YWALLS.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
-
-
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -122,6 +120,19 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 
+		let mut background = background::Background::new(
+			texture_creator.load_texture("images/background/bb.png")?,
+			texture_creator.load_texture("images/background/floor_tile_1.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_2.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_maroon.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_pilar.png")?, 
+			XWALLS, 
+			YWALLS, 
+		);
+
+		// obstacles that everything should collide with
+		let obstacle_pos = background.create_new_map(XWALLS, YWALLS);
+
 		// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
         let mut fireball = ranged_attack::RangedAttack::new(
 			Rect::new(
@@ -163,13 +174,11 @@ impl Game for ROGUELIKE {
 					println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 				}
 			// CLEAR BACKGROUND
-            let background = texture_creator.load_texture("images/background/bb.png")?;
-            self.core.wincan.copy(&background, None, None)?;
+            self.core.wincan.copy(&background.black, None, None)?;
 
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
-			//ROGUELIKE::update_background(self, player);
 			ROGUELIKE::check_collisions(&mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
@@ -182,9 +191,7 @@ impl Game for ROGUELIKE {
 				CAM_W,
 				CAM_H,
 			);
-			
-
-			ROGUELIKE::create_map(self, player.x(), player.y())?;
+			ROGUELIKE::update_background(self, player.x(), player.y(), &background)?;
 
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
@@ -200,15 +207,14 @@ impl Game for ROGUELIKE {
 			}
 
 			if player.is_attacking {
+				let  r;
 				if player.facing_right {
-					let r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
-					let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
-					self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
+					r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 				} else {
-					let r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
-					let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
-					self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
+					r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 				}
+				let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
+				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
 
 			// UPDATE FRAME
@@ -220,7 +226,6 @@ impl Game for ROGUELIKE {
 	}
 }
 
-
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
 	//credits::run_credits()
@@ -229,25 +234,36 @@ pub fn main() -> Result<(), String> {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_map(&mut self, player_pos_x: i32, player_pos_y: i32) -> Result<(), String> {
-		let texture_creator = self.core.wincan.texture_creator();
-		for i in XWALLS.0..XWALLS.1 {
-			for j in YWALLS.0..YWALLS.1 {
-				if i==XWALLS.0 || i==XWALLS.1-1 || j==YWALLS.0 || j==YWALLS.1-1 {
-					let num = rand::thread_rng().gen_range(0..2);
+	pub fn update_background(&mut self, player_pos_x: i32, player_pos_y: i32, background:& Background) -> Result<(), String> {
+		let mut n = 0;
+		for i in 0..XWALLS.1+1 {
+			for j in 0..YWALLS.1+1 {
+				if background.tiles[n].0 {
+					let num = background.tiles[n].1;
 					let texture;
 					match num {
-						0 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
-						// TODO: change below to floor tile 2 to allow for random tiling
-						1 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
-						_ => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+						7 => { texture = &background.texture_3 } // pillar 
+						6 => { texture = &background.texture_2 } // border tiles
+						1 => { texture = &background.texture_1 } // leaves on tile
+						_ => { texture = &background.texture_0 } // regular tile
 					}
-					let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-					let pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
-										j * TILE_SIZE as i32 + (START_H - player_pos_y),
-										TILE_SIZE, TILE_SIZE);
-					self.core.wincan.copy(&texture, src, pos)?;
+					// double tile size 
+					let src;
+					let pos;
+					if num==7 {
+						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
+						pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
+											j * TILE_SIZE as i32 + (START_H - player_pos_y),
+											TILE_SIZE*2, TILE_SIZE*2);
+					} else {
+						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+						pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
+											j * TILE_SIZE as i32 + (START_H - player_pos_y),
+											TILE_SIZE, TILE_SIZE);
+					}
+					self.core.wincan.copy(texture, src, pos)?;
 				}
+				n+=1;
 			}
 		}
 		Ok(())
@@ -297,7 +313,6 @@ impl ROGUELIKE {
 		return rngt;
 	}
 
-
 	// check input values
 	pub fn check_inputs(fireball: &mut RangedAttack, keystate: HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
 		// move up
@@ -341,7 +356,6 @@ impl ROGUELIKE {
 		}
 	}
 
-
 	// update projectiles
 	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
 		if fireball.in_use() {
@@ -355,7 +369,6 @@ impl ROGUELIKE {
 			self.core.wincan.copy_ex(fireball.texture(), fireball.src(4, 7), fireball.pos(), 0.0, None, fireball.facing_right, false).unwrap();
 		}
 	}
-
 
 	// check collisions
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
@@ -402,24 +415,13 @@ impl ROGUELIKE {
 	}
 
 	//update background
-	pub fn update_background(&mut self, player: &mut Player) -> Result<(), String> {
+	pub fn unused_background(&mut self, player: &mut Player, background: &mut Background) -> Result<(), String> {
 		let cur_bg = Rect::new(
 			((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (BG_W - CAM_W) as i32),
 			((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (BG_H - CAM_H) as i32),
 			CAM_W,
 			CAM_H,
 		);
-
-		let texture_creator = self.core.wincan.texture_creator();
-		let background = background::Background::new(
-			texture_creator.load_texture("images/background/floor_tile_1.png")?,
-			// temp files bc i didn't feel like editing >>>>>
-			texture_creator.load_texture("images/background/floor_tile_2.png")?,
-			texture_creator.load_texture("images/background/floor_tile_1.png")?,
-			1,
-			1,
-		);
-
 		self.core.wincan.set_draw_color(Color::BLACK);
 		self.core.wincan.clear();
 
@@ -427,7 +429,6 @@ impl ROGUELIKE {
 		self.core.wincan.copy(background.texture(), cur_bg, None).unwrap();
 		Ok(())
 	}
-
 
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
@@ -443,7 +444,6 @@ impl ROGUELIKE {
 		}*/
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
-
 
 	// force enemy movement
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
