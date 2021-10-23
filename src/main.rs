@@ -101,10 +101,11 @@ impl Game for ROGUELIKE {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		let mut player = player::Player::new(
-			(START_W-200, START_H,),
+			(START_W, START_H,),
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
 		);
 
+		
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(2);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
@@ -149,6 +150,8 @@ impl Game for ROGUELIKE {
 
 			player.set_x_delta(0);
 			player.set_y_delta(0);
+
+
 
 			let mousestate= self.core.event_pump.mouse_state();
 			let keystate: HashSet<Keycode> = self.core.event_pump
