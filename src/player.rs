@@ -215,4 +215,8 @@ impl<'a> Player<'a> {
 		self.hp -= dmg;
 		self.damage_timer = Instant::now();
 	}
+
+	pub fn display_weapon(&self){
+	
+	}
 }
