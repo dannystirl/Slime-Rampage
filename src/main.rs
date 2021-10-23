@@ -187,6 +187,8 @@ impl Game for ROGUELIKE {
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
+
+			// UPDATE PLAYER
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
@@ -331,7 +333,7 @@ impl ROGUELIKE {
 		// shoot fireball
 		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
 			fireball.set_use(true);
-			fireball.start_pos(player.x(), player.y(), player.facing_right);
+			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
 		}
 	}
 
@@ -346,7 +348,7 @@ impl ROGUELIKE {
 				fireball.set_frame(0);
 			}
 			// this needs to be mirrored
-			self.core.wincan.copy(fireball.texture(), fireball.src(4, 7), fireball.pos()).unwrap();
+			self.core.wincan.copy_ex(fireball.texture(), fireball.src(4, 7), fireball.pos(), 0.0, None, fireball.facing_right, false).unwrap();
 		}
 	}
 
@@ -354,27 +356,19 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
-			if check_collision(&player.pos(), &enemy.pos())
-			{
+			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
 				//println!("Health: {}", player.get_hp()); //for debugging
 			}
 
-			if check_collision(&player.pos(), &enemy.pos())
-			{
-				player.minus_hp(5.0);
-				//println!("Health: {}", player.get_hp()); //for debugging
-			}
-			if player.is_attacking
-			{
-				if check_collision(&player.get_attack_box(), &enemy.pos())
-				{
+			if player.is_attacking {
+				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
 					enemy.minus_hp(1.0);
 				}
 			}
 		}
-		//player.set_invincible_f()
+		player.set_invincible();
 	}
 
 	// update player
@@ -435,31 +429,15 @@ impl ROGUELIKE {
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
 		player.set_cam_pos(cur_bg.x(), cur_bg.y());
 
-		// I think it looks better when doing this constantly, we can keep 
+		// I think it looks better when doing animation constantly, we can keep 
 		// the if statement if we decide to add a specific moving animation
 
 		//if !player.is_still {
-			//display animation when not moving
-			if count < &f_display { player.set_src(0 as i32, 0 as i32); }
-			else if count < &(f_display * 2) { player.set_src(64 as i32, 0 as i32); }
-			else if count < &(f_display * 3) { player.set_src(128 as i32, 0 as i32); }
-			else if count < &(f_display * 4) { player.set_src(0 as i32, 64 as i32); }
-			else if count < &(f_display * 5) { player.set_src(64 as i32, 64 as i32); }
-			else if count < &(f_display * 6) { player.set_src(128 as i32, 64 as i32); }
-			else if count < &(f_display * 7) { player.set_src(0 as i32, 128 as i32); }
-			else if count < &(f_display * 8) { player.set_src(64 as i32, 128 as i32); }
-			else if count < &(f_display * 9) { player.set_src(128 as i32, 128 as i32); }
-			else if count < &(f_display * 10) { player.set_src(0 as i32, 192 as i32); }
-			else if count < &(f_display * 11) { player.set_src(64 as i32, 192 as i32); }
-			else if count < &(f_display * 12) { player.set_src(128 as i32, 192 as i32); }
-			else { player.set_src(0, 0); }
-
-			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
+			player.get_frame_display(count, f_display);
 		/*} else {
 			player.set_src(0, 0);
-			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 		}*/
-		//println!("\nx:{} y:{} ", player.x(), player.y());
+		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
 
 
