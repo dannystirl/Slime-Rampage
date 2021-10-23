@@ -151,7 +151,7 @@ impl Game for ROGUELIKE {
 			player.set_x_delta(0);
 			player.set_y_delta(0);
 
-			println!("{}, {}", player.x(), player.y());
+			//println!("{}, {}", player.x(), player.y());
 
 			let mousestate= self.core.event_pump.mouse_state();
 			let keystate: HashSet<Keycode> = self.core.event_pump
@@ -202,12 +202,12 @@ impl Game for ROGUELIKE {
 			if player.is_attacking {
 				if player.facing_right {
 					let r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
-					self.core.wincan.set_draw_color(Color::RED);
-					self.core.wincan.fill_rect(r)?;
+					let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
+					self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 				} else {
 					let r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
-					self.core.wincan.set_draw_color(Color::RED);
-					self.core.wincan.fill_rect(r)?;
+					let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
+					self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 				}
 			}
 
@@ -446,6 +446,7 @@ impl ROGUELIKE {
 
 		//if !player.is_still {
 			//display animation when not moving
+			
 			if count < &f_display { player.set_src(0 as i32, 0 as i32); }
 			else if count < &(f_display * 2) { player.set_src(64 as i32, 0 as i32); }
 			else if count < &(f_display * 3) { player.set_src(128 as i32, 0 as i32); }
@@ -461,6 +462,14 @@ impl ROGUELIKE {
 			else { player.set_src(0, 0); }
 
 			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
+			//self.core.wincan.copy_ex(player.texture_all(), player.src(), player.pos(), 0.0, None, player.facing_right, false).unwrap();
+			
+			print!("player {}, {}\n", player.x(), player.y());
+			print!("camera {}, {}\n", player.get_cam_pos().x, player.get_cam_pos().y);
+
+			//self.core.wincan.set_draw_color(Color::RED);
+			//self.core.wincan.fill_rect(player.get_cam_pos());
+
 		/*} else {
 			player.set_src(0, 0);
 			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
