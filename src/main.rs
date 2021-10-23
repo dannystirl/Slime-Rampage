@@ -151,7 +151,7 @@ impl Game for ROGUELIKE {
 			player.set_x_delta(0);
 			player.set_y_delta(0);
 
-
+			println!("{}, {}", player.x(), player.y());
 
 			let mousestate= self.core.event_pump.mouse_state();
 			let keystate: HashSet<Keycode> = self.core.event_pump
