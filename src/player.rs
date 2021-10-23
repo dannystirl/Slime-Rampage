@@ -37,8 +37,8 @@ impl<'a> Player<'a> {
 		);
 		let vel = (0,0);
 		let delta = (0, 0);
-		let height = 32;
-		let width = 32;
+		let height = TILE_SIZE;//32;
+		let width = TILE_SIZE;//32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 100.0;
 		let facing_right = false;

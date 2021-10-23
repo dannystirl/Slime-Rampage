@@ -180,14 +180,12 @@ impl Game for ROGUELIKE {
 
 			// SET BACKGROUND
 			let cur_bg = Rect::new(
-				((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)),
-				((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)),
+				(player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32),
+				(player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32),
 				CAM_W,
 				CAM_H,
 			);
-			print!("!!!!!!!!!!bg {}, {}\n", cur_bg.x(), cur_bg.y());
-			print!("!!!!!!!!!!p {}, {}\n", player.x(), player.y());
-			print!("!!!!!!!!!!wh {}, {}\n", player.width()/2, player.height()/2);
+			
 
 			ROGUELIKE::create_map(self, player.x(), player.y())?;
 
@@ -442,7 +440,6 @@ impl ROGUELIKE {
 
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
-	print!("background {}, {}\n", cur_bg.x(), cur_bg.y());
 		player.set_cam_pos(cur_bg.x(), cur_bg.y());
 
 		// I think it looks better when doing this constantly, we can keep
@@ -466,13 +463,12 @@ impl ROGUELIKE {
 			else { player.set_src(0, 0); }
 
 			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
-			//self.core.wincan.copy_ex(player.texture_all(), player.src(), player.pos(), 0.0, None, player.facing_right, false).unwrap();
 			
-			print!("player {}, {}\n", player.x(), player.y());
-			print!("camera {}, {}\n", player.get_cam_pos().x, player.get_cam_pos().y);
+			//debug
+			//print!("player {}, {}\n", player.x(), player.y());
+			//print!("camera {}, {}\n", player.get_cam_pos().x, player.get_cam_pos().y);
 
-			//self.core.wincan.set_draw_color(Color::RED);
-			//self.core.wincan.fill_rect(player.get_cam_pos());
+			
 
 		/*} else {
 			player.set_src(0, 0);
