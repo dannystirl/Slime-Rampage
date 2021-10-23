@@ -439,6 +439,7 @@ impl ROGUELIKE {
 
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
+	print!("background {}, {}\n", cur_bg.x(), cur_bg.y());
 		player.set_cam_pos(cur_bg.x(), cur_bg.y());
 
 		// I think it looks better when doing this constantly, we can keep
