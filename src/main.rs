@@ -180,11 +180,14 @@ impl Game for ROGUELIKE {
 
 			// SET BACKGROUND
 			let cur_bg = Rect::new(
-				(player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32),
-				(player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32),
+				((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)),
+				((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)),
 				CAM_W,
 				CAM_H,
 			);
+			print!("!!!!!!!!!!bg {}, {}\n", cur_bg.x(), cur_bg.y());
+			print!("!!!!!!!!!!p {}, {}\n", player.x(), player.y());
+			print!("!!!!!!!!!!wh {}, {}\n", player.width()/2, player.height()/2);
 
 			ROGUELIKE::create_map(self, player.x(), player.y())?;
 
