@@ -15,6 +15,7 @@ use crate::player::*;
 use crate::background::*;
 
 use sdl2::rect::Rect;
+use sdl2::rect::Point;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
@@ -23,7 +24,7 @@ use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
-//use sdl2::render::Texture;
+use sdl2::render::Texture;
 
 use rogue_sdl::{Game, SDLCore};
 
@@ -93,6 +94,8 @@ impl Game for ROGUELIKE {
 		let mut rng = rand::thread_rng();
 		let mut count = 0;
 		let f_display = 15;
+
+		let mut f_weapon = 0;//track weapon animation
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		let mut player = player::Player::new(
@@ -207,12 +210,17 @@ impl Game for ROGUELIKE {
 			}
 
 			if player.is_attacking {
-				let  r;
+				let r;
+				let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 				if player.facing_right {
 					r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 				} else {
 					r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 				}
+				//naive weapon animation 
+				if f_weapon > 30 {f_weapon = 0;}						
+				self.display_weapon(&r, &sword, &player, f_weapon);
+				f_weapon = f_weapon + 1;
 				let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
 				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
@@ -428,6 +436,26 @@ impl ROGUELIKE {
 		// Draw subset of bg
 		self.core.wincan.copy(background.texture(), cur_bg, None).unwrap();
 		Ok(())
+	}
+
+	//draw weapon
+	pub fn display_weapon(&mut self, r: &Rect, sword: &Texture, player: &Player, f_weapon: i32) {
+		let angle = -30.0;
+		let mut p = Point::new(0, 0);
+		if player.facing_right{
+			p = Point::new(0, (TILE_SIZE/2) as i32);//rotation center
+		}else{
+			p = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE/2)  as i32);//rotation center
+		}
+
+		if f_weapon < 15{
+			self.core.wincan.copy_ex(&sword, None, *r, angle, p, player.facing_right, false).unwrap();
+			
+		}else{
+			self.core.wincan.copy_ex(&sword, None, *r, -angle, p, player.facing_right, false).unwrap();
+			//self.core.wincan.copy_ex(&sword, None, *r, 0.0, p, player.facing_right, false).unwrap();
+			
+		}
 	}
 
 	// draw player

@@ -246,4 +246,8 @@ impl<'a> Player<'a> {
 	pub fn get_invincible(&self) -> bool {
 		self.invincible
 	}
+	
+	pub fn display_weapon(&self){
+	
+	}
 }
