@@ -3,8 +3,6 @@ extern crate rogue_sdl;
 use sdl2::render::Texture;
 use rand::Rng;
 
-const TILE_SIZE: u32 = 64;
-
 pub struct Background<'a> {
 	pub texture_0: Texture<'a>,
 	pub texture_1: Texture<'a>,
@@ -16,7 +14,7 @@ pub struct Background<'a> {
 
 impl<'a> Background<'a> {
 	pub fn new(texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, x_tiles: i32, y_tiles: i32) -> Background<'a> {
-		let mut tiles: Vec<i32> = Vec::with_capacity((x_tiles as usize)*(y_tiles as usize));
+		let tiles: Vec<i32> = Vec::with_capacity((x_tiles as usize)*(y_tiles as usize));
 		Background {
 			texture_0,
 			texture_1,
@@ -27,6 +25,7 @@ impl<'a> Background<'a> {
 		}
 	}
 
+	#[allow(dead_code)]
 	pub fn unused(&mut self, tile_x:i32, tile_y:i32) {
 		let mut tiles: Vec<i32> = Vec::with_capacity((tile_x*tile_y) as usize);	// per room tile mapping
 		println!("\n{} * {} = {}", tile_x, tile_y, tiles.capacity());

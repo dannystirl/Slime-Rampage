@@ -7,6 +7,7 @@ use sdl2::render::Texture;
 use std::f64;
 
 const TILE_SIZE: u32 = 64;
+#[allow(dead_code)]
 const STUN_TIME: u32 = 2000;
 
 pub struct Enemy<'a> {
@@ -19,7 +20,7 @@ pub struct Enemy<'a> {
 	angle: f64,
 	pub x_flipped: bool,
 	pub y_flipped: bool,
-	pub facing_left: bool,
+	pub facing_right: bool,
 	pub is_stunned: bool,
 	pub hp: f32,
 	pub alive: bool,
@@ -34,7 +35,7 @@ pub struct Enemy<'a> {
 		let angle = 0.0;
 		let x_flipped = false;
 		let y_flipped = false;
-		let facing_left = false;
+		let facing_right = false;
 		let is_stunned = false;
 		let hp = 50.0;
 		let alive = true;
@@ -48,7 +49,7 @@ pub struct Enemy<'a> {
 			angle,
 			x_flipped,
 			y_flipped,
-			facing_left,
+			facing_right,
 			is_stunned,
 			hp,
 			alive,
@@ -119,17 +120,15 @@ pub struct Enemy<'a> {
 		let speed: f64 = 3.0;
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		let mut x = speed * angle.sin();
-		if(vec[0] < 0.0) {
+		if vec[0] < 0.0 {
 			x *= -1.0;
 		}
 		let mut y = speed * angle.cos();
-		if(vec[1] < 0.0) {
+		if vec[1] < 0.0  {
 			y *= -1.0;
 		}
 		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
 		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
-		
-		//println!("{}", mag);
 	}
 
 	pub fn src(&self) -> Rect {
@@ -138,10 +137,6 @@ pub struct Enemy<'a> {
 
     pub fn txtre(&self) -> &Texture {
         &self.txtre
-    }
-
-	pub fn facing_left(&self) -> &bool {
-        &self.facing_left
     }
 
     pub fn pos(&self) -> Rect {
@@ -186,12 +181,12 @@ pub struct Enemy<'a> {
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		self.angle = angle;
 		let mut x = -5.0 * angle.sin();
-		if(vec[0] < 0.0) {
+		if vec[0] < 0.0 {
 			x *= -1.0;
 			self.x_flipped = true;
 		}
 		let mut y = -5.0 * angle.cos();
-		if(vec[1] < 0.0) {
+		if vec[1] < 0.0 {
 			y *= -1.0;
 			self.y_flipped = false;
 		}
