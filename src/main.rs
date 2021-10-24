@@ -12,7 +12,7 @@ use rand::Rng;
 use crate::enemy::*;
 use crate::ranged_attack::*;
 use crate::player::*;
-//use crate::background::*;
+use crate::background::*;
 
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -24,12 +24,9 @@ use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
-//use sdl2::render::Texture;
+use sdl2::render::Texture;
 
 use rogue_sdl::{Game, SDLCore};
-
-
-use sdl2::render::Texture;
 
 // window globals
 const TITLE: &str = "Roguelike";
@@ -49,12 +46,10 @@ const BG_H: u32 = 1440;
 const SPEED_LIMIT: i32 = 3;
 const ACCEL_RATE: i32 = 3;
 
-const XWALLS: (i32, i32) = (1,19);
-const YWALLS: (i32, i32) = (1,9);
+const XWALLS: (i32, i32) = (1,24);
+const YWALLS: (i32, i32) = (1,16);
 const XBOUNDS: (i32,i32) = ((XWALLS.0*TILE_SIZE as i32), ( (XWALLS.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
 const YBOUNDS: (i32,i32) = ((YWALLS.0*TILE_SIZE as i32), ( (YWALLS.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
-
-
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -128,6 +123,19 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 
+		let mut background = background::Background::new(
+			texture_creator.load_texture("images/background/bb.png")?,
+			texture_creator.load_texture("images/background/floor_tile_1.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_2.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_maroon.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_pilar.png")?, 
+			XWALLS, 
+			YWALLS, 
+		);
+
+		// obstacles that everything should collide with
+		let obstacle_pos = background.create_new_map(XWALLS, YWALLS);
+
 		// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
         let mut fireball = ranged_attack::RangedAttack::new(
 			Rect::new(
@@ -169,13 +177,11 @@ impl Game for ROGUELIKE {
 					println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 				}
 			// CLEAR BACKGROUND
-            let background = texture_creator.load_texture("images/background/bb.png")?;
-            self.core.wincan.copy(&background, None, None)?;
+            self.core.wincan.copy(&background.black, None, None)?;
 
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
-			//ROGUELIKE::update_background(self, player);
 			ROGUELIKE::check_collisions(&mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
@@ -188,15 +194,15 @@ impl Game for ROGUELIKE {
 				CAM_W,
 				CAM_H,
 			);
-			
-
-			ROGUELIKE::create_map(self, player.x(), player.y())?;
+			ROGUELIKE::update_background(self, player.x(), player.y(), &background)?;
 
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
 
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			self.update_projectiles(&mut fireball);
+
+			// UPDATE PLAYER
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
@@ -204,24 +210,19 @@ impl Game for ROGUELIKE {
 			}
 
 			if player.is_attacking {
+				let r;
+				let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 				if player.facing_right {
-					let r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
-					let sword = texture_creator.load_texture("images/player/sword_l.png")?;
-
-					//naive weapon animation 
-					if f_weapon > 30 {f_weapon = 0;}						
-					self.display_weapon(&r, &sword, &player, f_weapon);
-					f_weapon = f_weapon + 1;
-
+					r = Rect::new(START_W + TILE_SIZE as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 				} else {
-					let r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
-					let sword = texture_creator.load_texture("images/player/sword_l.png")?;
-					
-					//naive weapon animation 
-					if f_weapon > 30 {f_weapon = 0;}		
-					self.display_weapon(&r, &sword, &player, f_weapon);
-					f_weapon = f_weapon + 1;
+					r = Rect::new(START_W - ATTACK_LENGTH as i32, START_H, ATTACK_LENGTH, TILE_SIZE);
 				}
+				//naive weapon animation 
+				if f_weapon > 30 {f_weapon = 0;}						
+				self.display_weapon(&r, &sword, &player, f_weapon);
+				f_weapon = f_weapon + 1;
+				let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
+				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
 
 			// UPDATE FRAME
@@ -233,7 +234,6 @@ impl Game for ROGUELIKE {
 	}
 }
 
-
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
 	//credits::run_credits()
@@ -242,25 +242,36 @@ pub fn main() -> Result<(), String> {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_map(&mut self, player_pos_x: i32, player_pos_y: i32) -> Result<(), String> {
-		let texture_creator = self.core.wincan.texture_creator();
-		for i in XWALLS.0..XWALLS.1 {
-			for j in YWALLS.0..YWALLS.1 {
-				if i==XWALLS.0 || i==XWALLS.1-1 || j==YWALLS.0 || j==YWALLS.1-1 {
-					let num = rand::thread_rng().gen_range(0..2);
+	pub fn update_background(&mut self, player_pos_x: i32, player_pos_y: i32, background:& Background) -> Result<(), String> {
+		let mut n = 0;
+		for i in 0..XWALLS.1+1 {
+			for j in 0..YWALLS.1+1 {
+				if background.tiles[n].0 {
+					let num = background.tiles[n].1;
 					let texture;
 					match num {
-						0 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
-						// TODO: change below to floor tile 2 to allow for random tiling
-						1 => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
-						_ => { texture = texture_creator.load_texture("images/background/floor_tile_1.png")? }
+						7 => { texture = &background.texture_3 } // pillar 
+						6 => { texture = &background.texture_2 } // border tiles
+						1 => { texture = &background.texture_1 } // leaves on tile
+						_ => { texture = &background.texture_0 } // regular tile
 					}
-					let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-					let pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
-										j * TILE_SIZE as i32 + (START_H - player_pos_y),
-										TILE_SIZE, TILE_SIZE);
-					self.core.wincan.copy(&texture, src, pos)?;
+					// double tile size 
+					let src;
+					let pos;
+					if num==7 {
+						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
+						pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
+											j * TILE_SIZE as i32 + (START_H - player_pos_y),
+											TILE_SIZE*2, TILE_SIZE*2);
+					} else {
+						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+						pos = Rect::new(i * TILE_SIZE as i32 + (START_W - player_pos_x),
+											j * TILE_SIZE as i32 + (START_H - player_pos_y),
+											TILE_SIZE, TILE_SIZE);
+					}
+					self.core.wincan.copy(texture, src, pos)?;
 				}
+				n+=1;
 			}
 		}
 		Ok(())
@@ -310,7 +321,6 @@ impl ROGUELIKE {
 		return rngt;
 	}
 
-
 	// check input values
 	pub fn check_inputs(fireball: &mut RangedAttack, keystate: HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
 		// move up
@@ -350,10 +360,9 @@ impl ROGUELIKE {
 		// shoot fireball
 		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
 			fireball.set_use(true);
-			fireball.start_pos(player.x(), player.y(), player.facing_right);
+			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
 		}
 	}
-
 
 	// update projectiles
 	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
@@ -365,35 +374,26 @@ impl ROGUELIKE {
 				fireball.set_frame(0);
 			}
 			// this needs to be mirrored
-			self.core.wincan.copy(fireball.texture(), fireball.src(4, 7), fireball.pos()).unwrap();
+			self.core.wincan.copy_ex(fireball.texture(), fireball.src(4, 7), fireball.pos(), 0.0, None, fireball.facing_right, false).unwrap();
 		}
 	}
-
 
 	// check collisions
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
-			if check_collision(&player.pos(), &enemy.pos())
-			{
+			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
 				//println!("Health: {}", player.get_hp()); //for debugging
 			}
 
-			if check_collision(&player.pos(), &enemy.pos())
-			{
-				player.minus_hp(5.0);
-				//println!("Health: {}", player.get_hp()); //for debugging
-			}
-			if player.is_attacking
-			{
-				if check_collision(&player.get_attack_box(), &enemy.pos())
-				{
+			if player.is_attacking {
+				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into(), XBOUNDS, YBOUNDS);
 					enemy.minus_hp(1.0);
 				}
 			}
 		}
-		//player.set_invincible_f()
+		player.set_invincible();
 	}
 
 	// update player
@@ -423,24 +423,13 @@ impl ROGUELIKE {
 	}
 
 	//update background
-	pub fn update_background(&mut self, player: &mut Player) -> Result<(), String> {
+	pub fn unused_background(&mut self, player: &mut Player, background: &mut Background) -> Result<(), String> {
 		let cur_bg = Rect::new(
 			((player.x() + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (BG_W - CAM_W) as i32),
 			((player.y() + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (BG_H - CAM_H) as i32),
 			CAM_W,
 			CAM_H,
 		);
-
-		let texture_creator = self.core.wincan.texture_creator();
-		let background = background::Background::new(
-			texture_creator.load_texture("images/background/floor_tile_1.png")?,
-			// temp files bc i didn't feel like editing >>>>>
-			texture_creator.load_texture("images/background/floor_tile_2.png")?,
-			texture_creator.load_texture("images/background/floor_tile_1.png")?,
-			1,
-			1,
-		);
-
 		self.core.wincan.set_draw_color(Color::BLACK);
 		self.core.wincan.clear();
 
@@ -467,48 +456,22 @@ impl ROGUELIKE {
 			//self.core.wincan.copy_ex(&sword, None, *r, 0.0, p, player.facing_right, false).unwrap();
 			
 		}
-		
 	}
 
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
 		player.set_cam_pos(cur_bg.x(), cur_bg.y());
 
-		// I think it looks better when doing this constantly, we can keep
+		// I think it looks better when doing animation constantly, we can keep 
 		// the if statement if we decide to add a specific moving animation
 
 		//if !player.is_still {
-			//display animation when not moving
-			
-			if count < &f_display { player.set_src(0 as i32, 0 as i32); }
-			else if count < &(f_display * 2) { player.set_src(64 as i32, 0 as i32); }
-			else if count < &(f_display * 3) { player.set_src(128 as i32, 0 as i32); }
-			else if count < &(f_display * 4) { player.set_src(0 as i32, 64 as i32); }
-			else if count < &(f_display * 5) { player.set_src(64 as i32, 64 as i32); }
-			else if count < &(f_display * 6) { player.set_src(128 as i32, 64 as i32); }
-			else if count < &(f_display * 7) { player.set_src(0 as i32, 128 as i32); }
-			else if count < &(f_display * 8) { player.set_src(64 as i32, 128 as i32); }
-			else if count < &(f_display * 9) { player.set_src(128 as i32, 128 as i32); }
-			else if count < &(f_display * 10) { player.set_src(0 as i32, 192 as i32); }
-			else if count < &(f_display * 11) { player.set_src(64 as i32, 192 as i32); }
-			else if count < &(f_display * 12) { player.set_src(128 as i32, 192 as i32); }
-			else { player.set_src(0, 0); }
-
-			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
-			
-			//debug
-			//print!("player {}, {}\n", player.x(), player.y());
-			//print!("camera {}, {}\n", player.get_cam_pos().x, player.get_cam_pos().y);
-
-			
-
+			player.get_frame_display(count, f_display);
 		/*} else {
 			player.set_src(0, 0);
-			self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 		}*/
-		//println!("\nx:{} y:{} ", player.x(), player.y());
+		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
-
 
 	// force enemy movement
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{

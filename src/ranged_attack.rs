@@ -8,33 +8,33 @@ pub struct RangedAttack<'a> {
 	start_p: Rect, 
 	pos: Rect,
 	use_ability: bool,
-	pub facing_left: bool,
+	pub facing_right: bool,
 	frame: i32,
     texture: Texture<'a>,
 }
 
  impl<'a> RangedAttack<'a> {
-	pub fn new(pos: Rect, use_ability:bool, facing_left: bool, frame:i32, texture: Texture<'a>) -> RangedAttack<'a> {
+	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32, texture: Texture<'a>) -> RangedAttack<'a> {
 		let start_p = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		RangedAttack {
 			start_p, 
 			pos,	
 			use_ability,
-			facing_left,
+			facing_right,
 			frame,
 			texture, 
 		}
 	}
 
-	pub fn start_pos(&mut self, x:i32, y:i32, fl:bool) {
-		if fl {
-			self.facing_left = true;
-			self.start_p.x = x-64;
-			self.pos.x = x-64;
-		}else{
-			self.facing_left = false;
+	pub fn start_pos(&mut self, x:i32, y:i32, fr:bool) {
+		if fr {
+			self.facing_right = true;
 			self.start_p.x = x+64;
 			self.pos.x = x+64;
+		}else{
+			self.facing_right = false;
+			self.start_p.x = x-64;
+			self.pos.x = x-64;
 		}
 		self.start_p.y = y;
 		self.pos.y = y;
@@ -79,10 +79,10 @@ pub struct RangedAttack<'a> {
 			self.pos.set_x((self.x()).clamp(x_bounds.0, x_bounds.1));
 		// growing / loop 
 		} else {
-			if self.facing_left {
-				self.pos.set_x((self.start_p.x -(self.frame-6)*4 ).clamp(x_bounds.0, x_bounds.1));
+			if self.facing_right {
+				self.pos.set_x((self.start_p.x + (self.frame-6)*4 ).clamp(x_bounds.0, x_bounds.1));
 			}else{
-				self.pos.set_x((self.start_p.x +(self.frame-6)*4 ).clamp(x_bounds.0, x_bounds.1));
+				self.pos.set_x((self.start_p.x - (self.frame-6)*4 ).clamp(x_bounds.0, x_bounds.1));
 			}
 		}
 	}

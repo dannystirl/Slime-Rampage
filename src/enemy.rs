@@ -176,7 +176,7 @@ pub struct Enemy<'a> {
 		self.x_flipped = false;
 		self.y_flipped = false;
 		self.is_stunned = true;
-		self.knockback_vel = 5.0;
+		self.knockback_vel = 4.0;
 		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		self.angle = angle;

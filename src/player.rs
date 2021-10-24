@@ -7,7 +7,7 @@ use sdl2::render::Texture;
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
 const COOLDOWN: u128 = 250;
-const DMG_COOLDOWN: u128 = 1000;
+const DMG_COOLDOWN: u128 = 800;
 
 pub struct Player<'a> {
 	pos: (i32, i32),
@@ -21,6 +21,7 @@ pub struct Player<'a> {
 	attack_timer: Instant,
 	damage_timer: Instant,
 	texture_all: Texture<'a>,
+	invincible: bool, 
 	pub facing_right: bool,
 	pub is_still: bool,
 	pub hp: f32,
@@ -47,6 +48,7 @@ impl<'a> Player<'a> {
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
 		let damage_timer = Instant::now();
+		let invincible = true;
 		Player {
 			pos,
 			cam_pos,
@@ -58,6 +60,7 @@ impl<'a> Player<'a> {
 			attack_box,
 			attack_timer,
 			damage_timer,
+			invincible, 
 			texture_all,
 			facing_right,
 			is_still,
@@ -124,6 +127,22 @@ impl<'a> Player<'a> {
 
 	pub fn src(&self) -> Rect {
 		self.src
+	}
+
+	pub fn get_frame_display(&mut self, count: &i32, f_display: &i32) {
+		if count < &f_display { self.set_src(0 as i32, 0 as i32); }
+		else if count < &(f_display * 2) { self.set_src(64 as i32, 0 as i32); }
+		else if count < &(f_display * 3) { self.set_src(128 as i32, 0 as i32); }
+		else if count < &(f_display * 4) { self.set_src(0 as i32, 64 as i32); }
+		else if count < &(f_display * 5) { self.set_src(64 as i32, 64 as i32); }
+		else if count < &(f_display * 6) { self.set_src(128 as i32, 64 as i32); }
+		else if count < &(f_display * 7) { self.set_src(0 as i32, 128 as i32); }
+		else if count < &(f_display * 8) { self.set_src(64 as i32, 128 as i32); }
+		else if count < &(f_display * 9) { self.set_src(128 as i32, 128 as i32); }
+		else if count < &(f_display * 10) { self.set_src(0 as i32, 192 as i32); }
+		else if count < &(f_display * 11) { self.set_src(64 as i32, 192 as i32); }
+		else if count < &(f_display * 12) { self.set_src(128 as i32, 192 as i32); }
+		else { self.set_src(0, 0); }
 	}
 
 	pub fn pos(&self) -> Rect {
@@ -209,13 +228,25 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: f32) {
-		if self.get_damage_timer() < DMG_COOLDOWN {
+		if self.invincible {
 			return;
 		}
 		self.hp -= dmg;
 		self.damage_timer = Instant::now();
 	}
 
+	pub fn set_invincible(&mut self){
+		if self.get_damage_timer() < DMG_COOLDOWN {
+			 self.invincible = true; 
+		} else {
+			self.invincible = false;
+		}
+	}
+
+	pub fn get_invincible(&self) -> bool {
+		self.invincible
+	}
+	
 	pub fn display_weapon(&self){
 	
 	}
