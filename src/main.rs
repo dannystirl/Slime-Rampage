@@ -163,7 +163,6 @@ impl Game for ROGUELIKE {
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
 
-		let mut heart_offset = Rect::new(0, 0, TILE_SIZE, 0);
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -196,17 +195,8 @@ impl Game for ROGUELIKE {
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
 
-			
-
 			//display one heart (for now); blocked by the background
 			self.core.wincan.copy(heart.texture(), None, heart.pos())?;
-			let offset = (48 - (0.36 * (player.get_hp()/1.0)as f32  ) as u32 );
-			heart_offset = Rect::new(0, 0, TILE_SIZE,  offset);
-			
-			self.core.wincan.set_draw_color(Color::BLACK);
-			self.core.wincan.fill_rect(heart_offset)?;
-
-
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
@@ -214,7 +204,6 @@ impl Game for ROGUELIKE {
 			if player.is_dead(){
 				break 'gameloop;
 			}
-			
 			
 
 
@@ -414,7 +403,7 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
-				println!("Health: {}", player.get_hp()); //for debugging
+				//println!("Health: {}", player.get_hp()); //for debugging
 			}
 
 			if player.is_attacking {
