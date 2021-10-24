@@ -4,6 +4,7 @@ mod background;
 mod player;
 mod ranged_attack;
 mod credits;
+mod ui;
 
 use std::collections::HashSet;
 //use std::time::Duration;
@@ -13,6 +14,7 @@ use crate::enemy::*;
 use crate::ranged_attack::*;
 use crate::player::*;
 use crate::background::*;
+use crate::ui::*;
 
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -149,6 +151,18 @@ impl Game for ROGUELIKE {
 			0,
             texture_creator.load_texture("images/abilities/fireball.png")?,
 		);
+		
+		//create one heart (for now)
+		let heart = ui::UI::new(
+			Rect::new(
+				0,
+				0,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			texture_creator.load_texture("images/ui/heart.png")?,
+		);
+
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -176,9 +190,13 @@ impl Game for ROGUELIKE {
 					println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 					println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 				}
+
+
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
 
+			//display one heart (for now); blocked by the background
+			self.core.wincan.copy(heart.texture(), None, heart.pos())?;
 
 			ROGUELIKE::check_inputs(&mut fireball, keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&screen_width, &mut player);
@@ -186,6 +204,8 @@ impl Game for ROGUELIKE {
 			if player.is_dead(){
 				break 'gameloop;
 			}
+			
+
 
 			// SET BACKGROUND
 			let cur_bg = Rect::new(
@@ -221,8 +241,8 @@ impl Game for ROGUELIKE {
 				if f_weapon > 30 {f_weapon = 0;}						
 				self.display_weapon(&r, &sword, &player, f_weapon);
 				f_weapon = f_weapon + 1;
-				let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
-				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
+				//let sword = texture_creator.load_texture("images/player/sword_l.png")?;
+				//self.core.wincan.copy_ex(&sword, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
 
 			// UPDATE FRAME
@@ -441,7 +461,7 @@ impl ROGUELIKE {
 	//draw weapon
 	pub fn display_weapon(&mut self, r: &Rect, sword: &Texture, player: &Player, f_weapon: i32) {
 		let angle = -30.0;
-		let mut p = Point::new(0, 0);
+		let p: Point;// = Point::new(0, 0);
 		if player.facing_right{
 			p = Point::new(0, (TILE_SIZE/2) as i32);//rotation center
 		}else{
@@ -453,7 +473,6 @@ impl ROGUELIKE {
 			
 		}else{
 			self.core.wincan.copy_ex(&sword, None, *r, -angle, p, player.facing_right, false).unwrap();
-			//self.core.wincan.copy_ex(&sword, None, *r, 0.0, p, player.facing_right, false).unwrap();
 			
 		}
 	}
