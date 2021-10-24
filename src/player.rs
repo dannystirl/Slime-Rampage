@@ -247,4 +247,7 @@ impl<'a> Player<'a> {
 		self.invincible
 	}
 	
+	pub fn display_weapon(&self){
+	
+	}
 }
