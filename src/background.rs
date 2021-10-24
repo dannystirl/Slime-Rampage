@@ -16,7 +16,7 @@ pub struct Background<'a> {
 
 impl<'a> Background<'a> {
 	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32)) -> Background<'a> {
-		let tiles: Vec<(bool,i32)> = vec![(false,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize];
+		let tiles: Vec<(bool,i32)> = vec![(true,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize]; // (draw?, texture)
 		Background {
 			black,
 			texture_0, 
@@ -37,19 +37,22 @@ impl<'a> Background<'a> {
 				if i==0 || i==xwalls.1 || j==0 || j==ywalls.1 { // border
 					self.tiles[n].0 = true;
 					self.tiles[n].1 = 6;
-				} else if i==xwalls.0 || i==xwalls.1-1 || j==ywalls.0 || j==ywalls.1-1 { // random tiles
+				} else if i==xwalls.0 || i==xwalls.1-1 || j==ywalls.0 || j==ywalls.1-1 { // border-1 random tiles
 					let num = rand::thread_rng().gen_range(0..5);
 					self.tiles[n].0 = true;
 					self.tiles[n].1 = num;
 				} else { // obstacles / nothing
-					let num = rand::thread_rng().gen_range(0..100);
-					if self.tiles[n-1].1!=7 && num==7 && // prevent overlap
-					   self.tiles[n+(self.x_tiles.1 as usize)].1!=7 && self.tiles[n+(self.x_tiles.1 as usize)-1].1!=7 && 
-					   i<self.x_tiles.1-1 { 
-						// prevent edge case
+					let num = rand::thread_rng().gen_range(0..75);
+					if num==7 && self.tiles[n].0==true { 
+						obs.push((i,j));
 						self.tiles[n].1 = num;
+						// prevent overlap
 						self.tiles[n].0 = true;
-						obs.push((i,j));				
+						self.tiles[n+1].0=false;
+						self.tiles[n+ywalls.1 as usize].0=false;
+						self.tiles[n+ywalls.1 as usize+1].0=false;
+						self.tiles[n+ywalls.1 as usize+2].0=false;
+
 					} else {
 						self.tiles[n].0 = false;
 					}
