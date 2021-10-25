@@ -5,18 +5,17 @@ use sdl2::render::{Texture, TextureCreator};
 
 const TILE_SIZE: u32 = 64;
 
-pub struct Projectile<'a> {
+pub struct Projectile{
 	start_p: Rect, 
 	pos: Rect,
 	use_ability: bool,
 	pub facing_right: bool,
 	frame: i32,
-    texture: Texture<'a>,
 	is_active: bool,
 }
 
- impl<'a> Projectile<'a> {
-	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32, texture: Texture<'a>) -> Projectile<'a> {
+ impl Projectile {
+	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32) -> Projectile {
 		let start_p = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		Projectile {
@@ -25,7 +24,6 @@ pub struct Projectile<'a> {
 			use_ability,
 			facing_right,
 			frame,
-			texture,
 			is_active,
 		}
 	}
@@ -106,10 +104,6 @@ pub struct Projectile<'a> {
 		 // Set death animation when created
 		 self.is_active = false;
 	 }
-
-    pub fn texture(&self) -> &Texture {
-        &self.texture
-    }
     pub fn pos(&self) -> Rect {
 		self.pos
     }

@@ -54,6 +54,7 @@ const YBOUNDS: (i32,i32) = ((YWALLS.0*TILE_SIZE as i32), ( (YWALLS.1 as u32 *TIL
 
 pub struct ROGUELIKE {
 	core: SDLCore,
+	pub projectiles: Vec<Projectile>,
 }
 
 // calculate velocity resistance
@@ -84,7 +85,8 @@ impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-		Ok(ROGUELIKE{ core })
+		let mut projectiles: Vec<Projectile> = Vec::with_capacity(0);
+		Ok(ROGUELIKE{ core, projectiles})
 	}
 
 	fn run(&mut self) -> Result<(), String> {
@@ -106,6 +108,8 @@ impl Game for ROGUELIKE {
 
 		
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
+		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png").unwrap();
+
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
@@ -169,7 +173,7 @@ impl Game for ROGUELIKE {
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
 
-			ROGUELIKE::check_inputs(&texture_creator, &mut projectiles, &keystate, mousestate, &mut player);
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&mut player, &obstacle_pos);
 
 			// UPDATE PROJECTILES
@@ -316,7 +320,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(texture_creator: &TextureCreator<WindowContext>, projectiles: &mut Vec<Projectile>, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - ACCEL_RATE);
@@ -326,7 +330,6 @@ impl ROGUELIKE {
 		if keystate.contains(&Keycode::A) {
 			player.set_x_delta(player.x_delta() - ACCEL_RATE);
 			player.facing_right = false;
-			player.is_still = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
@@ -364,11 +367,9 @@ impl ROGUELIKE {
 				false,
 				false,
 				0,
-
-				texture_creator.load_texture("images/abilities/fireball.png").unwrap(),
 			);
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
-			projectiles.push(fireball);
+			self.projectiles.push(fireball);
 		}
 	}
 
@@ -385,7 +386,7 @@ impl ROGUELIKE {
 				}
 				*/
 				// this needs to be mirrored
-				self.core.wincan.copy_ex(projectile.texture(), projectile.src(4, 7), projectile.pos(), 0.0, None, projectile.facing_right, false).unwrap();
+				// self.core.wincan.copy_ex(projectile.texture(), projectile.src(4, 7), projectile.pos(), 0.0, None, projectile.facing_right, false).unwrap();
 			}
 		}
 	}
