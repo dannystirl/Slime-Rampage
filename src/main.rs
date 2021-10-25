@@ -58,11 +58,10 @@ pub struct ROGUELIKE {
 }
 
 // calculate velocity resistance
-fn resist(vel: f64, delta: f64) -> f64 {
-	println!("DELTA: {}", delta);
-	if delta == 0.0 {
-		if vel > 0.0 {-1.0}
-		else if vel < 0.0 {1.0}
+fn resist(vel: i32, delta: i32) -> i32 {
+	if delta == 0 {
+		if vel > 0 {-1}
+		else if vel < 0 {1}
 		else {delta}
 	} else {delta}
 }
@@ -170,10 +169,8 @@ impl Game for ROGUELIKE {
 				}
 			}
 
-			player.set_x_delta(0.0);
-			player.set_y_delta(0.0);
-
-			//println!("{}, {}", player.x(), player.y());
+			player.set_x_delta(0);
+			player.set_y_delta(0);
 
 			let mousestate= self.core.event_pump.mouse_state();
 			let keystate: HashSet<Keycode> = self.core.event_pump
@@ -350,35 +347,29 @@ impl ROGUELIKE {
 		mut player: &mut Player, accel_rate_adj: f64) {
 		// move up
 		if keystate.contains(&Keycode::W) {
-			player.set_y_delta(player.y_delta() - accel_rate_adj);
+			player.set_y_delta(player.y_delta() - accel_rate_adj as i32);
 			player.is_still = false;
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
-			player.set_x_delta(player.x_delta() - accel_rate_adj);
+			player.set_x_delta(player.x_delta() - accel_rate_adj as i32);
 			player.facing_right = false;
 			player.is_still = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
-			player.set_y_delta(player.y_delta() + accel_rate_adj);
+			player.set_y_delta(player.y_delta() + accel_rate_adj as i32);
 			player.is_still = false;
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
-			player.set_x_delta(player.x_delta() + accel_rate_adj);
+			player.set_x_delta(player.x_delta() + accel_rate_adj as i32);
 			player.facing_right = true;
 			player.is_still = false;
 		}
 		// basic attack
 		if mousestate.left() || keystate.contains(&Keycode::Space) {
 			if !(player.is_attacking) {
-				/*println!(
-					"X = {:?}, Y = {:?}",
-					mousestate.x(),
-					mousestate.y(),
-				);*/
-				// player.base_attack(mousestate.x(), mousestate.y());
 				player.attack();
 			}
 		}
@@ -408,7 +399,6 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
-				//println!("Health: {}", player.get_hp()); //for debugging
 			}
 
 			if player.is_attacking {
@@ -424,20 +414,19 @@ impl ROGUELIKE {
 	// update player
 	fn update_player(mut player: &mut Player, obstacle_pos: &Vec<(i32,i32)>, speed_limit_adj: f64) {
 		// Slow down to 0 vel if no input and non-zero velocity
-		println!("RESIST: {}", resist(player.x_vel(), player.x_delta()));
-		player.set_x_delta(resist(player.x_vel(), player.x_delta()));
-		player.set_y_delta(resist(player.y_vel(), player.y_delta()));
+		player.set_x_delta(resist(player.x_vel() as i32, player.x_delta() as i32));
+		player.set_y_delta(resist(player.y_vel() as i32, player.y_delta() as i32));
 
 		// set animation when player is not moving
-		if player.x_vel() == 0.0 && player.y_vel() == 0.0 { player.is_still = true; }
+		if player.x_vel() == 0 && player.y_vel() == 0 { player.is_still = true; }
 
 		// Don't exceed speed limit
-		player.set_x_vel((player.x_vel() + player.x_delta()).clamp(speed_limit_adj * -1.0, speed_limit_adj));
-		player.set_y_vel((player.y_vel() + player.y_delta()).clamp(speed_limit_adj * -1.0, speed_limit_adj));
+		player.set_x_vel((player.x_vel() + player.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+		player.set_y_vel((player.y_vel() + player.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 
 		// Stay inside the viewing window
-		player.set_x((player.x() + player.x_vel()).clamp(0.0, (XWALLS.1 * TILE_SIZE as i32) as f64));
-		player.set_y((player.y() + player.y_vel()).clamp(0.0, (YWALLS.1 * TILE_SIZE as i32) as f64));
+		player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, (XWALLS.1 * TILE_SIZE as i32) as f64));
+		player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, (YWALLS.1 * TILE_SIZE as i32) as f64));
 
 		for ob in obstacle_pos {
 			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
@@ -445,20 +434,20 @@ impl ROGUELIKE {
 				// collision on object top
 				if (player.pos().bottom() >= obs.top()) && (player.pos().bottom() < obs.bottom()) 		// check y bounds
 				&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
-					player.set_y((player.y() + player.y_vel()).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
+					player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
 				// collision on object bottom
 				} else if (player.pos().top() < obs.bottom()) && (player.pos().top() > obs.top()) 		// check y bounds
 				&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
-					player.set_y((player.y() + player.y_vel()).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64,
+					player.set_y((player.y() + player.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64,
 					(YWALLS.1 * TILE_SIZE as i32) as f64));
 				// collision on object left 
 				} else if (player.pos().right() > obs.left()) && (player.pos().right() < obs.right())	// check x bounds
 					   && (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
-					player.set_x((player.x() + player.x_vel()).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
+					player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
 					// collision on object right
 				} else if (player.pos().left() < obs.right()) && (player.pos().left() > obs.left()) 	// check x bounds
 					   && (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
-					player.set_x((player.x() + player.x_vel()).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
+					player.set_x((player.x() + player.x_vel() as f64).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
 					(XWALLS.1 * TILE_SIZE as i32) as f64));
 				}
 			}

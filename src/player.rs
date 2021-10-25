@@ -12,8 +12,8 @@ const DMG_COOLDOWN: u128 = 800;
 pub struct Player<'a> {
 	pos: (f64, f64),
 	cam_pos: Rect,
-	vel: (f64, f64), 
-	delta: (f64, f64), 
+	vel: (i32, i32), 
+	delta: (i32, i32), 
 	height: u32,
 	width: u32,
 	src: Rect,
@@ -36,8 +36,8 @@ impl<'a> Player<'a> {
 			TILE_SIZE,
 			TILE_SIZE,
 		);
-		let vel = (0.0, 0.0);
-		let delta = (0.0, 0.0);
+		let vel = (0, 0);
+		let delta = (0, 0);
 		let height = TILE_SIZE; // 32;
 		let width = TILE_SIZE; // 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
@@ -76,16 +76,16 @@ impl<'a> Player<'a> {
 	pub fn x(&self) -> f64 {
 		return self.pos.0;
 	}
-	pub fn set_x_vel(&mut self, x: f64){
+	pub fn set_x_vel(&mut self, x: i32){
 		self.vel.0 = x;
 	}
-	pub fn x_vel(&self) -> f64 {
+	pub fn x_vel(&self) -> i32 {
 		return self.vel.0;
 	}
-	pub fn set_x_delta(&mut self, x: f64){
+	pub fn set_x_delta(&mut self, x: i32){
 		self.delta.0 = x;
 	}
-	pub fn x_delta(&self) -> f64 {
+	pub fn x_delta(&self) -> i32 {
 		return self.delta.0;
 	}
 	pub fn width(&self) -> u32 {
@@ -99,16 +99,16 @@ impl<'a> Player<'a> {
 	pub fn y(&self) -> f64 {
 		return self.pos.1;
 	}
-	pub fn set_y_vel(&mut self, y: f64){
+	pub fn set_y_vel(&mut self, y: i32){
 		self.vel.1 = y;
 	}
-	pub fn y_vel(&self) -> f64 {
+	pub fn y_vel(&self) -> i32 {
 		return self.vel.1;
 	}
-	pub fn set_y_delta(&mut self, y: f64){
+	pub fn set_y_delta(&mut self, y: i32){
 		self.delta.1 = y;
 	}
-	pub fn y_delta(&self) -> f64 {
+	pub fn y_delta(&self) -> i32 {
 		return self.delta.1;
 	}
 	pub fn height(&self) -> u32 {
@@ -117,8 +117,8 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel()).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
-		self.pos.1 = (self.y() + self.y_vel()).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
+		self.pos.0 = (self.x() + self.x_vel() as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
+		self.pos.1 = (self.y() + self.y_vel() as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
