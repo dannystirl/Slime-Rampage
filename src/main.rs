@@ -4,7 +4,7 @@ mod background;
 mod player;
 mod projectile;
 mod credits;
-
+mod gameinfo;
 use std::collections::HashSet;
 //use std::time::Duration;
 //use std::time::Instant;
@@ -54,7 +54,6 @@ const YBOUNDS: (i32,i32) = ((YWALLS.0*TILE_SIZE as i32), ( (YWALLS.1 as u32 *TIL
 
 pub struct ROGUELIKE {
 	core: SDLCore,
-	pub projectiles: Vec<Projectile>,
 }
 
 // calculate velocity resistance
@@ -85,8 +84,7 @@ impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-		let mut projectiles: Vec<Projectile> = Vec::with_capacity(0);
-		Ok(ROGUELIKE{ core, projectiles})
+		Ok(ROGUELIKE{ core})
 	}
 
 	fn run(&mut self) -> Result<(), String> {
@@ -369,7 +367,7 @@ impl ROGUELIKE {
 				0,
 			);
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
-			self.projectiles.push(fireball);
+			gameinfo::GameData::new().projectiles.push(fireball);
 		}
 	}
 
