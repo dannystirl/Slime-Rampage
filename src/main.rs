@@ -2,7 +2,7 @@ extern crate rogue_sdl;
 mod enemy;
 mod background;
 mod player;
-mod ranged_attack;
+mod projectile;
 mod credits;
 
 use std::collections::HashSet;
@@ -10,7 +10,7 @@ use std::collections::HashSet;
 //use std::time::Instant;
 use rand::Rng;
 use crate::enemy::*;
-use crate::ranged_attack::*;
+use crate::projectile::*;
 use crate::player::*;
 use crate::background::*;
 
@@ -24,9 +24,10 @@ use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
-use sdl2::render::Texture;
+use sdl2::render::{Texture, TextureCreator};
 
 use rogue_sdl::{Game, SDLCore};
+use sdl2::video::WindowContext;
 
 // window globals
 const TITLE: &str = "Roguelike";
@@ -122,6 +123,8 @@ impl Game for ROGUELIKE {
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
 			i+=1;
 		}
+		// SETUP ARRAY OF PROJECTILES
+		let mut projectiles: Vec<Projectile> = Vec::with_capacity(5);
 
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
@@ -136,20 +139,6 @@ impl Game for ROGUELIKE {
 		// obstacles that everything should collide with
 		#[allow(unused_variables)]
 		let obstacle_pos = background.create_new_map(XWALLS, YWALLS);
-
-		// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
-        let mut fireball = ranged_attack::RangedAttack::new(
-			Rect::new(
-				(CAM_W/2 - TILE_SIZE/2) as i32,
-				(CAM_H/2 - TILE_SIZE/2) as i32,
-				TILE_SIZE,
-				TILE_SIZE,
-			),
-			false,
-			false,
-			0,
-            texture_creator.load_texture("images/abilities/fireball.png")?,
-		);
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -180,10 +169,12 @@ impl Game for ROGUELIKE {
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
 
-			ROGUELIKE::check_inputs(&mut fireball, &keystate, mousestate, &mut player);
+			ROGUELIKE::check_inputs(&texture_creator, &mut projectiles, &keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(&mut player, &obstacle_pos);
-			// Should be switched to take in array of active fireballs, bullets, etc.
-			self.update_projectiles(&mut fireball);
+
+			// UPDATE PROJECTILES
+			self.update_projectiles(&mut projectiles);
+
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
 
@@ -325,7 +316,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(fireball: &mut RangedAttack, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
+	pub fn check_inputs(texture_creator: &TextureCreator<WindowContext>, projectiles: &mut Vec<Projectile>, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - ACCEL_RATE);
@@ -361,23 +352,41 @@ impl ROGUELIKE {
 			}
 		}
 		// shoot fireball
-		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
-			fireball.set_use(true);
+		if keystate.contains(&Keycode::F){
+			// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
+			let mut fireball = projectile::Projectile::new(
+				Rect::new(
+					(CAM_W/2 - TILE_SIZE/2) as i32,
+					(CAM_H/2 - TILE_SIZE/2) as i32,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				false,
+				false,
+				0,
+
+				texture_creator.load_texture("images/abilities/fireball.png").unwrap(),
+			);
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
+			projectiles.push(fireball);
 		}
 	}
 
 	// update projectiles
-	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
-		if fireball.in_use() {
-			fireball.set_frame(fireball.frame() + 1);
-			fireball.update_pos((0, (CAM_W - TILE_SIZE) as i32));
-			if fireball.frame() == 28 {
-				fireball.set_use(false);
-				fireball.set_frame(0);
+	pub fn update_projectiles(&mut self, projectiles: &mut Vec<Projectile>) {
+		for projectile in projectiles {
+			if projectile.is_active() {
+				projectile.set_frame(projectile.frame() + 1);
+				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				/*if projectile.frame() == 28 {
+					projectile.set_use(false);
+					projectile.set_frame(0);
+					projectile.pop();
+				}
+				*/
+				// this needs to be mirrored
+				self.core.wincan.copy_ex(projectile.texture(), projectile.src(4, 7), projectile.pos(), 0.0, None, projectile.facing_right, false).unwrap();
 			}
-			// this needs to be mirrored
-			self.core.wincan.copy_ex(fireball.texture(), fireball.src(4, 7), fireball.pos(), 0.0, None, fireball.facing_right, false).unwrap();
 		}
 	}
 

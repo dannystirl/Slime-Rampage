@@ -1,28 +1,32 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
+use sdl2::render::{Texture, TextureCreator};
+
 const TILE_SIZE: u32 = 64;
 
-pub struct RangedAttack<'a> {
+pub struct Projectile<'a> {
 	start_p: Rect, 
 	pos: Rect,
 	use_ability: bool,
 	pub facing_right: bool,
 	frame: i32,
     texture: Texture<'a>,
+	is_active: bool,
 }
 
- impl<'a> RangedAttack<'a> {
-	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32, texture: Texture<'a>) -> RangedAttack<'a> {
+ impl<'a> Projectile<'a> {
+	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32, texture: Texture<'a>) -> Projectile<'a> {
 		let start_p = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-		RangedAttack {
+		let is_active = true;
+		Projectile {
 			start_p, 
 			pos,	
 			use_ability,
 			facing_right,
 			frame,
-			texture, 
+			texture,
+			is_active,
 		}
 	}
 
@@ -58,8 +62,8 @@ pub struct RangedAttack<'a> {
 	pub fn set_use(&mut self, b:bool){
 		self.use_ability = b;
 	}
-	pub fn in_use(&self) -> bool{
-		return self.use_ability;
+	pub fn is_active(&self) -> bool{
+		return self.is_active;
 	}
 
 	pub fn set_frame(&mut self, frame:i32){
@@ -71,8 +75,10 @@ pub struct RangedAttack<'a> {
 
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
 	pub fn update_pos(&mut self, x_bounds: (i32, i32)) {
-		// form 
-		if self.frame<6 {
+		// form
+		if self.frame() == 28 {
+			self.die();
+		} else if self.frame<6 {
 			self.pos.set_x((self.start_p.x).clamp(x_bounds.0, x_bounds.1));
 		// collision
 		} else if self.frame>19 {
@@ -95,6 +101,11 @@ pub struct RangedAttack<'a> {
 			TILE_SIZE,
 		);
 	}
+
+	 pub fn die(&mut self){
+		 // Set death animation when created
+		 self.is_active = false;
+	 }
 
     pub fn texture(&self) -> &Texture {
         &self.texture
