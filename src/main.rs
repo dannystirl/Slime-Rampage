@@ -95,7 +95,7 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -186,7 +186,7 @@ impl Game for ROGUELIKE {
 			ROGUELIKE::update_background(self, xwalls, ywalls, &player, &background)?;
 
 			// UPDATE ENEMIES
-			rngt = ROGUELIKE::update_enemies(self, xbounds, ybounds, rngt, &mut enemies, &mut player);
+			rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player);
 
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(&mut fireball, &keystate, mousestate, &mut player);
@@ -231,7 +231,7 @@ pub fn main() -> Result<(), String> {
 // Create map
 impl ROGUELIKE {
 	pub fn update_background(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), player: &Player, background:& Background) -> Result<(), String> {
-		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, player);
+		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
 		let mut n = 0;
 		for i in 0..xwalls.1+1 {
 			for j in 0..ywalls.1+1 {
@@ -249,7 +249,7 @@ impl ROGUELIKE {
 					let pos;
 					if num==7 {
 						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()-cam_delta.0),
+						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()- cam_delta.0),
 											j * TILE_SIZE as i32 + (CENTER_H - player.y() - cam_delta.1),
 											TILE_SIZE*2, TILE_SIZE*2);
 					} else {
@@ -266,12 +266,13 @@ impl ROGUELIKE {
 		Ok(())
 	}
 	// update enemies
-	pub fn update_enemies(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
+	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
 		let mut i = 1;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
 			if enemy.is_alive() {
-				if rngt[0] > 47 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
+				let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
+				if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 					rngt[i] = rng.gen_range(1..5);
 					rngt[0] = 0;
 				}
@@ -299,8 +300,8 @@ impl ROGUELIKE {
 				} else {
 					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds);
 				}
-				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x()),
-									enemy.y() as i32 + (CENTER_H - player.y()),
+				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() - cam_delta.0),
+									enemy.y() as i32 + (CENTER_H - player.y() - cam_delta.1),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
 				i += 1;
@@ -497,7 +498,7 @@ impl ROGUELIKE {
 
 	// draw player
 	pub fn draw_player(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
-		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, player);
+		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
 		player.set_cam_pos(cur_bg.x()+cam_delta.0, cur_bg.y()+cam_delta.1);
 
 		// I think it looks better when doing animation constantly, we can keep 
