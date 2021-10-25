@@ -218,6 +218,7 @@ impl Game for ROGUELIKE {
 				let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
 				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
+		
 
 			
 
@@ -505,6 +506,11 @@ impl ROGUELIKE {
 			player.set_src(0, 0);
 		}*/
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
+	}
+	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64){
+		let p = Point::new(0, (TILE_SIZE/2) as i32);
+		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false);//rotation center
+	
 	}
 
 	// force enemy movement

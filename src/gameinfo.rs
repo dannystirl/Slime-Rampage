@@ -8,7 +8,7 @@ pub struct GameData{
 impl GameData{
     pub fn new() -> GameData{
         let mut projectiles: Vec<Projectile> = Vec::with_capacity(0);
-
+        
         GameData{
             projectiles,
         }

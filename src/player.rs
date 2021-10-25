@@ -26,6 +26,7 @@ pub struct Player<'a> {
 	pub is_still: bool,
 	pub hp: f32,
 	pub is_attacking: bool,
+	
 }
 
 impl<'a> Player<'a> {
