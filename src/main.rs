@@ -3,6 +3,7 @@ mod enemy;
 mod background;
 mod player;
 mod ranged_attack;
+mod ui;
 mod credits;
 
 use std::collections::HashSet;
@@ -13,6 +14,7 @@ use crate::enemy::*;
 use crate::ranged_attack::*;
 use crate::player::*;
 use crate::background::*;
+use crate::ui::*;
 
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -95,7 +97,7 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(2);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -212,7 +214,7 @@ impl Game for ROGUELIKE {
 			}
 
 			// UPDATE UI
-			ROGUELIKE::update_ui(self)?;
+			ROGUELIKE::update_ui(self, &player)?;
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -483,7 +485,8 @@ impl ROGUELIKE {
 	}
 
 	//update background
-	pub fn update_ui(&mut self) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player) -> Result<(), String> {
+		// set ui bar
 		let texture_creator = self.core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE*2);
 		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32 - 16, CAM_W, TILE_SIZE*3/2);
@@ -492,6 +495,22 @@ impl ROGUELIKE {
 		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32 - 8, CAM_W, TILE_SIZE*3/2);
 		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
 		self.core.wincan.copy(&ui, src, pos)?;
+
+		//create 3 hearts
+		let mut i=0;
+		while i < player.get_hp() as i32 /3 {
+			let heart = ui::UI::new(
+				Rect::new(
+					i*TILE_SIZE as i32,
+					(CAM_H-TILE_SIZE) as i32,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				texture_creator.load_texture("images/ui/heart.png")?,
+			);
+			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
+			i+=1;
+		}
 		Ok(())
 	}
 
