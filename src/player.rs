@@ -26,6 +26,7 @@ pub struct Player<'a> {
 	pub is_still: bool,
 	pub hp: f32,
 	pub is_attacking: bool,
+	pub weapon_frame: i32,
 }
 
 impl<'a> Player<'a> {
@@ -49,6 +50,7 @@ impl<'a> Player<'a> {
 		let attack_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let invincible = true;
+		let weapon_frame=0; 
 		Player {
 			pos,
 			cam_pos,
@@ -66,6 +68,7 @@ impl<'a> Player<'a> {
 			is_still,
 			hp,
 			is_attacking,
+			weapon_frame,
 		}
 	}
 
