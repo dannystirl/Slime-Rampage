@@ -45,8 +45,8 @@ const BG_W: u32 = 2400;
 const BG_H: u32 = 1440;
 
 // game globals
-const SPEED_LIMIT: f64 = 250.0;
-const ACCEL_RATE: f64 = 250.0;
+const SPEED_LIMIT: f64 = 200.0;
+const ACCEL_RATE: f64 = 200.0;
 
 const XWALLS: (i32, i32) = (1,24);
 const YWALLS: (i32, i32) = (1,16);
