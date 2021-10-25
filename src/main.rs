@@ -226,7 +226,7 @@ impl Game for ROGUELIKE {
 				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
 
-			
+			ROGUELIKE::update_ui(self, &mut player, &mut background)?;
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -482,6 +482,19 @@ impl ROGUELIKE {
 			//self.core.wincan.copy_ex(&sword, None, *r, 0.0, p, player.facing_right, false).unwrap();
 			
 		}
+	}
+
+	//update background
+	pub fn update_ui(&mut self, player: &mut Player, background: &mut Background) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		let src = Rect::new(0, 0, CAM_W, TILE_SIZE*2);
+		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32 - 8, CAM_W, TILE_SIZE*3/2);
+		let ui = texture_creator.load_texture("images/ui/bb_wide_yellow.png")?;
+		self.core.wincan.copy(&ui, src, pos)?;
+		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32, CAM_W, TILE_SIZE*3/2);
+		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
+		self.core.wincan.copy(&ui, src, pos)?;
+		Ok(())
 	}
 
 	// draw player
