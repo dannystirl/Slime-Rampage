@@ -408,10 +408,22 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(player: &mut Player, enemies: &mut Vec<Enemy>, obstacle_pos: &Vec<(i32, i32)>) {
 		for enemy in enemies {
-			if check_collision(&player.pos(), &enemy.pos()) {
-				player.minus_hp(5.0);
+
+			if check_collision(&player.pos(), &enemy.pos())
+			{
+				player.set_x(player.x() - player.x_vel());
+				//player.minus_hp(5.0);
 				//println!("Health: {}", player.get_hp()); //for debugging
 			}
+			
+			if check_collision(&player.pos(), &enemy.pos())
+			{
+				player.set_y(player.y() - player.y_vel());
+				//player.minus_hp(5.0);
+			}
+
+
+
 
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
