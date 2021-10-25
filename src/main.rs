@@ -97,7 +97,7 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(2);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -174,6 +174,7 @@ impl Game for ROGUELIKE {
 					//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 					//println!("{} {}", player.x(), player.y());
+					println!("{}", player.get_hp() / 10.0);
 				}
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
@@ -375,7 +376,6 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
-				//println!("Health: {}", player.get_hp()); //for debugging
 			}
 
 			if player.is_attacking {
@@ -497,21 +497,56 @@ impl ROGUELIKE {
 		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
 		self.core.wincan.copy(&ui, src, pos)?;
 
-		//create 3 hearts
-		let mut i=0;
-		while i < player.get_hp() as i32 /3 {
+		//create hearts
+		let mut i=0.0;
+		while i < player.get_hp()  && ((player.get_hp() % 5.0) as i32 & 1) == 0{
 			let heart = ui::UI::new(
 				Rect::new(
-					i*TILE_SIZE as i32,
-					(CAM_H-TILE_SIZE) as i32,
-					TILE_SIZE,
-					TILE_SIZE,
+					(i/10.0) as i32 *(TILE_SIZE as f64 *1.2) as i32,
+					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
+					(TILE_SIZE as f64 *1.2) as u32,
+					(TILE_SIZE as f64 *1.2) as u32,
 				),
 				texture_creator.load_texture("images/ui/heart.png")?,
 			);
 			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
-			i+=1;
+			i+=10.0;
 		}
+		if ((player.get_hp() % 5.0) as i32 & 1) != 0 {
+			let half_heart = ui::UI::new(
+				Rect::new(
+					(i/10.0) as i32 * (TILE_SIZE as f64 *1.2) as i32,
+					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
+					(TILE_SIZE as f64 *1.2) as u32,
+					(TILE_SIZE as f64 *1.2) as u32,
+				),
+				texture_creator.load_texture("images/ui/heart.png")?,
+			);
+			self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
+		}
+		// create coins
+		let coin = ui::UI::new(
+			Rect::new(
+				(CAM_W-(TILE_SIZE as f64 *1.2) as u32) as i32,
+				(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
+				(TILE_SIZE as f64 *1.2) as u32,
+				(TILE_SIZE as f64 *1.2) as u32,
+			),
+			texture_creator.load_texture("images/ui/gold_coin.png")?,
+		);
+		self.core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
+		// x 
+		/* let x = ui::UI::new(
+			Rect::new(
+				(CAM_W-((2*TILE_SIZE) as f64 /1.2) as u32) as i32,
+				(CAM_H-(TILE_SIZE as f64) as u32) as i32,
+				(TILE_SIZE as f64 /1.2) as u32,
+				(TILE_SIZE as f64 /1.2) as u32,
+			),
+			texture_creator.load_texture("images/ui/x.png")?,
+		);
+		self.core.wincan.copy(x.texture(), x.src(), x.pos())?; */
+		// number of coins
 		Ok(())
 	}
 

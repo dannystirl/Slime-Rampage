@@ -42,7 +42,7 @@ impl<'a> Player<'a> {
 		let height = TILE_SIZE;//32;
 		let width = TILE_SIZE;//32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-		let hp = 15.0;
+		let hp = 30.0;
 		let facing_right = false;
 		let is_still = true;
 		let is_attacking = false;
