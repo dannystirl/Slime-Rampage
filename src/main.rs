@@ -435,7 +435,7 @@ impl ROGUELIKE {
 			if projectile.is_active() {
 				//projectile.update_pos(bounds);
 				projectile.set_frame(projectile.frame() + 1);
-				projectile.update_pos(player.x(),player.y(), (0, (CAM_W - TILE_SIZE) as i32));
+				projectile.update_pos(player.x() as i32, player.y() as i32, (0, (CAM_W - TILE_SIZE) as i32));
 				/*if projectile.frame() == 28 {
 					projectile.set_use(false);
 					projectile.set_frame(0);
@@ -455,6 +455,7 @@ impl ROGUELIKE {
 				if check_collision(&player.pos(), &enemy.pos()) {
 					player.minus_hp(5.0);
 				}
+			}
 
 			// CHECK COLLISIONS WITH PLAYER PROJECTILES
 			for projectile in self.game_data.projectiles.iter_mut(){
@@ -642,8 +643,8 @@ impl ROGUELIKE {
 		for projectile in self.game_data.projectiles.iter_mut() {
 			if projectile.is_active(){
 				let r = projectile.pos();//world coordinates
-				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x()), //screen coordinates
-									projectile.y() as i32 + (CENTER_H - player.y()),
+				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+									projectile.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false); // rotation center
 			}
