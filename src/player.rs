@@ -6,11 +6,11 @@ use sdl2::render::Texture;
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
-const COOLDOWN: u128 = 250;
+const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
 
 pub struct Player<'a> {
-	pos: (i32, i32),
+	pos: (f64, f64),
 	cam_pos: Rect,
 	vel: (i32, i32), 
 	delta: (i32, i32), 
@@ -23,32 +23,32 @@ pub struct Player<'a> {
 	texture_all: Texture<'a>,
 	invincible: bool, 
 	pub facing_right: bool,
-	pub is_still: bool,
 	pub hp: f32,
 	pub is_attacking: bool,
+	pub weapon_frame: i32,
 }
 
 impl<'a> Player<'a> {
-	pub fn new(pos: (i32,i32), texture_all: Texture<'a>) -> Player<'a> {
+	pub fn new(pos: (f64, f64), texture_all: Texture<'a>) -> Player<'a> {
 		let cam_pos = Rect::new(
 			0,
 			0,
 			TILE_SIZE,
 			TILE_SIZE,
 		);
-		let vel = (0,0);
+		let vel = (0, 0);
 		let delta = (0, 0);
-		let height = TILE_SIZE;//32;
-		let width = TILE_SIZE;//32;
+		let height = TILE_SIZE; // 32;
+		let width = TILE_SIZE; // 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-		let hp = 100.0;
+		let hp = 30.0;
 		let facing_right = false;
-		let is_still = true;
 		let is_attacking = false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let invincible = true;
+		let weapon_frame=0; 
 		Player {
 			pos,
 			cam_pos,
@@ -63,26 +63,26 @@ impl<'a> Player<'a> {
 			invincible, 
 			texture_all,
 			facing_right,
-			is_still,
 			hp,
 			is_attacking,
+			weapon_frame,
 		}
 	}
 
 	// player x values
-	pub fn set_x(&mut self, x:i32){
+	pub fn set_x(&mut self, x: f64){
 		self.pos.0 = x;
 	}
-	pub fn x(&self) -> i32 {
+	pub fn x(&self) -> f64 {
 		return self.pos.0;
 	}
-	pub fn set_x_vel(&mut self, x:i32){
+	pub fn set_x_vel(&mut self, x: i32){
 		self.vel.0 = x;
 	}
 	pub fn x_vel(&self) -> i32 {
 		return self.vel.0;
 	}
-	pub fn set_x_delta(&mut self, x:i32){
+	pub fn set_x_delta(&mut self, x: i32){
 		self.delta.0 = x;
 	}
 	pub fn x_delta(&self) -> i32 {
@@ -93,19 +93,19 @@ impl<'a> Player<'a> {
 	}
 	
 	// player y values
-	pub fn set_y(&mut self, y:i32){
+	pub fn set_y(&mut self, y: f64){
 		self.pos.1 = y;
 	}
-	pub fn y(&self) -> i32 {
+	pub fn y(&self) -> f64 {
 		return self.pos.1;
 	}
-	pub fn set_y_vel(&mut self, y:i32){
+	pub fn set_y_vel(&mut self, y: i32){
 		self.vel.1 = y;
 	}
 	pub fn y_vel(&self) -> i32 {
 		return self.vel.1;
 	}
-	pub fn set_y_delta(&mut self, y:i32){
+	pub fn set_y_delta(&mut self, y: i32){
 		self.delta.1 = y;
 	}
 	pub fn y_delta(&self) -> i32 {
@@ -117,8 +117,8 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel()).clamp(x_bounds.0, x_bounds.1);
-		self.pos.1 = (self.y() + self.y_vel()).clamp(y_bounds.0, y_bounds.1);
+		self.pos.0 = (self.x() + self.x_vel() as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
+		self.pos.1 = (self.y() + self.y_vel() as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -147,17 +147,17 @@ impl<'a> Player<'a> {
 
 	pub fn pos(&self) -> Rect {
         return Rect::new(
-			self.x(),
-			self.y(),
+			self.x() as i32,
+			self.y() as i32,
 			TILE_SIZE,
 			TILE_SIZE,
 		)
     }
 
-	pub fn set_cam_pos(&mut self, x:i32, y:i32) {
+	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() - x,
-			self.y() - y,
+			self.x() as i32 - x,
+			self.y() as i32 - y,
 			TILE_SIZE,
 			TILE_SIZE,
 		);
@@ -169,10 +169,6 @@ impl<'a> Player<'a> {
 
 	pub fn texture_all(&self) -> &Texture {
         &self.texture_all
-    }
-
-	pub fn is_still(&self) -> &bool {
-        &self.is_still
     }
 
 	// attacking values
@@ -197,11 +193,11 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn attack(&mut self) {
-		if self.get_attack_timer() < COOLDOWN {
+		if self.get_attack_timer() < ATTK_COOLDOWN {
 			return;
 		}
 		self.is_attacking = true;
-		self.set_attack_box(self.x(), self.y());
+		self.set_attack_box(self.x() as i32, self.y() as i32);
 		self.attack_timer = Instant::now();
 	}
 
@@ -215,7 +211,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn get_cooldown(&self) -> u128 {
-		COOLDOWN
+		ATTK_COOLDOWN
 	}
 
 	// heatlh values
@@ -246,5 +242,4 @@ impl<'a> Player<'a> {
 	pub fn get_invincible(&self) -> bool {
 		self.invincible
 	}
-	
 }
