@@ -2,7 +2,6 @@ extern crate rogue_sdl;
 mod enemy;
 mod background;
 mod player;
-mod ranged_attack;
 mod ui;
 mod projectile;
 mod credits;
@@ -124,7 +123,21 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 		// SETUP ARRAY OF PROJECTILES
-		// let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
+		let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
+
+		/* // CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
+        let mut fireball = ranged_attack::RangedAttack::new(
+			Rect::new(
+				(CAM_W/2 - TILE_SIZE/2) as i32,
+				(CAM_H/2 - TILE_SIZE/2) as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			false,
+			false,
+			0,
+            texture_creator.load_texture("images/abilities/fireball.png")?,
+		); */
 
 		// CREATE ROOM 
 		let xwalls: (i32, i32) = (1,rng.gen_range(19..27));
@@ -189,10 +202,9 @@ impl Game for ROGUELIKE {
 			rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player);
 
 			// UPDATE PLAYER
-			ROGUELIKE::check_inputs(&mut fireball, &keystate, mousestate, &mut player);
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(xwalls, ywalls, xbounds, ybounds, &mut player, &obstacle_pos);
-			ROGUELIKE::draw_projectile(self, &player.pos(), &bullet, &player, 0.0);
-			self.draw_player(xwalls, ywalls, &count, &f_display, &mut player, &cur_bg);
+			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
 				count = 0;
@@ -200,7 +212,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			self.update_projectiles(&mut fireball);
+			ROGUELIKE::update_projectiles(&mut projectiles);
 			ROGUELIKE::display_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
@@ -214,6 +226,10 @@ impl Game for ROGUELIKE {
 
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
+			// DRAW PROJECTILES
+			//for projectile in projectiles {
+				ROGUELIKE::draw_projectile(self, &player.pos(), &bullet, &player, 0.0);
+			//}
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -232,7 +248,6 @@ pub fn main() -> Result<(), String> {
 // Create map
 impl ROGUELIKE {
 	pub fn update_background(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), player: &Player, background:& Background) -> Result<(), String> {
-		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
 		let mut n = 0;
 		for i in 0..xwalls.1+1 {
 			for j in 0..ywalls.1+1 {
@@ -250,13 +265,13 @@ impl ROGUELIKE {
 					let pos;
 					if num==7 {
 						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()- cam_delta.0),
-											j * TILE_SIZE as i32 + (CENTER_H - player.y() - cam_delta.1),
+						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()),
+											j * TILE_SIZE as i32 + (CENTER_H - player.y()),
 											TILE_SIZE*2, TILE_SIZE*2);
 					} else {
 						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()-cam_delta.0),
-											j * TILE_SIZE as i32 + (CENTER_H - player.y() - cam_delta.1),
+						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()),
+											j * TILE_SIZE as i32 + (CENTER_H - player.y()),
 											TILE_SIZE, TILE_SIZE);
 					}
 					self.core.wincan.copy(texture, src, pos)?;
@@ -272,7 +287,6 @@ impl ROGUELIKE {
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
 			if enemy.is_alive() {
-				let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
 				if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 					rngt[i] = rng.gen_range(1..5);
 					rngt[0] = 0;
@@ -301,8 +315,8 @@ impl ROGUELIKE {
 				} else {
 					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds);
 				}
-				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() - cam_delta.0),
-									enemy.y() as i32 + (CENTER_H - player.y() - cam_delta.1),
+				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x()),
+									enemy.y() as i32 + (CENTER_H - player.y()),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
 				i += 1;
@@ -579,9 +593,8 @@ impl ROGUELIKE {
 	}
 
 	// draw player
-	pub fn draw_player(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
-		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
-		player.set_cam_pos(cur_bg.x()+cam_delta.0, cur_bg.y()+cam_delta.1);
+	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
+		player.set_cam_pos(cur_bg.x(), cur_bg.y());
 
 		// I think it looks better when doing animation constantly, we can keep
 		// the if statement if we decide to add a specific moving animation
@@ -593,26 +606,10 @@ impl ROGUELIKE {
 		}*/
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
-	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64){
+	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
-		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false);//rotation center
-
-	}
-
-	pub fn stop_camera(xwalls: (i32,i32), ywalls: (i32,i32), player: &Player) -> (i32,i32) {
-		let mut cam_delta_y = 0;
-		if player.y() > (ywalls.1-4)*(TILE_SIZE as i32) {
-			cam_delta_y = ((ywalls.1-4) * TILE_SIZE as i32)+(TILE_SIZE as i32)/8 - player.y();
-		} else if player.y() < ((5*TILE_SIZE) as i32)+(TILE_SIZE as i32)/8{
-			cam_delta_y = (5*(TILE_SIZE as i32)+(TILE_SIZE as i32)/8) - player.y();
-		}
-		let mut cam_delta_x = 0;
-		if player.x() > (xwalls.1-9)*(TILE_SIZE as i32)-(TILE_SIZE as i32)/2 {
-			cam_delta_x = (xwalls.1-9)*(TILE_SIZE as i32)-(TILE_SIZE as i32)/2 - player.x();
-		} else if player.x() < (9*TILE_SIZE) as i32 + (TILE_SIZE as i32)/2{
-			cam_delta_x = 9*(TILE_SIZE as i32) + (TILE_SIZE as i32)/2 - player.x();
-		}
-		return (cam_delta_x, cam_delta_y);
+		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false)?;//rotation center
+		Ok(())
 	}
 
 	// force enemy movement
