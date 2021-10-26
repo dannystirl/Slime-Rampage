@@ -222,7 +222,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
-				rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player);
+				rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player, speed_limit_adj);
 			}
 
 			// UPDATE PLAYER
@@ -308,7 +308,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 	// update enemies
-	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
+	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, speed_limit_adj: f64) -> Vec<i32>{
 		let mut i = 1;
 		let mut j = 0;
 		let mut rng = rand::thread_rng();
@@ -340,7 +340,7 @@ impl ROGUELIKE {
 				if distance > 300.0 {
 					enemy.update_pos(rngt[i], xbounds, ybounds);
 				} else {
-					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds);
+					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
 				}
 				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
 									enemy.y() as i32 + (CENTER_H - player.y() as i32),
