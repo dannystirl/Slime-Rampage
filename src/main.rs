@@ -224,9 +224,10 @@ impl Game for ROGUELIKE {
 			}
 
 			// DRAW PROJECTILES
-			//for projectile in projectiles {
-				ROGUELIKE::draw_projectile(self, &player.pos(), &bullet, &player, 0.0);
-			//}
+			
+			
+				ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);
+			
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -528,9 +529,14 @@ impl ROGUELIKE {
 		}*/
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
-	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64){
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64){
+
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
-		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false);//rotation center
+		for projectile in self.game_data.projectiles.iter_mut() {
+		let r = projectile.start_p;
+		
+		self.core.wincan.copy_ex(&bullet, None, r, angle,p,player.facing_right,false);//rotation center
+		}
 
 	}
 
