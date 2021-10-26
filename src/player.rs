@@ -6,7 +6,7 @@ use sdl2::render::Texture;
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
-const ATTK_COOLDOWN: u128 = 250;
+const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
 
 pub struct Player<'a> {
@@ -23,7 +23,6 @@ pub struct Player<'a> {
 	texture_all: Texture<'a>,
 	invincible: bool, 
 	pub facing_right: bool,
-	pub is_still: bool,
 	pub hp: f32,
 	pub is_attacking: bool,
 	pub weapon_frame: i32,
@@ -44,7 +43,6 @@ impl<'a> Player<'a> {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30.0;
 		let facing_right = false;
-		let is_still = true;
 		let is_attacking = false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
@@ -65,7 +63,6 @@ impl<'a> Player<'a> {
 			invincible, 
 			texture_all,
 			facing_right,
-			is_still,
 			hp,
 			is_attacking,
 			weapon_frame,
@@ -174,10 +171,6 @@ impl<'a> Player<'a> {
         &self.texture_all
     }
 
-	pub fn is_still(&self) -> &bool {
-        &self.is_still
-    }
-
 	// attacking values
 	pub fn get_attack_timer(&self) -> u128 {
 		self.attack_timer.elapsed().as_millis()
@@ -248,9 +241,5 @@ impl<'a> Player<'a> {
 
 	pub fn get_invincible(&self) -> bool {
 		self.invincible
-	}
-	
-	pub fn display_weapon(&self){
-	
 	}
 }
