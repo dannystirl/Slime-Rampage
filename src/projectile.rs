@@ -63,7 +63,7 @@ pub struct Projectile{
 	}
 
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
-	pub fn update_pos(&mut self, player_pos_x: i32, player_pos_y: i32, x_bounds: (i32, i32)) {
+	pub fn update_pos(&mut self, x_bounds: (i32, i32)) {
 		self.set_x(self.x() + self.vector[0] as i32);
 		self.set_y(self.y() + self.vector[1] as i32);
 	}

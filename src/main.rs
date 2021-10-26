@@ -383,7 +383,7 @@ impl ROGUELIKE {
 
 		// Shoot ranged attack
 		if mousestate.left(){
-			let vec = vec![mousestate.x() as f64 - CENTER_W as f64, mousestate.y() as f64 - CENTER_H as f64];
+			let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
 			let angle = ((vec[0] / vec[1]).abs()).atan();
 			let speed: f64 = 3.0* speed_limit_adj;
 			let mut x = &speed * angle.sin();
@@ -398,8 +398,8 @@ impl ROGUELIKE {
 				Rect::new(
 					(player.pos().x()),
 					(player.pos().y()),
-					TILE_SIZE,
-					TILE_SIZE,
+					TILE_SIZE/2,
+					TILE_SIZE/2,
 				),
 				false,
 				false,
@@ -435,7 +435,7 @@ impl ROGUELIKE {
 			if projectile.is_active() {
 				//projectile.update_pos(bounds);
 				projectile.set_frame(projectile.frame() + 1);
-				projectile.update_pos(player.x() as i32, player.y() as i32, (0, (CAM_W - TILE_SIZE) as i32));
+				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
 				/*if projectile.frame() == 28 {
 					projectile.set_use(false);
 					projectile.set_frame(0);
