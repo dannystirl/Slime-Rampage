@@ -417,7 +417,7 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			if!(player.is_firing){
+			if !player.is_firing && player.get_mana() > 0 {
 				player.fire(); 
 				let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
 				let angle = ((vec[0] / vec[1]).abs()).atan();
@@ -556,6 +556,8 @@ impl ROGUELIKE {
 		if player.get_fire_timer() > player.get_fire_cooldown() {
 			player.set_fire_cooldown();
 		}
+
+		player.restore_mana();
 	}
 
 	//update background
@@ -641,7 +643,7 @@ impl ROGUELIKE {
 		}
 
 		//display mana
-		let mana = ui::UI::new(
+		let mut mana = ui::UI::new(
 			Rect::new(
 				(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*12) as i32,
 				(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
@@ -650,7 +652,18 @@ impl ROGUELIKE {
 			),
 			texture_creator.load_texture("images/ui/mana.png")?,
 		);
-		self.core.wincan.copy(mana.texture(), mana.src(),mana.pos())?;
+		let mut cur_mana = 0;
+		match player.get_mana() {
+			0 => cur_mana = 32 * 4,
+			1 => cur_mana = 32 * 3,
+			2 => cur_mana = 32 * 2,
+			3 => cur_mana = 32 * 1,
+			4 => cur_mana = 32 * 0,
+			_ => cur_mana = 32 * 0,
+		}
+		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE / 2, TILE_SIZE / 2);
+		mana.set_src(mana_src);
+		self.core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
 
 		//get current mana as a string
 		let mana = player.get_mana();
