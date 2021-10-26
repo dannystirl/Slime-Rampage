@@ -226,7 +226,7 @@ impl Game for ROGUELIKE {
 			}
 
 			// UPDATE PLAYER
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj);
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj,speed_limit_adj);
 			ROGUELIKE::update_player(xwalls, ywalls, xbounds, ybounds, &mut player, &obstacle_pos, speed_limit_adj);
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
@@ -355,7 +355,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64) {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64, speed_limit_adj :f64) {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - accel_rate_adj as i32);
@@ -385,7 +385,7 @@ impl ROGUELIKE {
 		if mousestate.left(){
 			let vec = vec![mousestate.x() as f64 - CENTER_W as f64, mousestate.y() as f64 - CENTER_H as f64];
 			let angle = ((vec[0] / vec[1]).abs()).atan();
-			let speed: f64 = 7.0;
+			let speed: f64 = 3.0* speed_limit_adj;
 			let mut x = &speed * angle.sin();
 			let mut y = &speed * angle.cos();
 			if vec[0] < 0.0 {
