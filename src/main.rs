@@ -198,13 +198,6 @@ impl Game for ROGUELIKE {
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
 
-			ROGUELIKE::check_inputs(&mut fireball, &keystate, mousestate, &mut player, accel_rate_adj);
-			ROGUELIKE::update_player(&mut player, &obstacle_pos, speed_limit_adj);
-			// Should be switched to take in array of active fireballs, bullets, etc.
-			self.update_projectiles(&mut fireball);
-			// UPDATE ENEMIES
-			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
-
 			// UPDATE BACKGROUND
 			let cur_bg = Rect::new(
 				(player.x() as i32 + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32),
@@ -218,8 +211,8 @@ impl Game for ROGUELIKE {
 			rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player);
 
 			// UPDATE PLAYER
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
-			ROGUELIKE::update_player(xwalls, ywalls, xbounds, ybounds, &mut player, &obstacle_pos);
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj);
+			ROGUELIKE::update_player(xwalls, ywalls, xbounds, ybounds, &mut player, &obstacle_pos, speed_limit_adj);
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
@@ -295,13 +288,13 @@ impl ROGUELIKE {
 					let pos;
 					if num==7 {
 						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()),
-											j * TILE_SIZE as i32 + (CENTER_H - player.y()),
+						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
+											j * TILE_SIZE as i32 + (CENTER_H - player.y() as i32),
 											TILE_SIZE*2, TILE_SIZE*2);
 					} else {
 						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x()),
-											j * TILE_SIZE as i32 + (CENTER_H - player.y()),
+						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
+											j * TILE_SIZE as i32 + (CENTER_H - player.y() as i32),
 											TILE_SIZE, TILE_SIZE);
 					}
 					self.core.wincan.copy(texture, src, pos)?;
@@ -345,8 +338,6 @@ impl ROGUELIKE {
 				} else {
 					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds);
 				}
-				let pos = Rect::new(enemy.x() as i32 + (START_W - player.x() as i32),
-									enemy.y() as i32 + (START_H - player.y() as i32),
 				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
 									enemy.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
@@ -470,8 +461,8 @@ impl ROGUELIKE {
 		player.set_y_vel((player.y_vel() + player.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 
 		// Stay inside the viewing window
-		player.set_x((player.x() + player.x_vel() as f64).clamp(0, xwalls.1 * TILE_SIZE as i32) as f64);
-		player.set_y((player.y() + player.y_vel() as f64).clamp(0, ywalls.1 * TILE_SIZE as i32) as f64);
+		player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
+		player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
 
 		for ob in obstacle_pos {
 			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
@@ -483,7 +474,7 @@ impl ROGUELIKE {
 				// collision on object bottom
 				} else if (player.pos().top() < obs.bottom()) && (player.pos().top() > obs.top()) 		// check y bounds
 				&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
-					player.set_y((player.y() + player.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, ywalls.1 * TILE_SIZE as i32) as f64);
+					player.set_y((player.y() + player.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
 				// collision on object left 
 				} else if (player.pos().right() > obs.left()) && (player.pos().right() < obs.right())	// check x bounds
 					   && (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
