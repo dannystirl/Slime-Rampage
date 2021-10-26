@@ -351,7 +351,7 @@ impl ROGUELIKE {
 			player.is_still = false;
 		}
 		// basic attack
-		if mousestate.left() || keystate.contains(&Keycode::Space) {
+		if keystate.contains(&Keycode::Space) {
 			if !(player.is_attacking) {
 				/*println!(
 					"X = {:?}, Y = {:?}",
@@ -362,10 +362,41 @@ impl ROGUELIKE {
 				player.attack();
 			}
 		}
+
+		// Shoot ranged attack
+		if mousestate.left(){
+			let vec = vec![mousestate.x() as f64 - player.x() as f64, mousestate.y() as f64 - player.y() as f64];
+			let angle = ((vec[0] / vec[1]).abs()).atan();
+			let speed: f64 = 7.0;
+			let mut x = &speed * angle.sin();
+			let mut y = &speed * angle.cos();
+			if vec[0] < 0.0 {
+				x *= -1.0;
+			}
+			if vec[1] < 0.0  {
+				y *= -1.0;
+			}
+			let mut bullet = projectile::Projectile::new(
+				Rect::new(
+					(CAM_W/2 - TILE_SIZE/2)as i32,
+					(CAM_H/2 -TILE_SIZE/2)as i32,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				false,
+				false,
+				0,
+				vec![x,y],
+			);
+			bullet.set_pos(player.pos());
+			self.game_data.projectiles.push(bullet);
+
+		}
+		/*
 		// shoot fireball
 		if keystate.contains(&Keycode::F){
 			// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
-			/*let mut fireball = projectile::Projectile::new(
+			let mut fireball = projectile::Projectile::new(
 				Rect::new(
 					(CAM_W/2 - TILE_SIZE/2) as i32,
 					(CAM_H/2 - TILE_SIZE/2) as i32,
@@ -379,22 +410,7 @@ impl ROGUELIKE {
 
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
 			gameinfo::GameData::new().projectiles.push(fireball);
-		}*/
-		let mut bullet = projectile::Projectile::new(
-			Rect::new(
-				(CAM_W/2 - TILE_SIZE/2)as i32,
-				(CAM_H/2 -TILE_SIZE/2)as i32,
-				TILE_SIZE,
-				TILE_SIZE,
-			),
-			false,
-			false,
-			0,
-		);
-		bullet.set_pos(player.pos());
-		println!("{}  {} " , player.pos().x, player.pos().y);
-		self.game_data.projectiles.push(bullet);
-		}
+		 */
 	}
 
 	// update projectiles

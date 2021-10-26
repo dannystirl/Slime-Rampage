@@ -16,10 +16,11 @@ pub struct Projectile{
 	pub facing_right: bool,
 	frame: i32,
 	is_active: bool,
+	vector: Vec<f64>,
 }
 
  impl Projectile {
-	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32) -> Projectile {
+	pub fn new(pos: Rect, use_ability:bool, facing_right: bool, frame:i32, vector: Vec<f64>) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		Projectile {
@@ -29,6 +30,7 @@ pub struct Projectile{
 			facing_right,
 			frame,
 			is_active,
+			vector
 		}
 	}
 	
@@ -54,6 +56,13 @@ pub struct Projectile{
 		return self.pos.y;
 	}
 
+	 pub fn set_x(&mut self, x: i32){
+		 self.pos.x = x;
+	 }
+	 pub fn set_y(&mut self, y: i32){
+		 self.pos.y = y;
+	 }
+
 	pub fn set_use(&mut self, b:bool){
 		self.use_ability = b;
 	}
@@ -70,16 +79,14 @@ pub struct Projectile{
 
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
 	pub fn update_pos(&mut self, player_pos_x: i32, player_pos_y: i32, x_bounds: (i32, i32) ) {
-	
-		//.self.pos.set_x(self.x() + (CENTER_W - player.x()) + 1).clamp(x_bounds.0, x_bounds.1));
-		self.pos.set_x(self.x()-1);
-		self.pos.set_y(self.y()+1);
-
-	
+		self.set_x(self.x() + self.vector[0] as i32);
+		self.set_y(self.y() + self.vector[1] as i32);
 	}
+
 	pub fn set_pos(&mut self, p:Rect){
 		self.pos = p;
 	}
+
 	pub fn src(&self, col: i32, row: i32) -> Rect{
 		return Rect::new(
 			(self.frame % col) * (TILE_SIZE as i32) * 3/2,
