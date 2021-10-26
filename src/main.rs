@@ -227,7 +227,7 @@ impl Game for ROGUELIKE {
 			
 			
 				ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);
-			
+				
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -398,8 +398,9 @@ impl ROGUELIKE {
 	pub fn update_projectiles(projectiles: &mut Vec<Projectile>) {
 		for projectile in projectiles {
 			if projectile.is_active() {
-				//projectile.set_frame(projectile.frame() + 1);
-				//projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				//projectile.update_pos(bounds);
+				projectile.set_frame(projectile.frame() + 1);
+				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
 				/*if projectile.frame() == 28 {
 					projectile.set_use(false);
 					projectile.set_frame(0);
@@ -533,7 +534,7 @@ impl ROGUELIKE {
 
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
 		for projectile in self.game_data.projectiles.iter_mut() {
-		let r = projectile.start_p;
+		let r = projectile.pos();
 		
 		self.core.wincan.copy_ex(&bullet, None, r, angle,p,player.facing_right,false);//rotation center
 		}
