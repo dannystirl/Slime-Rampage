@@ -123,7 +123,7 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 		// SETUP ARRAY OF PROJECTILES
-		let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
+		// let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
 
 		/* // CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
         let mut fireball = ranged_attack::RangedAttack::new(
@@ -212,7 +212,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut projectiles);
+			ROGUELIKE::update_projectiles(&mut self.game_data.projectiles);
 			ROGUELIKE::display_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
