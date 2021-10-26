@@ -106,7 +106,8 @@ impl Game for ROGUELIKE {
 
 		
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png").unwrap();
+		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
+		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
@@ -126,7 +127,7 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 		// SETUP ARRAY OF PROJECTILES
-		let mut projectiles: Vec<Projectile> = Vec::with_capacity(5);
+		let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
 
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
@@ -218,9 +219,11 @@ impl Game for ROGUELIKE {
 				let sword_l = texture_creator.load_texture("images/player/sword_l.png")?;
 				self.core.wincan.copy_ex(&sword_l, None, r, 0.0, None, player.facing_right, false).unwrap();
 			}
-		
 
-			
+			// DRAW PROJECTILES
+			//for projectile in projectiles {
+				ROGUELIKE::draw_projectile(self, &player.pos(), &bullet, &player, 0.0);
+			//}
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -376,8 +379,8 @@ impl ROGUELIKE {
 	pub fn update_projectiles(&mut self, projectiles: &mut Vec<Projectile>) {
 		for projectile in projectiles {
 			if projectile.is_active() {
-				projectile.set_frame(projectile.frame() + 1);
-				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				//projectile.set_frame(projectile.frame() + 1);
+				//projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
 				/*if projectile.frame() == 28 {
 					projectile.set_use(false);
 					projectile.set_frame(0);
@@ -515,11 +518,10 @@ impl ROGUELIKE {
 
 	// force enemy movement
 	pub fn check_edge(enemy: &enemy::Enemy) -> bool{
-		if  enemy.x() <= XBOUNDS.0 as f64 ||
-		enemy.x() >=  XBOUNDS.1 as f64 ||
-		enemy.y() <= YBOUNDS.0 as f64||
-		enemy.y() >= YBOUNDS.1 as f64
-		{return true;}
-		else {return false;}
+		return if enemy.x() <= XBOUNDS.0 as f64 ||
+			enemy.x() >= XBOUNDS.1 as f64 ||
+			enemy.y() <= YBOUNDS.0 as f64 ||
+			enemy.y() >= YBOUNDS.1 as f64
+		{ true } else { false }
 	}
 }
