@@ -30,6 +30,8 @@ use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
 //use sdl2::render::Texture;
 use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::TextureQuery;
+
 
 use rogue_sdl::{Game, SDLCore};
 use sdl2::video::WindowContext;
@@ -597,6 +599,64 @@ impl ROGUELIKE {
 			);
 			self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
 		}
+
+		//display mana
+		let mana = ui::UI::new(
+			Rect::new(
+				(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*12) as i32,
+				(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+				(TILE_SIZE as f64 * 1.2) as u32,
+				(TILE_SIZE as f64 * 1.2) as u32,
+			),
+			texture_creator.load_texture("images/ui/mana.png")?,
+		);
+		self.core.wincan.copy(mana.texture(), mana.src(),mana.pos())?;
+
+		//get current mana as a string
+		let mana = player.get_mana();
+		let max_mana = player.get_max_mana();
+		let mut s: String = mana.to_string();
+		let mut a: String = max_mana.to_string();
+		s += "/";
+		s += &a;
+
+		//display string next to mana
+
+
+
+
+		//display equipped waepon
+		if player.get_curr_meele() == "sword_l"
+		{
+			let weapon = ui::UI::new(
+				Rect::new(
+					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*8) as i32,
+					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+				),
+				texture_creator.load_texture("images/player/sword_l.png")?,
+			);
+			self.core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+		}
+
+
+		if player.get_curr_ability() == "bullet"
+		{
+			let ability = ui::UI::new(
+				Rect::new(
+					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*6) as i32,
+					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+				),
+				texture_creator.load_texture("images/abilities/bullet.png")?,
+			);
+			self.core.wincan.copy(ability.texture(), ability.src(),ability.pos())?;
+		}
+		
+		
+
 		// create coins
 		let coin = ui::UI::new(
 			Rect::new(

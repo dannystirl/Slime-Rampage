@@ -24,8 +24,12 @@ pub struct Player<'a> {
 	invincible: bool, 
 	pub facing_right: bool,
 	pub hp: f32,
+	pub mana: i32,
+	pub max_mana: i32,
 	pub is_attacking: bool,
 	pub weapon_frame: i32,
+	pub curr_meele: String,
+	pub curr_ability: String,
 }
 
 impl<'a> Player<'a> {
@@ -42,6 +46,8 @@ impl<'a> Player<'a> {
 		let width = TILE_SIZE; // 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30.0;
+		let mana = 6;
+		let max_mana = 6;
 		let facing_right = false;
 		let is_attacking = false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
@@ -49,6 +55,8 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let invincible = true;
 		let weapon_frame=0; 
+		let curr_meele = String::from("sword_l");
+		let curr_ability = String::from("bullet");
 		Player {
 			pos,
 			cam_pos,
@@ -64,8 +72,12 @@ impl<'a> Player<'a> {
 			texture_all,
 			facing_right,
 			hp,
+			mana,
+			max_mana,
 			is_attacking,
 			weapon_frame,
+			curr_meele,
+			curr_ability,
 		}
 	}
 
@@ -217,6 +229,25 @@ impl<'a> Player<'a> {
 	// heatlh values
 	pub fn get_hp(&self) -> f32 {
 		return self.hp
+	}
+
+	//mana values
+	pub fn get_mana(&self) -> i32 {
+		return self.mana
+	}
+
+	pub fn get_max_mana(&self) -> i32 {
+		return self.max_mana
+	}
+
+	pub fn get_curr_meele(&self) -> String {
+		let s = &self.curr_meele;
+		return s.clone();
+	}
+
+	pub fn get_curr_ability(&self) -> String {
+		let s = &self.curr_ability;
+		return s.clone()
 	}
 
 	pub fn is_dead(&self) -> bool {
