@@ -112,18 +112,17 @@ pub struct Enemy<'a> {
 		}
 	}
 
-	pub fn aggro(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+	pub fn aggro(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32), speed_limit_adj: f64) {
 		if self.is_stunned {
 			return;
 		}
 		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
-		let speed: f64 = 3.0;
 		let angle = ((vec[0] / vec[1]).abs()).atan();
-		let mut x = speed * angle.sin();
+		let mut x = speed_limit_adj * angle.sin();
 		if vec[0] < 0.0 {
 			x *= -1.0;
 		}
-		let mut y = speed * angle.cos();
+		let mut y = speed_limit_adj * angle.cos();
 		if vec[1] < 0.0  {
 			y *= -1.0;
 		}
