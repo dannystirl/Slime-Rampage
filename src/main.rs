@@ -359,7 +359,7 @@ impl ROGUELIKE {
 		// shoot fireball
 		if keystate.contains(&Keycode::F){
 			// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
-			let mut fireball = projectile::Projectile::new(
+			/*let mut fireball = projectile::Projectile::new(
 				Rect::new(
 					(CAM_W/2 - TILE_SIZE/2) as i32,
 					(CAM_H/2 - TILE_SIZE/2) as i32,
@@ -372,7 +372,22 @@ impl ROGUELIKE {
 			);
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
 			gameinfo::GameData::new().projectiles.push(fireball);
-		}
+		}*/
+		let mut bullet = projectile::Projectile::new(
+			Rect::new(
+				(CAM_W/2 - TILE_SIZE/2)as i32,
+				(CAM_H/2 -TILE_SIZE/2)as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			false,
+			false,
+			0,
+		);
+		bullet.start_p = player.get_cam_pos();
+		gameinfo::GameData::new().projectiles.push(bullet);
+		
+	}
 	}
 
 	// update projectiles

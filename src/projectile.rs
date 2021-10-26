@@ -6,7 +6,7 @@ use sdl2::render::{Texture, TextureCreator};
 const TILE_SIZE: u32 = 64;
 
 pub struct Projectile{
-	start_p: Rect, 
+	pub start_p: Rect, 
 	pos: Rect,
 	use_ability: bool,
 	pub facing_right: bool,
