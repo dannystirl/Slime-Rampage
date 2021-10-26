@@ -212,7 +212,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut self.game_data.projectiles);
+			ROGUELIKE::update_projectiles(&mut player,&mut self.game_data.projectiles);
 			ROGUELIKE::display_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
@@ -391,18 +391,19 @@ impl ROGUELIKE {
 			false,
 			0,
 		);
-		bullet.start_p = player.get_cam_pos();
+		bullet.set_pos(player.pos());
+		println!("{}  {} " , player.pos().x, player.pos().y);
 		self.game_data.projectiles.push(bullet);
 		}
 	}
 
 	// update projectiles
-	pub fn update_projectiles(projectiles: &mut Vec<Projectile>) {
+	pub fn update_projectiles(player: &mut Player, projectiles: &mut Vec<Projectile>) {
 		for projectile in projectiles {
 			if projectile.is_active() {
 				//projectile.update_pos(bounds);
 				projectile.set_frame(projectile.frame() + 1);
-				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				projectile.update_pos(player.x(),player.y(), (0, (CAM_W - TILE_SIZE) as i32));
 				/*if projectile.frame() == 28 {
 					projectile.set_use(false);
 					projectile.set_frame(0);
@@ -503,9 +504,9 @@ impl ROGUELIKE {
 			let texture_creator = self.core.wincan.texture_creator();
 			let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
-			let mut src = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
+			let mut pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
 			if player.facing_right {
-				src = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
+				pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
 			}
 			if player.weapon_frame > 30 { player.weapon_frame=0}
 			player.weapon_frame+=1;
@@ -520,10 +521,10 @@ impl ROGUELIKE {
 			}
 
 			if player.weapon_frame < 15{
-				self.core.wincan.copy_ex(&sword, None, src, angle, p, player.facing_right, false).unwrap();
+				self.core.wincan.copy_ex(&sword, None, pos, angle, p, player.facing_right, false).unwrap();
 				
 			}else{
-				self.core.wincan.copy_ex(&sword, None, src, -angle, p, player.facing_right, false).unwrap();
+				self.core.wincan.copy_ex(&sword, None, pos, -angle, p, player.facing_right, false).unwrap();
 			}
 		}
 		Ok(())
@@ -613,9 +614,11 @@ impl ROGUELIKE {
 
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
 		for projectile in self.game_data.projectiles.iter_mut() {
-			let r = projectile.pos();
-			
-			self.core.wincan.copy_ex(&bullet, None, r, angle,p,player.facing_right,false); // rotation center
+			let r = projectile.pos();//world coordinates
+			let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x()), //screen coordinates
+									projectile.y() as i32 + (CENTER_H - player.y()),
+									TILE_SIZE, TILE_SIZE);
+			self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false); // rotation center
 		}
 
 	}
