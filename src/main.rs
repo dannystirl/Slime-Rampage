@@ -356,7 +356,7 @@ impl ROGUELIKE {
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64) {
 		// move up
 		if keystate.contains(&Keycode::W) {
-			player.set_y_delta(player.y_delta() - ACCEL_RATE);
+			player.set_y_delta(player.y_delta() - accel_rate_adj as i32);
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
@@ -365,7 +365,7 @@ impl ROGUELIKE {
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
-			player.set_y_delta(player.y_delta() + ACCEL_RATE);
+			player.set_y_delta(player.y_delta() + accel_rate_adj as i32);
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
