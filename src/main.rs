@@ -28,6 +28,7 @@ use sdl2::render::{Texture, TextureCreator};
 
 use rogue_sdl::{Game, SDLCore};
 use sdl2::video::WindowContext;
+use crate::gameinfo::GameData;
 
 // window globals
 const TITLE: &str = "Roguelike";
@@ -54,6 +55,7 @@ const YBOUNDS: (i32,i32) = ((YWALLS.0*TILE_SIZE as i32), ( (YWALLS.1 as u32 *TIL
 
 pub struct ROGUELIKE {
 	core: SDLCore,
+	game_data: GameData,
 }
 
 // calculate velocity resistance
@@ -84,7 +86,8 @@ impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-		Ok(ROGUELIKE{ core})
+		let game_data = GameData::new();
+		Ok(ROGUELIKE{ core, game_data })
 	}
 
 	fn run(&mut self) -> Result<(), String> {
@@ -127,7 +130,7 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 		// SETUP ARRAY OF PROJECTILES
-		let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
+		// let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
 
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
@@ -176,7 +179,7 @@ impl Game for ROGUELIKE {
 			ROGUELIKE::update_player(&mut player, &obstacle_pos);
 
 			// UPDATE PROJECTILES
-			self.update_projectiles(&mut projectiles);
+			ROGUELIKE::update_projectiles(&mut self.game_data.projectiles);
 
 			// UPDATE ENEMIES
 			rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
@@ -370,6 +373,7 @@ impl ROGUELIKE {
 				false,
 				0,
 			);
+
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
 			gameinfo::GameData::new().projectiles.push(fireball);
 		}*/
@@ -385,13 +389,12 @@ impl ROGUELIKE {
 			0,
 		);
 		bullet.start_p = player.get_cam_pos();
-		gameinfo::GameData::new().projectiles.push(bullet);
-		
-	}
+		self.game_data.projectiles.push(bullet);
+		}
 	}
 
 	// update projectiles
-	pub fn update_projectiles(&mut self, projectiles: &mut Vec<Projectile>) {
+	pub fn update_projectiles(projectiles: &mut Vec<Projectile>) {
 		for projectile in projectiles {
 			if projectile.is_active() {
 				//projectile.set_frame(projectile.frame() + 1);
@@ -454,7 +457,7 @@ impl ROGUELIKE {
 				} else if (player.pos().top() < obs.bottom()) && (player.pos().top() > obs.top()) 		// check y bounds
 				&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
 					player.set_y((player.y() + player.y_vel()).clamp((ob.1+2)*TILE_SIZE as i32, YWALLS.1 * TILE_SIZE as i32));
-				// collision on object left 
+				// collision on object left
 				} else if (player.pos().right() > obs.left()) && (player.pos().right() < obs.right())	// check x bounds
 					   && (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
 					player.set_x((player.x() + player.x_vel()).clamp(0, (ob.0-1) * TILE_SIZE as i32));
@@ -503,11 +506,11 @@ impl ROGUELIKE {
 
 		if f_weapon < 15{
 			self.core.wincan.copy_ex(&sword, None, *r, angle, p, player.facing_right, false).unwrap();
-			
+
 		}else{
 			self.core.wincan.copy_ex(&sword, None, *r, -angle, p, player.facing_right, false).unwrap();
 			//self.core.wincan.copy_ex(&sword, None, *r, 0.0, p, player.facing_right, false).unwrap();
-			
+
 		}
 	}
 
@@ -515,7 +518,7 @@ impl ROGUELIKE {
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
 		player.set_cam_pos(cur_bg.x(), cur_bg.y());
 
-		// I think it looks better when doing animation constantly, we can keep 
+		// I think it looks better when doing animation constantly, we can keep
 		// the if statement if we decide to add a specific moving animation
 
 		//if !player.is_still {
@@ -528,7 +531,7 @@ impl ROGUELIKE {
 	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64){
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
 		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false);//rotation center
-	
+
 	}
 
 	// force enemy movement
