@@ -307,13 +307,13 @@ impl ROGUELIKE {
 	// update enemies
 	pub fn update_enemies(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, speed_limit_adj: f64) -> Vec<i32>{
 		let mut i = 1;
-		let mut rng = rand::thread_rng();
+		let rng = rand::thread_rng();
 		for enemy in enemies {
 			if !enemy.is_alive(){
 				continue;
 			}
 			let mut rng = rand::thread_rng();
-			if rng.gen_range(1..30) < 5 { // chance to fire
+			if rng.gen_range(1..60) < 5 { // chance to fire
 				enemy.is_firing = true;
 			}
 			// shoot ranged
