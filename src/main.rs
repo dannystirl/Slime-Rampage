@@ -112,14 +112,14 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(1);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let e = enemy::Enemy::new(
 				Rect::new(
-					(CAM_W/2 - TILE_SIZE/2 + 200) as i32,
-					(CAM_H/2 - TILE_SIZE/2) as i32,
+					(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+					(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
 					TILE_SIZE,
 					TILE_SIZE,
 				),
@@ -480,7 +480,7 @@ impl ROGUELIKE {
 			
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut(){
-				if check_collision(&projectile.pos(), &enemy.pos()) {
+				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5.0);
 					projectile.die();
@@ -497,7 +497,7 @@ impl ROGUELIKE {
 
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
-				if check_collision(&projectile.pos(), &player.pos()) {
+				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
 					player.minus_hp(5.0);
 					projectile.die();
 				}
