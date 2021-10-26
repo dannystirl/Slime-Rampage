@@ -18,6 +18,7 @@ pub struct Enemy<'a> {
 	stun_timer: Instant,
 	knockback_vel: f64,
 	angle: f64,
+	pub has_money: bool,
 	pub x_flipped: bool,
 	pub y_flipped: bool,
 	pub facing_right: bool,
@@ -34,6 +35,7 @@ pub struct Enemy<'a> {
 		let knockback_vel = 0.0;
 		let angle = 0.0;
 		let x_flipped = false;
+		let has_money = true;
 		let y_flipped = false;
 		let facing_right = false;
 		let is_stunned = false;
@@ -47,6 +49,7 @@ pub struct Enemy<'a> {
 			stun_timer,
 			knockback_vel,
 			angle,
+			has_money,
 			x_flipped,
 			y_flipped,
 			facing_right,
@@ -201,5 +204,13 @@ pub struct Enemy<'a> {
 
 	pub fn is_alive(&mut self) -> bool{
 		return self.alive;
+	}
+
+	pub fn has_gold(&mut self) -> bool{
+		return self.has_money;
+	}
+
+	pub fn set_no_gold(&mut self) {
+		self.has_money = false;
 	}
 }

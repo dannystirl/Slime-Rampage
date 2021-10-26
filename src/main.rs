@@ -6,6 +6,7 @@ mod ui;
 mod projectile;
 mod credits;
 mod gameinfo;
+mod gold;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
@@ -17,6 +18,7 @@ use crate::projectile::*;
 use crate::player::*;
 use crate::background::*;
 use crate::ui::*;
+use crate::gold::*;
 
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -113,6 +115,7 @@ impl Game for ROGUELIKE {
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
+		let mut gold: Vec<Gold> = Vec::with_capacity(5);
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -349,6 +352,19 @@ impl ROGUELIKE {
 				i += 1;
 				j += 1;
 			}
+			else {
+				let texture_creator = self.core.wincan.texture_creator();
+				let g = gold::Gold::new(
+					Rect::new(
+						enemy.x() as i32,
+						enemy.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					texture_creator.load_texture("images/ui/gold_coin.png")?,
+				);
+				
+			}
 		}
 		rngt[0] += 1;
 		return rngt;
@@ -455,13 +471,13 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if enemy.is_alive() {
 				if check_collision(&player.pos(), &enemy.pos()) {
-					player.minus_hp(5.0);
+					//player.minus_hp(5.0);
 				}
 
 				if player.is_attacking {
 					if check_collision(&player.get_attack_box(), &enemy.pos()) {
 						enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
-						enemy.minus_hp(1.0);
+						enemy.minus_hp(25.0);
 					}
 				}
 			}
@@ -534,6 +550,7 @@ impl ROGUELIKE {
 
 	//draw weapon
 	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
+		
 		let texture_creator = self.core.wincan.texture_creator();
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let rotation_point;
@@ -572,6 +589,7 @@ impl ROGUELIKE {
 
 		//create hearts
 		let mut i=0.0;
+		
 		while i < player.get_hp()  && ((player.get_hp() % 5.0) as i32 & 1) == 0{
 			let heart = ui::UI::new(
 				Rect::new(
