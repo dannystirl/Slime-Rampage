@@ -222,7 +222,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
-				rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player, speed_limit_adj);
+				rngt = ROGUELIKE::update_enemies(self, xbounds, ybounds, rngt, &mut enemies, &mut player, speed_limit_adj);
 			}
 
 			// UPDATE PLAYER
@@ -236,7 +236,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut player, &mut self.game_data.projectiles);
+			ROGUELIKE::update_projectiles(&mut player, &mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			ROGUELIKE::display_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
@@ -251,10 +251,7 @@ impl Game for ROGUELIKE {
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
 			// DRAW PROJECTILES
-			
-			
-				ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);
-				
+			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);	
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -308,52 +305,83 @@ impl ROGUELIKE {
 		Ok(())
 	}
 	// update enemies
-	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, speed_limit_adj: f64) -> Vec<i32>{
+	pub fn update_enemies(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, speed_limit_adj: f64) -> Vec<i32>{
 		let mut i = 1;
-		let mut j = 0;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
 			if !enemy.is_alive(){
 				continue;
 			}
-			
-				if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
-					rngt[i] = rng.gen_range(1..5);
-					rngt[0] = 0;
-				}
-				let x_d = (enemy.x() - player.x()).powf(2.0);
-				let y_d = (enemy.y() - player.y()).powf(2.0);
-				let distance = (x_d + y_d).sqrt();
-				if enemy.get_stun_timer() > 1000 {
-					enemy.set_stunned(false);
-				} else {
-					enemy.slow_vel(0.1);
-					let angle = enemy.angle();
-					let mut x = (enemy.get_vel() * -1.0) * angle.sin();
-					if enemy.x_flipped {
-						x *= -1.0;
-					}
-					let mut y = (enemy.get_vel() * -1.0) * angle.cos();
-					if enemy.y_flipped {
-						y *= -1.0;
-					}
-					enemy.pos.set_x(((enemy.x() + x) as i32).clamp(xbounds.0, xbounds.1));
-					enemy.pos.set_y(((enemy.y() + y) as i32).clamp(ybounds.0, ybounds.1));
-				}
-				if distance > 300.0 {
-					enemy.update_pos(rngt[i], xbounds, ybounds);
-				} else {
-					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
-				}
-				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
-									enemy.y() as i32 + (CENTER_H - player.y() as i32),
-									TILE_SIZE, TILE_SIZE);
-				self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
-				i += 1;
-				j += 1;
+			let mut rng = rand::thread_rng();
+			if rng.gen_range(1..30) < 5 { // chance to fire
+				enemy.is_firing = true;
 			}
-			
-		
+			// shoot ranged
+			if!(enemy.is_firing){
+				enemy.fire(); 
+				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
+				let angle = ((vec[0] / vec[1]).abs()).atan();
+				let speed: f64 = 3.0* speed_limit_adj;
+				let mut x = &speed * angle.sin();
+				let mut y = &speed * angle.cos();
+				if vec[0] < 0.0 {
+					x *= -1.0;
+				}
+				if vec[1] < 0.0  {
+					y *= -1.0;
+				}
+				let bullet = projectile::Projectile::new(
+					Rect::new(
+						enemy.pos().x(),
+						enemy.pos().y(),
+						TILE_SIZE/2,
+						TILE_SIZE/2,
+					),
+					false,
+					false,
+					0,
+					vec![x,y],
+				);
+				self.game_data.enemy_projectiles.push(bullet);
+			}
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
+				enemy.set_fire_cooldown();
+			}
+			// aggro / move
+			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
+				rngt[i] = rng.gen_range(1..5);
+				rngt[0] = 0;
+			}
+			let x_d = (enemy.x() - player.x()).powf(2.0);
+			let y_d = (enemy.y() - player.y()).powf(2.0);
+			let distance = (x_d + y_d).sqrt();
+			if enemy.get_stun_timer() > 1000 {
+				enemy.set_stunned(false);
+			} else {
+				enemy.slow_vel(0.1);
+				let angle = enemy.angle();
+				let mut x = (enemy.get_vel() * -1.0) * angle.sin();
+				if enemy.x_flipped {
+					x *= -1.0;
+				}
+				let mut y = (enemy.get_vel() * -1.0) * angle.cos();
+				if enemy.y_flipped {
+					y *= -1.0;
+				}
+				enemy.pos.set_x(((enemy.x() + x) as i32).clamp(xbounds.0, xbounds.1));
+				enemy.pos.set_y(((enemy.y() + y) as i32).clamp(ybounds.0, ybounds.1));
+			}
+			if distance > 300.0 {
+				enemy.update_pos(rngt[i], xbounds, ybounds);
+			} else {
+				enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+			}
+			let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
+								enemy.y() as i32 + (CENTER_H - player.y() as i32),
+								TILE_SIZE, TILE_SIZE);
+			self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
+			i += 1;
+		}
 		rngt[0] += 1;
 		return rngt;
 	}
@@ -386,37 +414,35 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			
 			if!(player.is_firing){
 				player.fire(); 
-			let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
-			let angle = ((vec[0] / vec[1]).abs()).atan();
-			let speed: f64 = 3.0* speed_limit_adj;
-			let mut x = &speed * angle.sin();
-			let mut y = &speed * angle.cos();
-			if vec[0] < 0.0 {
-				x *= -1.0;
+				let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
+				let angle = ((vec[0] / vec[1]).abs()).atan();
+				let speed: f64 = 3.0* speed_limit_adj;
+				let mut x = &speed * angle.sin();
+				let mut y = &speed * angle.cos();
+				if vec[0] < 0.0 {
+					x *= -1.0;
+				}
+				if vec[1] < 0.0  {
+					y *= -1.0;
+				}
+				let mut bullet = projectile::Projectile::new(
+					Rect::new(
+						player.pos().x(),
+						player.pos().y(),
+						TILE_SIZE/2,
+						TILE_SIZE/2,
+					),
+					false,
+					false,
+					0,
+					vec![x,y],
+				);
+				self.game_data.player_projectiles.push(bullet);
 			}
-			if vec[1] < 0.0  {
-				y *= -1.0;
-			}
-			let mut bullet = projectile::Projectile::new(
-				Rect::new(
-					(player.pos().x()),
-					(player.pos().y()),
-					TILE_SIZE/2,
-					TILE_SIZE/2,
-				),
-				false,
-				false,
-				0,
-				vec![x,y],
-			);
-			self.game_data.projectiles.push(bullet);
 		}
-		}
-		
-		 //ability
+		//ability
 		if keystate.contains(&Keycode::F){
 			println!("you found the easter egg");
 		}
@@ -424,8 +450,14 @@ impl ROGUELIKE {
 	}
 
 	// update projectiles
-	pub fn update_projectiles(player: &mut Player, projectiles: &mut Vec<Projectile>) {
-		for projectile in projectiles {
+	pub fn update_projectiles(player: &mut Player, player_projectiles: &mut Vec<Projectile>, enemy_projectiles: &mut Vec<Projectile>) {
+		for projectile in player_projectiles {
+			if projectile.is_active() {
+				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				
+			}
+		}
+		for projectile in enemy_projectiles {
 			if projectile.is_active() {
 				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
 				
@@ -440,13 +472,13 @@ impl ROGUELIKE {
 				continue;
 			}
 
+			// player collision
 			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
 			}
-		
-
-			// CHECK COLLISIONS WITH PLAYER PROJECTILES
-			for projectile in self.game_data.projectiles.iter_mut(){
+			
+			// player projectile collisions
+			for projectile in self.game_data.player_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &enemy.pos()) {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5.0);
@@ -454,13 +486,21 @@ impl ROGUELIKE {
 				}
 			}
 
-			// CHECK COLLISION WITH PLAYER SWORD
+			// player melee collisions
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
 					enemy.minus_hp(1.0);
 				}
 			}
+
+			// enemy projectile collisions
+			for projectile in self.game_data.enemy_projectiles.iter_mut(){
+				if check_collision(&projectile.pos(), &player.pos()) {
+					player.minus_hp(5.0);
+					projectile.die();
+				}
+			}	
 		}
 		player.set_invincible();
 	}
@@ -629,17 +669,26 @@ impl ROGUELIKE {
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
 
-	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64){
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
-		for projectile in self.game_data.projectiles.iter_mut() {
+		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				let r = projectile.pos();//world coordinates
 				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 									projectile.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
-				self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false); // rotation center
+				self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false)?; // rotation center
 			}
 		}
+		let p = Point::new(0, (TILE_SIZE/2) as i32);
+		for projectile in self.game_data.enemy_projectiles.iter_mut() {
+			if projectile.is_active(){
+				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+									projectile.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+				self.core.wincan.copy_ex(&bullet, None, pos, angle, p, false, false)?; // rotation center
+			}
+		}
+		Ok(())
 	}
 
 	// force enemy movement

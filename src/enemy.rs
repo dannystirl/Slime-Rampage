@@ -9,6 +9,7 @@ use std::f64;
 const TILE_SIZE: u32 = 64;
 #[allow(dead_code)]
 const STUN_TIME: u32 = 2000;
+const FIRE_COOLDOWN: u128 = 1500;
 
 pub struct Enemy<'a> {
 	vel: Rect, 
@@ -16,6 +17,7 @@ pub struct Enemy<'a> {
 	src: Rect,
 	txtre: Texture<'a>,
 	stun_timer: Instant,
+	fire_timer: Instant,
 	knockback_vel: f64,
 	angle: f64,
 	pub x_flipped: bool,
@@ -24,6 +26,7 @@ pub struct Enemy<'a> {
 	pub is_stunned: bool,
 	pub hp: f32,
 	pub alive: bool,
+	pub is_firing: bool,
 }
 
  impl<'a> Enemy<'a> {
@@ -31,12 +34,14 @@ pub struct Enemy<'a> {
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let stun_timer = Instant::now();
+		let fire_timer = Instant::now();
 		let knockback_vel = 0.0;
 		let angle = 0.0;
 		let x_flipped = false;
 		let y_flipped = false;
 		let facing_right = false;
 		let is_stunned = false;
+		let is_firing =false;
 		let hp = 50.0;
 		let alive = true;
 		Enemy {
@@ -45,6 +50,7 @@ pub struct Enemy<'a> {
 			src,	
 			txtre,
 			stun_timer,
+			fire_timer,
 			knockback_vel,
 			angle,
 			x_flipped,
@@ -53,6 +59,7 @@ pub struct Enemy<'a> {
 			is_stunned,
 			hp,
 			alive,
+			is_firing,
 		}
 	}
 
@@ -90,6 +97,7 @@ pub struct Enemy<'a> {
 		self.pos.height()
 	}
 
+	// movement stuff
 	pub fn update_pos(&mut self, roll:i32, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
 		if self.is_stunned {
 			return;
@@ -130,46 +138,6 @@ pub struct Enemy<'a> {
 		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
 	}
 
-	pub fn src(&self) -> Rect {
-		self.src
-	}
-
-    pub fn txtre(&self) -> &Texture {
-        &self.txtre
-    }
-
-    pub fn pos(&self) -> Rect {
-        self.pos
-    }
-
-	pub fn minus_hp(&mut self, dmg: f32) {
-		self.hp -= dmg;
-
-		if self.hp <= 0.0 {
-			self.die();
-		}
-	}
-
-	pub fn get_vel(&self) -> f64 {
-		self.knockback_vel
-	}
-
-	pub fn slow_vel(&mut self, decel: f64) {
-		self.knockback_vel -= decel;
-	}
-
-	pub fn angle(&self) -> f64 {
-		self.angle
-	}
-
-	pub fn get_stun_timer(&self) -> u128 {
-		self.stun_timer.elapsed().as_millis()
-	}
-
-	pub fn set_stunned(&mut self, stunned: bool) {
-		self.is_stunned = stunned;
-	}
-
 	pub fn knockback(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32))
 	{
 		self.x_flipped = false;
@@ -192,6 +160,68 @@ pub struct Enemy<'a> {
 		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
 		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
 		self.stun_timer = Instant::now();
+	}
+
+	pub fn src(&self) -> Rect {
+		self.src
+	}
+
+    pub fn txtre(&self) -> &Texture {
+        &self.txtre
+    }
+
+    pub fn pos(&self) -> Rect {
+        self.pos
+    }
+
+	pub fn get_vel(&self) -> f64 {
+		self.knockback_vel
+	}
+
+	pub fn slow_vel(&mut self, decel: f64) {
+		self.knockback_vel -= decel;
+	}
+
+	pub fn angle(&self) -> f64 {
+		self.angle
+	}
+
+	// attacking 
+	pub fn get_fire_timer(&self) -> u128 {
+		self.fire_timer.elapsed().as_millis()
+	}
+
+	pub fn fire(&mut self){
+		if self.get_fire_timer() < FIRE_COOLDOWN {
+		 return;
+		}
+		self.is_firing = true;
+		self.fire_timer = Instant::now();
+		
+	}	
+
+	pub fn get_fire_cooldown(&self)-> u128{
+		FIRE_COOLDOWN
+	}
+	pub fn set_fire_cooldown(&mut self){
+		self.is_firing =false;
+	}
+
+	// health
+	pub fn get_stun_timer(&self) -> u128 {
+		self.stun_timer.elapsed().as_millis()
+	}
+
+	pub fn set_stunned(&mut self, stunned: bool) {
+		self.is_stunned = stunned;
+	}
+
+	pub fn minus_hp(&mut self, dmg: f32) {
+		self.hp -= dmg;
+
+		if self.hp <= 0.0 {
+			self.die();
+		}
 	}
 
 	pub fn die(&mut self){
