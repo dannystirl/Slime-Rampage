@@ -52,6 +52,7 @@ const BG_H: u32 = 1440;
 // game globals
 const SPEED_LIMIT: f64 = 200.0;
 const ACCEL_RATE: f64 = 200.0;
+const STARTING_TIMER: u128 = 1000;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -170,6 +171,18 @@ impl Game for ROGUELIKE {
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
+			all_frames += 1;
+			let elapsed = last_time.elapsed();
+			if elapsed > Duration::from_secs(1) {
+				let mut fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
+				println!("Average FPS: {:.2}", fps_avg);
+
+				fps_avg = fps_avg.recip();
+				speed_limit_adj = fps_avg * SPEED_LIMIT;
+				println!("Speed limit adjusted: {}", speed_limit_adj);
+				accel_rate_adj = fps_avg * ACCEL_RATE;
+				println!("Acceleration rate adjusted: {}", accel_rate_adj);
+			}
 			// reset frame
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -208,7 +221,7 @@ impl Game for ROGUELIKE {
 			ROGUELIKE::update_background(self, xwalls, ywalls, &player, &background)?;
 
 			// UPDATE ENEMIES
-			rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player);
+			rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player, elapsed);
 
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj);
@@ -231,19 +244,6 @@ impl Game for ROGUELIKE {
 			ROGUELIKE::check_collisions(xbounds, ybounds, &mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
-			}
-
-			all_frames += 1;
-			let elapsed = last_time.elapsed();
-			if elapsed > Duration::from_secs(1) {
-				let mut fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-				println!("Average FPS: {:.2}", fps_avg);
-
-				fps_avg = fps_avg.recip();
-				speed_limit_adj = fps_avg * SPEED_LIMIT;
-				println!("Speed limit adjusted: {}", speed_limit_adj);
-				accel_rate_adj = fps_avg * ACCEL_RATE;
-				println!("Acceleration rate adjusted: {}", accel_rate_adj);
 			}
       
 			// UPDATE UI
@@ -306,7 +306,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 	// update enemies
-	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
+	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, elapsed: Instant) -> Vec<i32>{
 		let mut i = 1;
 		let mut j = 0;
 		let mut rng = rand::thread_rng();
@@ -335,10 +335,12 @@ impl ROGUELIKE {
 					enemy.pos.set_x(((enemy.x() + x) as i32).clamp(xbounds.0, xbounds.1));
 					enemy.pos.set_y(((enemy.y() + y) as i32).clamp(ybounds.0, ybounds.1));
 				}
-				if distance > 300.0 {
-					enemy.update_pos(rngt[i], xbounds, ybounds);
-				} else {
-					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds);
+				if elapsed > STARTING_TIMER{
+					if distance > 300.0 {
+						enemy.update_pos(rngt[i], xbounds, ybounds);
+					} else {
+						enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds);
+					}
 				}
 				let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
 									enemy.y() as i32 + (CENTER_H - player.y() as i32),
