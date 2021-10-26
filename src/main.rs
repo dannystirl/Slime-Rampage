@@ -312,9 +312,13 @@ impl ROGUELIKE {
 			if !enemy.is_alive(){
 				continue;
 			}
-			let fire_chance = rng.gen_range(1..60);
-			if  fire_chance < 5 { // chance to fire
-				enemy.fire(); // sets is firing true
+
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
+				enemy.set_fire_cooldown();
+				let fire_chance = rng.gen_range(1..60);
+				if fire_chance < 5 { // chance to fire
+					enemy.fire(); // sets is firing true
+				}
 			}
 			// shoot ranged
 			if!(enemy.is_firing){
@@ -343,9 +347,7 @@ impl ROGUELIKE {
 				);
 				self.game_data.enemy_projectiles.push(bullet);
 			}
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
-				enemy.set_fire_cooldown();
-			}
+			
 			// aggro / move
 			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 				rngt[i] = rng.gen_range(1..5);
