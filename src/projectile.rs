@@ -33,21 +33,6 @@ pub struct Projectile{
 			vector
 		}
 	}
-	
-	/*pub fn start_pos(&mut self, x:i32, y:i32, fr:bool) {
-		if fr {
-			self.facing_right = true;
-			self.start_p.x = x+64;
-			self.pos.x = x+64;
-		}else{
-			self.facing_right = false;
-			self.start_p.x = x-64;
-			self.pos.x = x-64;
-		}
-		self.start_p.y = y;
-		self.pos.y = y;
-	}
-*/
 	pub fn x(&self) -> i32 {
 		return self.pos.x;
 	}
@@ -78,7 +63,7 @@ pub struct Projectile{
 	}
 
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
-	pub fn update_pos(&mut self, player_pos_x: i32, player_pos_y: i32, x_bounds: (i32, i32) ) {
+	pub fn update_pos(&mut self, player_pos_x: i32, player_pos_y: i32, x_bounds: (i32, i32)) {
 		self.set_x(self.x() + self.vector[0] as i32);
 		self.set_y(self.y() + self.vector[1] as i32);
 	}
