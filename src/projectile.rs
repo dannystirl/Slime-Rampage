@@ -27,7 +27,7 @@ pub struct Projectile{
 			is_active,
 		}
 	}
-
+	
 	pub fn start_pos(&mut self, x:i32, y:i32, fr:bool) {
 		if fr {
 			self.facing_right = true;

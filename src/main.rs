@@ -111,7 +111,7 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -129,7 +129,7 @@ impl Game for ROGUELIKE {
 			i+=1;
 		}
 		// SETUP ARRAY OF PROJECTILES
-		let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
+		// let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
 
 		/* // CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
         let mut fireball = ranged_attack::RangedAttack::new(
@@ -221,7 +221,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut projectiles);
+			ROGUELIKE::update_projectiles(&mut self.game_data.projectiles);
 			ROGUELIKE::display_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
@@ -249,9 +249,10 @@ impl Game for ROGUELIKE {
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
 			// DRAW PROJECTILES
-			//for projectile in projectiles {
-				ROGUELIKE::draw_projectile(self, &player.pos(), &bullet, &player, 0.0);
-			//}
+			
+			
+				ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);
+				
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -307,6 +308,7 @@ impl ROGUELIKE {
 	// update enemies
 	pub fn update_enemies(&mut self, xwalls: (i32,i32), ywalls: (i32,i32), xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
 		let mut i = 1;
+		let mut j = 0;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
 			if enemy.is_alive() {
@@ -343,6 +345,7 @@ impl ROGUELIKE {
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
 				i += 1;
+				j += 1;
 			}
 		}
 		rngt[0] += 1;
@@ -353,8 +356,7 @@ impl ROGUELIKE {
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64) {
 		// move up
 		if keystate.contains(&Keycode::W) {
-			player.set_y_delta(player.y_delta() - accel_rate_adj as i32);
-			player.is_still = false;
+			player.set_y_delta(player.y_delta() - ACCEL_RATE);
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
@@ -363,14 +365,12 @@ impl ROGUELIKE {
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
-			player.set_y_delta(player.y_delta() + accel_rate_adj as i32);
-			player.is_still = false;
+			player.set_y_delta(player.y_delta() + ACCEL_RATE);
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
 			player.set_x_delta(player.x_delta() + accel_rate_adj as i32);
 			player.facing_right = true;
-			player.is_still = false;
 		}
 		// basic attack
 		if mousestate.left() || keystate.contains(&Keycode::Space) {
@@ -416,8 +416,9 @@ impl ROGUELIKE {
 	pub fn update_projectiles(projectiles: &mut Vec<Projectile>) {
 		for projectile in projectiles {
 			if projectile.is_active() {
-				//projectile.set_frame(projectile.frame() + 1);
-				//projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				//projectile.update_pos(bounds);
+				projectile.set_frame(projectile.frame() + 1);
+				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
 				/*if projectile.frame() == 28 {
 					projectile.set_use(false);
 					projectile.set_frame(0);
@@ -433,14 +434,16 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
-			if check_collision(&player.pos(), &enemy.pos()) {
-				player.minus_hp(5.0);
-			}
+			if enemy.is_alive() {
+				if check_collision(&player.pos(), &enemy.pos()) {
+					player.minus_hp(5.0);
+				}
 
-			if player.is_attacking {
-				if check_collision(&player.get_attack_box(), &enemy.pos()) {
-					enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
-					enemy.minus_hp(1.0);
+				if player.is_attacking {
+					if check_collision(&player.get_attack_box(), &enemy.pos()) {
+						enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
+						enemy.minus_hp(1.0);
+					}
 				}
 			}
 		}
@@ -452,9 +455,6 @@ impl ROGUELIKE {
 		// Slow down to 0 vel if no input and non-zero velocity
 		player.set_x_delta(resist(player.x_vel() as i32, player.x_delta() as i32));
 		player.set_y_delta(resist(player.y_vel() as i32, player.y_delta() as i32));
-
-		// set animation when player is not moving
-		if player.x_vel() == 0 && player.y_vel() == 0 { player.is_still = true; }
 
 		// Don't exceed speed limit
 		player.set_x_vel((player.x_vel() + player.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
@@ -515,33 +515,27 @@ impl ROGUELIKE {
 
 	//draw weapon
 	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
+		let rotation_point;
+		let pos;
+		let mut angle; 
+
+		// weapon animation 
 		if player.is_attacking {
-			let texture_creator = self.core.wincan.texture_creator();
-			let sword = texture_creator.load_texture("images/player/sword_l.png")?;
-
-			let mut src = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
-			if player.facing_right {
-				src = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
-			}
-			if player.weapon_frame > 30 { player.weapon_frame=0}
-			player.weapon_frame+=1;
-
-			//naive weapon animation 
-			let angle = -30.0;
-			let p;
-			if player.facing_right{
-				p = Point::new(0, (TILE_SIZE/2) as i32);//rotation center
-			} else{
-				p = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE/2)  as i32);//rotation center
-			}
-
-			if player.weapon_frame < 15{
-				self.core.wincan.copy_ex(&sword, None, src, angle, p, player.facing_right, false).unwrap();
-				
-			}else{
-				self.core.wincan.copy_ex(&sword, None, src, -angle, p, player.facing_right, false).unwrap();
-			}
+			angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
+		} else { angle = - 60.0; }
+		// display weapon
+		if player.facing_right{
+			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y()+(TILE_SIZE/2) as i32, ATTACK_LENGTH, TILE_SIZE);
+			rotation_point = Point::new(0, (TILE_SIZE/2) as i32); //rotation center
+		} else{
+			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y()+(TILE_SIZE/2) as i32, ATTACK_LENGTH, TILE_SIZE);
+			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE/2)  as i32); //rotation center
+			angle = -angle;
 		}
+		
+		self.core.wincan.copy_ex(&sword, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
 		Ok(())
 	}
 
@@ -613,21 +607,19 @@ impl ROGUELIKE {
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
 		player.set_cam_pos(cur_bg.x(), cur_bg.y());
-
-		// I think it looks better when doing animation constantly, we can keep
-		// the if statement if we decide to add a specific moving animation
-
-		//if !player.is_still {
-			player.get_frame_display(count, f_display);
-		/*} else {
-			player.set_src(0, 0);
-		}*/
+		player.get_frame_display(count, f_display);
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
-	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
+
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64){
+
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
-		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false)?;//rotation center
-		Ok(())
+		for projectile in self.game_data.projectiles.iter_mut() {
+			let r = projectile.pos();
+			
+			self.core.wincan.copy_ex(&bullet, None, r, angle,p,player.facing_right,false); // rotation center
+		}
+
 	}
 
 	// force enemy movement
