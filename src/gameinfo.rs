@@ -12,5 +12,4 @@ impl GameData{
             projectiles,
         }
     }
-
 }
