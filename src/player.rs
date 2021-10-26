@@ -8,6 +8,7 @@ const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
 const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
+const FIRE_COOLDOWN: u128 =300;
 
 pub struct Player<'a> {
 	pos: (f64, f64),
@@ -19,6 +20,7 @@ pub struct Player<'a> {
 	src: Rect,
 	attack_box: Rect,
 	attack_timer: Instant,
+	fire_timer: Instant,
 	damage_timer: Instant,
 	texture_all: Texture<'a>,
 	invincible: bool, 
@@ -30,6 +32,7 @@ pub struct Player<'a> {
 	pub weapon_frame: i32,
 	pub curr_meele: String,
 	pub curr_ability: String,
+	pub is_firing: bool,
 }
 
 impl<'a> Player<'a> {
@@ -50,13 +53,16 @@ impl<'a> Player<'a> {
 		let max_mana = 6;
 		let facing_right = false;
 		let is_attacking = false;
+		let is_firing =false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
+		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let invincible = true;
 		let weapon_frame=0; 
 		let curr_meele = String::from("sword_l");
 		let curr_ability = String::from("bullet");
+
 		Player {
 			pos,
 			cam_pos,
@@ -67,6 +73,7 @@ impl<'a> Player<'a> {
 			src,
 			attack_box,
 			attack_timer,
+			fire_timer,
 			damage_timer,
 			invincible, 
 			texture_all,
@@ -78,6 +85,7 @@ impl<'a> Player<'a> {
 			weapon_frame,
 			curr_meele,
 			curr_ability,
+			is_firing,
 		}
 	}
 
@@ -187,7 +195,9 @@ impl<'a> Player<'a> {
 	pub fn get_attack_timer(&self) -> u128 {
 		self.attack_timer.elapsed().as_millis()
 	}
-
+	pub fn get_fire_timer(&self) -> u128 {
+		self.fire_timer.elapsed().as_millis()
+	}
 	pub fn get_damage_timer(&self) -> u128 {
 		self.damage_timer.elapsed().as_millis()
 	}
@@ -203,6 +213,9 @@ impl<'a> Player<'a> {
 			self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
 		}
 	}
+	pub fn clear_attack_box(&mut self) {
+		self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+	}
 
 	pub fn attack(&mut self) {
 		if self.get_attack_timer() < ATTK_COOLDOWN {
@@ -213,17 +226,28 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn clear_attack_box(&mut self) {
-		self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+	pub fn get_cooldown(&self) -> u128 {
+		ATTK_COOLDOWN
 	}
-
 	pub fn set_cooldown(&mut self) {
 		self.is_attacking = false;
 		self.clear_attack_box();
 	}
 
-	pub fn get_cooldown(&self) -> u128 {
-		ATTK_COOLDOWN
+	pub fn fire(&mut self){
+		if self.get_fire_timer() < FIRE_COOLDOWN {
+		 return;
+		}
+		self.is_firing = true;
+		self.fire_timer = Instant::now();
+		
+	}	
+
+	pub fn get_fire_cooldown(&self)-> u128{
+		FIRE_COOLDOWN
+	}
+	pub fn set_fire_cooldown(&mut self){
+		self.is_firing =false;
 	}
 
 	// heatlh values
