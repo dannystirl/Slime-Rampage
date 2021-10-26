@@ -99,7 +99,7 @@ impl Game for ROGUELIKE {
 		let f_display = 15;
 
 		// FPS calculation
-		let mut speed_limit_adj = 0.0;
+		let mut speed_limit_adj = 3.0;
 		let mut accel_rate_adj = 0.0;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
@@ -313,7 +313,10 @@ impl ROGUELIKE {
 		let mut j = 0;
 		let mut rng = rand::thread_rng();
 		for enemy in enemies {
-			if enemy.is_alive() {
+			if !enemy.is_alive(){
+				continue;
+			}
+			
 				if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 					rngt[i] = rng.gen_range(1..5);
 					rngt[0] = 0;
@@ -349,7 +352,8 @@ impl ROGUELIKE {
 				i += 1;
 				j += 1;
 			}
-		}
+			
+		
 		rngt[0] += 1;
 		return rngt;
 	}
@@ -451,11 +455,16 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
-			if enemy.is_alive() {
-				if check_collision(&player.pos(), &enemy.pos()) {
-					player.minus_hp(5.0);
-				}
+
+		
+			if !enemy.is_alive() {
+				continue;
 			}
+
+			if check_collision(&player.pos(), &enemy.pos()) {
+				player.minus_hp(5.0);
+			}
+		
 
 			// CHECK COLLISIONS WITH PLAYER PROJECTILES
 			for projectile in self.game_data.projectiles.iter_mut(){
