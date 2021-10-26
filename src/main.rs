@@ -105,7 +105,7 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(2);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -212,14 +212,14 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut player,&mut self.game_data.projectiles);
+			ROGUELIKE::update_projectiles(&mut player, &mut self.game_data.projectiles);
 			ROGUELIKE::display_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering. 			
 
 			// CHECK COLLISIONS
-			ROGUELIKE::check_collisions(xbounds, ybounds, &mut player, &mut enemies);
+			ROGUELIKE::check_collisions(self, xbounds, ybounds, &mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
 			}
@@ -365,7 +365,7 @@ impl ROGUELIKE {
 
 		// Shoot ranged attack
 		if mousestate.left(){
-			let vec = vec![mousestate.x() as f64 - player.x() as f64, mousestate.y() as f64 - player.y() as f64];
+			let vec = vec![mousestate.x() as f64 - CENTER_W as f64, mousestate.y() as f64 - CENTER_H as f64];
 			let angle = ((vec[0] / vec[1]).abs()).atan();
 			let speed: f64 = 7.0;
 			let mut x = &speed * angle.sin();
@@ -378,8 +378,8 @@ impl ROGUELIKE {
 			}
 			let mut bullet = projectile::Projectile::new(
 				Rect::new(
-					(CAM_W/2 - TILE_SIZE/2)as i32,
-					(CAM_H/2 -TILE_SIZE/2)as i32,
+					(player.pos().x()),
+					(player.pos().y()),
 					TILE_SIZE,
 					TILE_SIZE,
 				),
@@ -388,9 +388,7 @@ impl ROGUELIKE {
 				0,
 				vec![x,y],
 			);
-			bullet.set_pos(player.pos());
 			self.game_data.projectiles.push(bullet);
-
 		}
 		/*
 		// shoot fireball
@@ -433,12 +431,22 @@ impl ROGUELIKE {
 	}
 
 	// check collisions
-	fn check_collisions(xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
+	fn check_collisions(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
 			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5.0);
 			}
 
+			// CHECK COLLISIONS WITH PLAYER PROJECTILES
+			for projectile in self.game_data.projectiles.iter_mut(){
+				if check_collision(&projectile.pos(), &enemy.pos()) {
+					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
+					enemy.minus_hp(5.0);
+					projectile.die();
+				}
+			}
+
+			// CHECK COLLISION WITH PLAYER SWORD
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
@@ -627,16 +635,16 @@ impl ROGUELIKE {
 	}
 
 	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64){
-
 		let p = Point::new(0, (TILE_SIZE/2) as i32);
 		for projectile in self.game_data.projectiles.iter_mut() {
-			let r = projectile.pos();//world coordinates
-			let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x()), //screen coordinates
+			if projectile.is_active(){
+				let r = projectile.pos();//world coordinates
+				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x()), //screen coordinates
 									projectile.y() as i32 + (CENTER_H - player.y()),
 									TILE_SIZE, TILE_SIZE);
-			self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false); // rotation center
+				self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false); // rotation center
+			}
 		}
-
 	}
 
 	// force enemy movement
