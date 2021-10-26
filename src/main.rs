@@ -112,7 +112,7 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(1);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -312,16 +312,9 @@ impl ROGUELIKE {
 			if !enemy.is_alive(){
 				continue;
 			}
-
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
-				enemy.set_fire_cooldown();
-				let fire_chance = rng.gen_range(1..60);
-				if fire_chance < 5 { // chance to fire
-					enemy.fire(); // sets is firing true
-				}
-			}
-			// shoot ranged
-			if!(enemy.is_firing){
+			
+			if !enemy.is_firing { // chance to fire
+				enemy.fire(); // sets is firing true
 				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
 				let angle = ((vec[0] / vec[1]).abs()).atan();
 				let speed: f64 = speed_limit_adj;
@@ -346,6 +339,9 @@ impl ROGUELIKE {
 					vec![x,y],
 				);
 				self.game_data.enemy_projectiles.push(bullet);
+			}
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
+				enemy.set_fire_cooldown();
 			}
 			
 			// aggro / move

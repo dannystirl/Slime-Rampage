@@ -1,6 +1,7 @@
 extern crate rogue_sdl;
 
 use std::time::Instant;
+use rand::Rng;
 
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
@@ -41,7 +42,7 @@ pub struct Enemy<'a> {
 		let y_flipped = false;
 		let facing_right = false;
 		let is_stunned = false;
-		let is_firing =false;
+		let is_firing = false;
 		let hp = 50.0;
 		let alive = true;
 		Enemy {
@@ -138,8 +139,7 @@ pub struct Enemy<'a> {
 		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
 	}
 
-	pub fn knockback(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32))
-	{
+	pub fn knockback(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32)){
 		self.x_flipped = false;
 		self.y_flipped = false;
 		self.is_stunned = true;
@@ -192,16 +192,17 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn fire(&mut self){
-		if self.get_fire_timer() < FIRE_COOLDOWN {
-		 return;
+		let fire_chance = rand::thread_rng().gen_range(100..1000);
+		if self.get_fire_timer() < FIRE_COOLDOWN + fire_chance{
+		 	return;
 		}
 		self.is_firing = true;
 		self.fire_timer = Instant::now();
-		
-	}	
+	}
 
 	pub fn get_fire_cooldown(&self)-> u128{
-		FIRE_COOLDOWN
+		let fire_chance = rand::thread_rng().gen_range(100..1000);
+		FIRE_COOLDOWN + fire_chance
 	}
 	pub fn set_fire_cooldown(&mut self){
 		self.is_firing =false;
