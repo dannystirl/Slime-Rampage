@@ -384,9 +384,11 @@ impl ROGUELIKE {
 				player.attack();
 			}
 		}
-
 		// Shoot ranged attack
 		if mousestate.left(){
+			
+			if!(player.is_firing){
+				player.fire(); 
 			let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
 			let angle = ((vec[0] / vec[1]).abs()).atan();
 			let speed: f64 = 3.0* speed_limit_adj;
@@ -412,42 +414,21 @@ impl ROGUELIKE {
 			);
 			self.game_data.projectiles.push(bullet);
 		}
-		/*
-		// shoot fireball
+		}
+		
+		 //ability
 		if keystate.contains(&Keycode::F){
-			// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
-			let mut fireball = projectile::Projectile::new(
-				Rect::new(
-					(CAM_W/2 - TILE_SIZE/2) as i32,
-					(CAM_H/2 - TILE_SIZE/2) as i32,
-					TILE_SIZE,
-					TILE_SIZE,
-				),
-				false,
-				false,
-				0,
-			);
-
-			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
-			gameinfo::GameData::new().projectiles.push(fireball);
-		 */
+			println!("you found the easter egg");
+		}
+			
 	}
 
 	// update projectiles
 	pub fn update_projectiles(player: &mut Player, projectiles: &mut Vec<Projectile>) {
 		for projectile in projectiles {
 			if projectile.is_active() {
-				//projectile.update_pos(bounds);
-				projectile.set_frame(projectile.frame() + 1);
 				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
-				/*if projectile.frame() == 28 {
-					projectile.set_use(false);
-					projectile.set_frame(0);
-					projectile.pop();
-				}
-				*/
-				// this needs to be mirrored
-				// self.core.wincan.copy_ex(projectile.texture(), projectile.src(4, 7), projectile.pos(), 0.0, None, projectile.facing_right, false).unwrap();
+				
 			}
 		}
 	}
@@ -455,8 +436,6 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
-
-		
 			if !enemy.is_alive() {
 				continue;
 			}
@@ -530,6 +509,9 @@ impl ROGUELIKE {
 
 		if player.get_attack_timer() > player.get_cooldown() {
 			player.set_cooldown();
+		}
+		if player.get_fire_timer() > player.get_fire_cooldown() {
+			player.set_fire_cooldown();
 		}
 	}
 
