@@ -4,14 +4,15 @@ mod background;
 mod player;
 mod ranged_attack;
 mod ui;
+mod projectile;
 mod credits;
-
+mod gameinfo;
 use std::collections::HashSet;
 //use std::time::Duration;
 //use std::time::Instant;
 use rand::Rng;
 use crate::enemy::*;
-use crate::ranged_attack::*;
+use crate::projectile::*;
 use crate::player::*;
 use crate::background::*;
 use crate::ui::*;
@@ -27,8 +28,11 @@ use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
 //use sdl2::render::Texture;
+use sdl2::render::{Texture, TextureCreator};
 
 use rogue_sdl::{Game, SDLCore};
+use sdl2::video::WindowContext;
+use crate::gameinfo::GameData;
 
 // window globals
 const TITLE: &str = "Roguelike";
@@ -50,6 +54,7 @@ const ACCEL_RATE: i32 = 3;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
+	game_data: GameData,
 }
 
 // calculate velocity resistance
@@ -80,7 +85,8 @@ impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-		Ok(ROGUELIKE{ core })
+		let game_data = GameData::new();
+		Ok(ROGUELIKE{ core, game_data })
 	}
 
 	fn run(&mut self) -> Result<(), String> {
@@ -97,6 +103,9 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
+		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
+		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
+
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
@@ -114,20 +123,8 @@ impl Game for ROGUELIKE {
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
 			i+=1;
 		}
-
-		// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
-        let mut fireball = ranged_attack::RangedAttack::new(
-			Rect::new(
-				(CAM_W/2 - TILE_SIZE/2) as i32,
-				(CAM_H/2 - TILE_SIZE/2) as i32,
-				TILE_SIZE,
-				TILE_SIZE,
-			),
-			false,
-			false,
-			0,
-            texture_creator.load_texture("images/abilities/fireball.png")?,
-		);
+		// SETUP ARRAY OF PROJECTILES
+		// let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
 
 		// CREATE ROOM 
 		let xwalls: (i32, i32) = (1,rng.gen_range(19..27));
@@ -194,6 +191,7 @@ impl Game for ROGUELIKE {
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(&mut fireball, &keystate, mousestate, &mut player);
 			ROGUELIKE::update_player(xwalls, ywalls, xbounds, ybounds, &mut player, &obstacle_pos);
+			ROGUELIKE::draw_projectile(self, &player.pos(), &bullet, &player, 0.0);
 			self.draw_player(xwalls, ywalls, &count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
@@ -315,7 +313,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(fireball: &mut RangedAttack, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - ACCEL_RATE);
@@ -325,7 +323,6 @@ impl ROGUELIKE {
 		if keystate.contains(&Keycode::A) {
 			player.set_x_delta(player.x_delta() - ACCEL_RATE);
 			player.facing_right = false;
-			player.is_still = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
@@ -351,23 +348,54 @@ impl ROGUELIKE {
 			}
 		}
 		// shoot fireball
-		if keystate.contains(&Keycode::F) && fireball.frame() == 0 {
-			fireball.set_use(true);
+		if keystate.contains(&Keycode::F){
+			// CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
+			/*let mut fireball = projectile::Projectile::new(
+				Rect::new(
+					(CAM_W/2 - TILE_SIZE/2) as i32,
+					(CAM_H/2 - TILE_SIZE/2) as i32,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				false,
+				false,
+				0,
+			);
+
 			fireball.start_pos(player.get_cam_pos().x(), player.get_cam_pos().y(), player.facing_right);
+			gameinfo::GameData::new().projectiles.push(fireball);
+		}*/
+		let mut bullet = projectile::Projectile::new(
+			Rect::new(
+				(CAM_W/2 - TILE_SIZE/2)as i32,
+				(CAM_H/2 -TILE_SIZE/2)as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			false,
+			false,
+			0,
+		);
+		bullet.start_p = player.get_cam_pos();
+		self.game_data.projectiles.push(bullet);
 		}
 	}
 
 	// update projectiles
-	pub fn update_projectiles(&mut self, fireball: &mut RangedAttack) {
-		if fireball.in_use() {
-			fireball.set_frame(fireball.frame() + 1);
-			fireball.update_pos((0, (CAM_W - TILE_SIZE) as i32));
-			if fireball.frame() == 28 {
-				fireball.set_use(false);
-				fireball.set_frame(0);
+	pub fn update_projectiles(projectiles: &mut Vec<Projectile>) {
+		for projectile in projectiles {
+			if projectile.is_active() {
+				//projectile.set_frame(projectile.frame() + 1);
+				//projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				/*if projectile.frame() == 28 {
+					projectile.set_use(false);
+					projectile.set_frame(0);
+					projectile.pop();
+				}
+				*/
+				// this needs to be mirrored
+				// self.core.wincan.copy_ex(projectile.texture(), projectile.src(4, 7), projectile.pos(), 0.0, None, projectile.facing_right, false).unwrap();
 			}
-			// this needs to be mirrored
-			self.core.wincan.copy_ex(fireball.texture(), fireball.src(4, 7), fireball.pos(), 0.0, None, fireball.facing_right, false).unwrap();
 		}
 	}
 
@@ -555,7 +583,7 @@ impl ROGUELIKE {
 		let cam_delta = ROGUELIKE::stop_camera(xwalls, ywalls, &player);
 		player.set_cam_pos(cur_bg.x()+cam_delta.0, cur_bg.y()+cam_delta.1);
 
-		// I think it looks better when doing animation constantly, we can keep 
+		// I think it looks better when doing animation constantly, we can keep
 		// the if statement if we decide to add a specific moving animation
 
 		//if !player.is_still {
@@ -564,6 +592,11 @@ impl ROGUELIKE {
 			player.set_src(0, 0);
 		}*/
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
+	}
+	pub fn draw_projectile(&mut self,r: &Rect, bullet: &Texture, player: &Player, angle: f64){
+		let p = Point::new(0, (TILE_SIZE/2) as i32);
+		self.core.wincan.copy_ex(&bullet, None, *r, angle,p,player.facing_right,false);//rotation center
+
 	}
 
 	pub fn stop_camera(xwalls: (i32,i32), ywalls: (i32,i32), player: &Player) -> (i32,i32) {
