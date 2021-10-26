@@ -26,6 +26,7 @@ pub struct Player<'a> {
 	pub is_still: bool,
 	pub hp: f32,
 	pub is_attacking: bool,
+	pub weapon_frame: i32,
 }
 
 impl<'a> Player<'a> {
@@ -41,7 +42,7 @@ impl<'a> Player<'a> {
 		let height = TILE_SIZE; // 32;
 		let width = TILE_SIZE; // 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-		let hp = 100.0;
+		let hp = 30.0;
 		let facing_right = false;
 		let is_still = true;
 		let is_attacking = false;
@@ -49,6 +50,7 @@ impl<'a> Player<'a> {
 		let attack_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let invincible = true;
+		let weapon_frame=0; 
 		Player {
 			pos,
 			cam_pos,
@@ -66,6 +68,7 @@ impl<'a> Player<'a> {
 			is_still,
 			hp,
 			is_attacking,
+			weapon_frame,
 		}
 	}
 
