@@ -6,7 +6,7 @@ use sdl2::render::Texture;
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
-const COOLDOWN: u128 = 250;
+const ATTK_COOLDOWN: u128 = 250;
 const DMG_COOLDOWN: u128 = 800;
 
 pub struct Player<'a> {
@@ -200,7 +200,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn attack(&mut self) {
-		if self.get_attack_timer() < COOLDOWN {
+		if self.get_attack_timer() < ATTK_COOLDOWN {
 			return;
 		}
 		self.is_attacking = true;
@@ -218,7 +218,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn get_cooldown(&self) -> u128 {
-		COOLDOWN
+		ATTK_COOLDOWN
 	}
 
 	// heatlh values

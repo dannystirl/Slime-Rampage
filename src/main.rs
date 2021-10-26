@@ -507,24 +507,19 @@ impl ROGUELIKE {
 			if player.facing_right {
 				src = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y(), ATTACK_LENGTH, TILE_SIZE);
 			}
-			if player.weapon_frame > 30 { player.weapon_frame=0}
+			if player.weapon_frame > 30 { player.weapon_frame=-30}
 			player.weapon_frame+=1;
 
 			//naive weapon animation 
-			let angle = -30.0;
+			let mut angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 30.0;
 			let p;
 			if player.facing_right{
 				p = Point::new(0, (TILE_SIZE/2) as i32);//rotation center
 			} else{
 				p = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE/2)  as i32);//rotation center
 			}
-
-			if player.weapon_frame < 15{
-				self.core.wincan.copy_ex(&sword, None, src, angle, p, player.facing_right, false).unwrap();
-				
-			}else{
-				self.core.wincan.copy_ex(&sword, None, src, -angle, p, player.facing_right, false).unwrap();
-			}
+			if !player.facing_right { angle = -angle; }
+			self.core.wincan.copy_ex(&sword, None, src, angle, p, player.facing_right, false).unwrap();
 		}
 		Ok(())
 	}
