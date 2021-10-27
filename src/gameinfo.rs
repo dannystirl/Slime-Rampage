@@ -3,17 +3,20 @@ use crate::projectile::*;
 use crate::gold::*;
 
 pub struct GameData{
-    pub projectiles: Vec<Projectile>,
     pub gold: Vec<Gold>,
+    pub player_projectiles: Vec<Projectile>,
+    pub enemy_projectiles: Vec<Projectile>,
 }
 
 impl GameData{
     pub fn new() -> GameData{
-        let mut projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let mut gold: Vec<Gold> = Vec::with_capacity(5);
+        let mut player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
+        let mut enemy_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         GameData{
-            projectiles,
             gold,
+            player_projectiles,
+            enemy_projectiles, 
         }
     }
 }

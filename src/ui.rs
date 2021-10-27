@@ -25,6 +25,10 @@ impl<'a> UI<'a> {
 		self.src
 	}
 
+	pub fn set_src(&mut self, new_src: Rect) {
+		self.src = new_src;
+	}
+
 	pub fn pos(&self) -> Rect {
         self.pos
     }
