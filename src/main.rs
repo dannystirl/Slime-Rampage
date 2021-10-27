@@ -121,6 +121,14 @@ impl Game for ROGUELIKE {
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
+			let num = rng.gen_range(1..5);
+			let mut enemy_type: String; 
+			match num {
+				5 => { enemy_type = String::from("ranged") } 
+				4 => { enemy_type = String::from("ranged") } 
+				_ => { enemy_type = String::from("melee") } 
+			}
+			println!("{}", enemy_type);
 			let e = enemy::Enemy::new(
 				Rect::new(
 					(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
@@ -129,6 +137,7 @@ impl Game for ROGUELIKE {
 					TILE_SIZE,
 				),
 				texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+				enemy_type, 
 			);
 			enemies.push(e);
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
@@ -159,9 +168,9 @@ impl Game for ROGUELIKE {
 		
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
-			texture_creator.load_texture("images/background/floor_tile_1.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_2.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_maroon.png")?, 
+			texture_creator.load_texture("images/background/tile.png")?,
+			texture_creator.load_texture("images/background/moss_tile.png")?,
+			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/floor_tile_pilar.png")?, 
 			xwalls, 
 			ywalls, 
@@ -180,13 +189,13 @@ impl Game for ROGUELIKE {
 			let elapsed = last_time.elapsed();
 			if elapsed > Duration::from_secs(1) {
 				let mut fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-				println!("Average FPS: {:.2}", fps_avg);
+				//println!("Average FPS: {:.2}", fps_avg);
 
 				fps_avg = fps_avg.recip();
 				speed_limit_adj = fps_avg * SPEED_LIMIT;
-				println!("Speed limit adjusted: {}", speed_limit_adj);
+				//println!("Speed limit adjusted: {}", speed_limit_adj);
 				accel_rate_adj = fps_avg * ACCEL_RATE;
-				println!("Acceleration rate adjusted: {}", accel_rate_adj);
+				//println!("Acceleration rate adjusted: {}", accel_rate_adj);
 			}
 			// reset frame
 			for event in self.core.event_pump.poll_iter() {
@@ -211,7 +220,7 @@ impl Game for ROGUELIKE {
 					//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 					//println!("{} {}", player.x(), player.y());
-					println!("{}", player.get_hp() / 10.0);
+					println!("{}", player.get_hp());
 				}
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
@@ -326,6 +335,31 @@ impl ROGUELIKE {
 				let fire_chance = rng.gen_range(1..60);
 				if fire_chance < 5 { // chance to fire
 					enemy.fire(); // sets is firing true
+					let vec = vec![player.x() - enemy.x(), 
+								   player.y() - enemy.y()];
+					let angle = ((vec[0] / vec[1]).abs()).atan();
+					let speed: f64 = speed_limit_adj;
+					let mut x = &speed * angle.sin();
+					let mut y = &speed * angle.cos();
+					if vec[0] < 0.0 {
+						x *= -1.0;
+					}
+					if vec[1] < 0.0  {
+						y *= -1.0;
+					}
+					let bullet = projectile::Projectile::new(
+						Rect::new(
+							enemy.pos().x(),
+							enemy.pos().y(),
+							TILE_SIZE/2,
+							TILE_SIZE/2,
+						),
+						false,
+						false,
+						0,
+						vec![x,y],
+					);
+					self.game_data.enemy_projectiles.push(bullet);
 				}
 			}
 			// shoot ranged
@@ -383,7 +417,11 @@ impl ROGUELIKE {
 			if distance > 300.0 {
 				enemy.update_pos(rngt[i], xbounds, ybounds);
 			} else {
-				enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+				if enemy.enemy_type == String::from("melee") {
+					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+				} else {
+					enemy.flee(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+				}
 			}
 			let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
 								enemy.y() as i32 + (CENTER_H - player.y() as i32),
@@ -497,7 +535,6 @@ impl ROGUELIKE {
 		for projectile in player_projectiles {
 			if projectile.is_active() {
 				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
-				
 			}
 		}
 		for projectile in enemy_projectiles {
@@ -517,7 +554,7 @@ impl ROGUELIKE {
 
 			// player collision
 			if check_collision(&player.pos(), &enemy.pos()) {
-				player.minus_hp(5.0);
+				player.minus_hp(5);
 			}
 			
 			// player projectile collisions
@@ -540,7 +577,7 @@ impl ROGUELIKE {
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-					player.minus_hp(5.0);
+					player.minus_hp(5);
 					projectile.die();
 				}
 			}	
@@ -664,41 +701,43 @@ impl ROGUELIKE {
 		self.core.wincan.copy(&ui, src, pos)?;
 
 		//create hearts
-		let mut i=0.0;
-		
-		while i < player.get_hp()  && ((player.get_hp() % 5.0) as i32 & 1) == 0{
+		let mut i=0;
+		while i+10 < player.get_hp() {
 			let heart = ui::UI::new(
 				Rect::new(
-					(i/10.0) as i32 *(TILE_SIZE as f64 *1.2) as i32,
+					(i/10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
 					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
-				),
+				), 
 				texture_creator.load_texture("images/ui/heart.png")?,
 			);
 			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
-			i+=10.0;
+			i+=10;
 		}
-		if ((player.get_hp() % 5.0) as i32 & 1) != 0 {
+		
+		let mut texture = texture_creator.load_texture("images/ui/heart.png")? ;
+		if  player.get_hp()%10 != 0  {
+			texture = texture_creator.load_texture("images/ui/half_heart.png")?;
+		}
 			let half_heart = ui::UI::new(
 				Rect::new(
-					(i/10.0) as i32 * (TILE_SIZE as f64 *1.2) as i32,
+					(i/10) as i32 * (TILE_SIZE as f64 *1.2) as i32,
 					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
 				),
-				texture_creator.load_texture("images/ui/heart.png")?,
+				texture,
 			);
-			self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
-		}
+		self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
 
 		//display mana
 		let mut mana = ui::UI::new(
 			Rect::new(
-				(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*12) as i32,
-				(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
-				(TILE_SIZE as f64 * 1.2) as u32,
-				(TILE_SIZE as f64 * 1.2) as u32,
+				(CAM_W-(TILE_SIZE*4)) as i32,
+				(CAM_H-(TILE_SIZE)) as i32,
+				(TILE_SIZE as f64 / 1.2) as u32,
+				(TILE_SIZE as f64 / 1.2) as u32,
 			),
 			texture_creator.load_texture("images/ui/mana.png")?,
 		);
