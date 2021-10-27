@@ -208,7 +208,7 @@ impl Game for ROGUELIKE {
 					//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 					//println!("{} {}", player.x(), player.y());
-					println!("{}", player.get_hp() / 10);
+					println!("{}", player.get_hp());
 				}
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
@@ -631,7 +631,7 @@ impl ROGUELIKE {
 		}
 		
 		let mut texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		if  ( ( (player.get_hp() / 6) % 5)) != 0 {
+		if  player.get_hp()%10 != 0  {
 			texture = texture_creator.load_texture("images/ui/half_heart.png")?;
 		}
 			let half_heart = ui::UI::new(
