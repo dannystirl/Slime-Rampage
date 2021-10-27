@@ -27,10 +27,11 @@ pub struct Enemy<'a> {
 	pub hp: f32,
 	pub alive: bool,
 	pub is_firing: bool,
+	pub enemy_type: String,
 }
 
  impl<'a> Enemy<'a> {
-	pub fn new(pos: Rect, txtre: Texture<'a>) -> Enemy<'a> {
+	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: String) -> Enemy<'a> {
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let stun_timer = Instant::now();
@@ -44,6 +45,7 @@ pub struct Enemy<'a> {
 		let is_firing =false;
 		let hp = 50.0;
 		let alive = true;
+		let enemy_type = enemy_type;
 		Enemy {
 			vel, 
 			pos,
@@ -60,6 +62,7 @@ pub struct Enemy<'a> {
 			hp,
 			alive,
 			is_firing,
+			enemy_type, 
 		}
 	}
 
@@ -132,6 +135,24 @@ pub struct Enemy<'a> {
 		}
 		let mut y = speed_limit_adj * angle.cos();
 		if vec[1] < 0.0  {
+			y *= -1.0;
+		}
+		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
+		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
+	}
+
+	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32), speed_limit_adj: f64) {
+		if self.is_stunned {
+			return;
+		}
+		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
+		let angle = ((vec[0] / vec[1]).abs()).atan();
+		let mut x = speed_limit_adj / 1.5 as f64 * angle.sin();
+		if vec[0] >= 0.0 {
+			x *= -1.0;
+		}
+		let mut y = speed_limit_adj / 1.5 as f64 * angle.cos();
+		if vec[1] >= 0.0  {
 			y *= -1.0;
 		}
 		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
