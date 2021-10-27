@@ -6,6 +6,7 @@ mod ui;
 mod projectile;
 mod credits;
 mod gameinfo;
+mod gold;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
@@ -17,6 +18,7 @@ use crate::projectile::*;
 use crate::player::*;
 use crate::background::*;
 use crate::ui::*;
+use crate::gold::*;
 
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -113,7 +115,8 @@ impl Game for ROGUELIKE {
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
-
+		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+		
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
@@ -165,10 +168,10 @@ impl Game for ROGUELIKE {
 		
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
-			texture_creator.load_texture("images/background/floor_tile_1.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_2.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_maroon.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_pilar.png")?, 
+			texture_creator.load_texture("images/background/floor_tile_1.png")?,
+			texture_creator.load_texture("images/background/floor_tile_2.png")?,
+			texture_creator.load_texture("images/background/tile.png")?,
+			texture_creator.load_texture("images/background/skull.png")?,
 			xwalls, 
 			ywalls, 
 		);
@@ -217,8 +220,7 @@ impl Game for ROGUELIKE {
 					//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 					//println!("{} {}", player.x(), player.y());
-					println!("{}", player.get_hp() / 10.0);
-					println!("{}", ((player.get_hp()/6.0) % 5.0));
+					// println!("{}", player.get_hp());
 				}
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
@@ -236,6 +238,8 @@ impl Game for ROGUELIKE {
 			if elapsed > Duration::from_secs(2) {
 				rngt = ROGUELIKE::update_enemies(self, xbounds, ybounds, rngt, &mut enemies, &mut player, speed_limit_adj);
 			}
+			// UPDATE INTERACTABLES (EX. GOLD)
+			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture);
 
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj,speed_limit_adj);
@@ -299,10 +303,10 @@ impl ROGUELIKE {
 					let src;
 					let pos;
 					if num==7 {
-						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
+						src = Rect::new(0, 0, TILE_SIZE * 2, TILE_SIZE * 2);
 						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
 											j * TILE_SIZE as i32 + (CENTER_H - player.y() as i32),
-											TILE_SIZE*2, TILE_SIZE*2);
+											TILE_SIZE * 2, TILE_SIZE * 2);
 					} else {
 						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
@@ -325,7 +329,8 @@ impl ROGUELIKE {
 				continue;
 			}
 
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() && enemy.enemy_type == String::from("ranged") {
+			
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() && enemy.enemy_type == String::from("ranged"){
 				enemy.set_fire_cooldown();
 				let fire_chance = rng.gen_range(1..60);
 				if fire_chance < 5 { // chance to fire
@@ -358,6 +363,34 @@ impl ROGUELIKE {
 				}
 			}
 			
+			// shoot ranged
+			/*if!(enemy.is_firing){
+				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
+				let angle = ((vec[0] / vec[1]).abs()).atan();
+				let speed: f64 = speed_limit_adj;
+				let mut x = &speed * angle.sin();
+				let mut y = &speed * angle.cos();
+				if vec[0] < 0.0 {
+					x *= -1.0;
+				}
+				if vec[1] < 0.0  {
+					y *= -1.0;
+				}
+				let bullet = projectile::Projectile::new(
+					Rect::new(
+						enemy.pos().x(),
+						enemy.pos().y(),
+						TILE_SIZE/2,
+						TILE_SIZE/2,
+					),
+					false,
+					false,
+					0,
+					vec![x,y],
+				);
+				self.game_data.enemy_projectiles.push(bullet);
+			}
+			*/
 			// aggro / move
 			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 				rngt[i] = rng.gen_range(1..5);
@@ -400,6 +433,40 @@ impl ROGUELIKE {
 		rngt[0] += 1;
 		return rngt;
 	}
+
+	pub fn update_interactables(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		//add coins to gold vector
+		for enemy in enemies {
+			if !enemy.is_alive() {
+				if enemy.has_gold() {
+					//let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+					let coin = gold::Gold::new(
+						Rect::new(
+							enemy.x() as i32,
+							enemy.y() as i32,
+							TILE_SIZE,
+							TILE_SIZE,
+						),
+
+					);
+					self.game_data.gold.push(coin);
+					enemy.set_no_gold();
+				}
+			}
+		}
+		for coin in self.game_data.gold.iter_mut() {
+			if(!coin.collected()) {
+				let pos = Rect::new(coin.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+									coin.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+
+				self.core.wincan.copy(&coin_texture, coin.src(), pos);
+			}
+		}
+		Ok(())
+	}
+	
 
 	// check input values
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64, speed_limit_adj: f64) {
@@ -488,7 +555,7 @@ impl ROGUELIKE {
 
 			// player collision
 			if check_collision(&player.pos(), &enemy.pos()) {
-				player.minus_hp(5.0);
+				player.minus_hp(5);
 			}
 			
 			// player projectile collisions
@@ -511,10 +578,18 @@ impl ROGUELIKE {
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-					player.minus_hp(5.0);
+					player.minus_hp(5);
 					projectile.die();
 				}
 			}	
+		}
+		for coin in self.game_data.gold.iter_mut() {
+			if check_collision(&player.pos(), &coin.pos()) {
+				if !coin.collected() {
+					coin.set_collected();
+					
+				}
+			}
 		}
 		player.set_invincible();
 	}
@@ -589,6 +664,7 @@ impl ROGUELIKE {
 
 	//draw weapon
 	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
+		
 		let texture_creator = self.core.wincan.texture_creator();
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let rotation_point;
@@ -626,32 +702,35 @@ impl ROGUELIKE {
 		self.core.wincan.copy(&ui, src, pos)?;
 
 		//create hearts
-		let mut i=0.0;
-		while i < player.get_hp()  && ((player.get_hp() % 5.0) as i32 & 1) == 0{
+		let mut i=0;
+		while i+10 < player.get_hp() {
 			let heart = ui::UI::new(
 				Rect::new(
-					(i/10.0) as i32 *(TILE_SIZE as f64 *1.2) as i32,
+					(i/10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
 					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
-				),
+				), 
 				texture_creator.load_texture("images/ui/heart.png")?,
 			);
 			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
-			i+=10.0;
+			i+=10;
 		}
-		if ((player.get_hp() % 5.0) as i32 & 1) != 0 {
+		
+		let mut texture = texture_creator.load_texture("images/ui/heart.png")? ;
+		if  player.get_hp()%10 != 0  {
+			texture = texture_creator.load_texture("images/ui/half_heart.png")?;
+		}
 			let half_heart = ui::UI::new(
 				Rect::new(
-					(i/10.0) as i32 * (TILE_SIZE as f64 *1.2) as i32,
+					(i/10) as i32 * (TILE_SIZE as f64 *1.2) as i32,
 					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
 				),
-				texture_creator.load_texture("images/ui/heart.png")?,
+				texture,
 			);
-			self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
-		}
+		self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
 
 		//display mana
 		let mut mana = ui::UI::new(
