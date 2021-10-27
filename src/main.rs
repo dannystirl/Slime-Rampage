@@ -616,20 +616,24 @@ impl ROGUELIKE {
 
 		//create hearts
 		let mut i=0.0;
-		while i < player.get_hp()  && ((player.get_hp() % 5.0) as i32 & 1) == 0{
+		while i < player.get_hp() {
+        let mut texture = texture_creator.load_texture("images/ui/heart.png")? ;
+        if  (((player.get_hp()/6.0) % 5.0) as i32 & 1) == 0 {texture = texture_creator.load_texture("images/ui/heart.png")?;}
+				else { texture = texture_creator.load_texture("images/ui/half_heart.png")?;}
 			let heart = ui::UI::new(
 				Rect::new(
 					(i/10.0) as i32 *(TILE_SIZE as f64 *1.2) as i32,
 					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
-				),
-				texture_creator.load_texture("images/ui/heart.png")?,
+				), texture
+
 			);
 			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
 			i+=10.0;
 		}
-		if ((player.get_hp() % 5.0) as i32 & 1) != 0 {
+
+		/*if  (((player.get_hp()/6.0) % 5.0) as i32 & 1) != 0 {
 			let half_heart = ui::UI::new(
 				Rect::new(
 					(i/10.0) as i32 * (TILE_SIZE as f64 *1.2) as i32,
@@ -637,10 +641,10 @@ impl ROGUELIKE {
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
 				),
-				texture_creator.load_texture("images/ui/heart.png")?,
+				texture_creator.load_texture("images/ui/half_heart.png")?,
 			);
 			self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
-		}
+		}*/
 
 		//display mana
 		let mut mana = ui::UI::new(
