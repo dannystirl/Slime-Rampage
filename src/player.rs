@@ -347,3 +347,64 @@ impl<'a> Player<'a> {
 		self.invincible
 	}
 }
+
+// calculate velocity resistance
+fn resist(vel: i32, delta: i32) -> i32 {
+	if delta == 0 {
+		if vel > 0 {-1}
+		else if vel < 0 {1}
+		else {delta}
+	} else {delta}
+}
+
+// update player
+fn update_player(player: &mut Player, room_bounds: vec![i32, i32, i32, i32], obstacle_pos: &Vec<(i32,i32)>, speed_limit_adj: f64) {
+	// Slow down to 0 vel if no input and non-zero velocity
+	player.set_x_delta(resist(player.x_vel() as i32, player.x_delta() as i32));
+	player.set_y_delta(resist(player.y_vel() as i32, player.y_delta() as i32));
+
+	// Don't exceed speed limit
+	player.set_x_vel((player.x_vel() + player.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+	player.set_y_vel((player.y_vel() + player.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+
+	// Stay inside the viewing window
+	player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
+	player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
+
+	for ob in obstacle_pos {
+		let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
+		if check_collision(&player.pos(), &obs) {
+			// collision on object top
+			if (player.pos().bottom() >= obs.top()) && (player.pos().bottom() < obs.bottom()) 		// check y bounds
+			&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
+				player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
+			// collision on object bottom
+			} else if (player.pos().top() < obs.bottom()) && (player.pos().top() > obs.top()) 		// check y bounds
+			&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
+				player.set_y((player.y() + player.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
+			// collision on object left 
+			} else if (player.pos().right() > obs.left()) && (player.pos().right() < obs.right())	// check x bounds
+					&& (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
+				player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
+				// collision on object right
+			} else if (player.pos().left() < obs.right()) && (player.pos().left() > obs.left()) 	// check x bounds
+					&& (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
+				player.set_x((player.x() + player.x_vel() as f64).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
+				(xwalls.1 * TILE_SIZE as i32) as f64));
+			}
+		}
+	}
+
+	player.update_pos(xbounds, ybounds);
+
+	if player.is_attacking { player.set_attack_box(player.x() as i32, player.y() as i32); }
+
+	if player.get_attack_timer() > player.get_cooldown() {
+		player.set_cooldown();
+	}
+	if player.get_fire_timer() > player.get_fire_cooldown() {
+		player.set_fire_cooldown();
+	}
+
+	player.restore_mana();
+}

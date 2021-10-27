@@ -161,19 +161,14 @@ impl Game for ROGUELIKE {
 		); */
 
 		// CREATE ROOM 
-		let xwalls: (i32, i32) = (1,rng.gen_range(19..27));
-		let ywalls: (i32, i32) = (1,rng.gen_range(10..19));
-		let xbounds: (i32,i32) = ((xwalls.0*TILE_SIZE as i32), ( (xwalls.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
-		let ybounds: (i32,i32) = ((ywalls.0*TILE_SIZE as i32), ( (ywalls.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
-		
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/skull.png")?,
-			xwalls, 
-			ywalls, 
+			self.game_data.rooms[0], 
+			self.game_data.rooms[0], 
 		);
 
 		let mut all_frames = 0;
@@ -243,7 +238,8 @@ impl Game for ROGUELIKE {
 
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj,speed_limit_adj);
-			ROGUELIKE::update_player(xwalls, ywalls, xbounds, ybounds, &mut player, &obstacle_pos, speed_limit_adj);
+			let room_bounds = vec![xwalls, ywalls, xbounds, ybounds]; // these should be moved to the room.rs file, but im making this vec here for testing
+			ROGUELIKE::update_player(room_bounds, &mut player, &obstacle_pos, speed_limit_adj);
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
