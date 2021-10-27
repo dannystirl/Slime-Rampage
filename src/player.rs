@@ -27,7 +27,7 @@ pub struct Player<'a> {
 	texture_all: Texture<'a>,
 	invincible: bool, 
 	pub facing_right: bool,
-	pub hp: f32,
+	pub hp: u32,
 	pub mana: i32,
 	pub max_mana: i32,
 	pub is_attacking: bool,
@@ -50,7 +50,7 @@ impl<'a> Player<'a> {
 		let height = TILE_SIZE; // 32;
 		let width = TILE_SIZE; // 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-		let hp = 30.0;
+		let hp = 30;
 		let mana = 4;
 		let max_mana = 4;
 		let facing_right = false;
@@ -256,7 +256,7 @@ impl<'a> Player<'a> {
 	}
 
 	// heatlh values
-	pub fn get_hp(&self) -> f32 {
+	pub fn get_hp(&self) -> u32 {
 		return self.hp
 	}
 
@@ -297,10 +297,10 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn is_dead(&self) -> bool {
-		return self.hp <= 0.0;
+		return self.hp <= 0;
 	}
 
-	pub fn minus_hp(&mut self, dmg: f32) {
+	pub fn minus_hp(&mut self, dmg: u32) {
 		if self.invincible {
 			return;
 		}
