@@ -168,8 +168,8 @@ impl Game for ROGUELIKE {
 		
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
-			texture_creator.load_texture("images/background/tile.png")?,
-			texture_creator.load_texture("images/background/moss_tile.png")?,
+			texture_creator.load_texture("images/background/floor_tile_1.png")?,
+			texture_creator.load_texture("images/background/floor_tile_2.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/skull.png")?,
 			xwalls, 
@@ -220,7 +220,7 @@ impl Game for ROGUELIKE {
 					//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 					//println!("{} {}", player.x(), player.y());
-					println!("{}", player.get_hp());
+					// println!("{}", player.get_hp());
 				}
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
@@ -303,10 +303,10 @@ impl ROGUELIKE {
 					let src;
 					let pos;
 					if num==7 {
-						src = Rect::new(0, 0, TILE_SIZE*2, TILE_SIZE*2);
+						src = Rect::new(0, 0, TILE_SIZE * 2, TILE_SIZE * 2);
 						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
 											j * TILE_SIZE as i32 + (CENTER_H - player.y() as i32),
-											TILE_SIZE*2, TILE_SIZE*2);
+											TILE_SIZE * 2, TILE_SIZE * 2);
 					} else {
 						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
