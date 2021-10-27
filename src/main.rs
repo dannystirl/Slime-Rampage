@@ -113,9 +113,9 @@ impl Game for ROGUELIKE {
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
-
+		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+		
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
-		let mut gold: Vec<Gold> = Vec::with_capacity(5);
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -227,6 +227,8 @@ impl Game for ROGUELIKE {
 			if elapsed > Duration::from_secs(2) {
 				rngt = ROGUELIKE::update_enemies(self, xwalls, ywalls, xbounds, ybounds, rngt, &mut enemies, &mut player, speed_limit_adj);
 			}
+			// UPDATE INTERACTABLES (EX. GOLD)
+			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture);
 
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj,speed_limit_adj);
@@ -246,7 +248,7 @@ impl Game for ROGUELIKE {
 			// function to check explosive barrels stuff like that should go here. placed for ordering. 			
 
 			// CHECK COLLISIONS
-			ROGUELIKE::check_collisions(xbounds, ybounds, &mut player, &mut enemies);
+			ROGUELIKE::check_collisions(self, xbounds, ybounds, &mut player, &mut enemies);
 			if player.is_dead(){
 				break 'gameloop;
 			}
@@ -352,23 +354,46 @@ impl ROGUELIKE {
 				i += 1;
 				j += 1;
 			}
-			else {
-				let texture_creator = self.core.wincan.texture_creator();
-				let g = gold::Gold::new(
-					Rect::new(
-						enemy.x() as i32,
-						enemy.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
-					),
-					texture_creator.load_texture("images/ui/gold_coin.png")?,
-				);
-				
-			}
+			
 		}
 		rngt[0] += 1;
 		return rngt;
 	}
+
+	pub fn update_interactables(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		//add coins to gold vector
+		for enemy in enemies {
+			if !enemy.is_alive() {
+				if enemy.has_gold() {
+					//let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+					let coin = gold::Gold::new(
+						Rect::new(
+							enemy.x() as i32 + (CENTER_W - player.x() as i32  ) ,
+							enemy.y() as i32 + (CENTER_H - player.y() as i32  ) ,
+							TILE_SIZE,
+							TILE_SIZE,
+						),
+
+					);
+					self.game_data.gold.push(coin);
+					enemy.set_no_gold();
+				}
+			}
+		}
+		for coin in self.game_data.gold.iter_mut() {
+			if(!coin.collected()) {
+				let pos = Rect::new(coin.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+									coin.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+
+				self.core.wincan.copy(&coin_texture, coin.src(), pos);
+			}
+			
+		}
+		Ok(())
+	}
+	
 
 	// check input values
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64, speed_limit_adj:f64) {
@@ -467,7 +492,7 @@ impl ROGUELIKE {
 	}
 
 	// check collisions
-	fn check_collisions(xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
+	fn check_collisions(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), player: &mut Player, enemies: &mut Vec<Enemy>) {
 		for enemy in enemies {
 			if enemy.is_alive() {
 				if check_collision(&player.pos(), &enemy.pos()) {
@@ -479,6 +504,14 @@ impl ROGUELIKE {
 						enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
 						enemy.minus_hp(25.0);
 					}
+				}
+			}
+		}
+		for coin in self.game_data.gold.iter_mut() {
+			if check_collision(&player.pos(), &coin.pos()) {
+				if !coin.collected() {
+					coin.set_collected();
+					
 				}
 			}
 		}
