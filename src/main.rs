@@ -5,7 +5,7 @@ mod player;
 mod ui;
 mod projectile;
 mod credits;
-mod gameinfo;
+mod gamedata;
 mod gold;
 mod room;
 use std::collections::HashSet;
@@ -39,7 +39,7 @@ use sdl2::render::Texture;
 
 use rogue_sdl::{Game, SDLCore};
 //use sdl2::video::WindowContext;
-use crate::gameinfo::GameData;
+use crate::gamedata::GameData;
 
 // window globals
 const TITLE: &str = "Roguelike";

@@ -5,7 +5,7 @@ use sdl2::rect::Rect;
 use sdl2::render::Texture;
 use crate::projectile;
 use crate::projectile::Projectile;
-use crate::gameinfo::GameData;
+use crate::gamedata::GameData;
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
