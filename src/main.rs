@@ -320,7 +320,8 @@ impl ROGUELIKE {
 				let fire_chance = rng.gen_range(1..60);
 				if fire_chance < 5 { // chance to fire
 					enemy.fire(); // sets is firing true
-					let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
+					let vec = vec![player.x() - enemy.x(), 
+								   player.y() - enemy.x()];
 					let angle = ((vec[0] / vec[1]).abs()).atan();
 					let speed: f64 = speed_limit_adj;
 					let mut x = &speed * angle.sin();
