@@ -8,7 +8,8 @@ const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
 const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
-const FIRE_COOLDOWN: u128 =300;
+const FIRE_COOLDOWN: u128 = 300;
+const MANA_RESTORE_RATE: u128 = 2500;
 
 pub struct Player<'a> {
 	pos: (f64, f64),
@@ -22,12 +23,17 @@ pub struct Player<'a> {
 	attack_timer: Instant,
 	fire_timer: Instant,
 	damage_timer: Instant,
+	mana_timer: Instant,
 	texture_all: Texture<'a>,
 	invincible: bool, 
 	pub facing_right: bool,
 	pub hp: f32,
+	pub mana: i32,
+	pub max_mana: i32,
 	pub is_attacking: bool,
 	pub weapon_frame: i32,
+	pub curr_meele: String,
+	pub curr_ability: String,
 	pub is_firing: bool,
 }
 
@@ -45,6 +51,8 @@ impl<'a> Player<'a> {
 		let width = TILE_SIZE; // 32;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30.0;
+		let mana = 4;
+		let max_mana = 4;
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing =false;
@@ -52,8 +60,11 @@ impl<'a> Player<'a> {
 		let attack_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
+		let mana_timer = Instant::now();
 		let invincible = true;
 		let weapon_frame=0; 
+		let curr_meele = String::from("sword_l");
+		let curr_ability = String::from("bullet");
 
 		Player {
 			pos,
@@ -67,12 +78,17 @@ impl<'a> Player<'a> {
 			attack_timer,
 			fire_timer,
 			damage_timer,
+			mana_timer,
 			invincible, 
 			texture_all,
 			facing_right,
 			hp,
+			mana,
+			max_mana,
 			is_attacking,
 			weapon_frame,
+			curr_meele,
+			curr_ability,
 			is_firing,
 		}
 	}
@@ -223,10 +239,11 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn fire(&mut self){
-		if self.get_fire_timer() < FIRE_COOLDOWN {
-		 return;
+		if self.get_fire_timer() < FIRE_COOLDOWN || self.get_mana() <= 0 {
+			return;
 		}
 		self.is_firing = true;
+		self.use_mana();
 		self.fire_timer = Instant::now();
 		
 	}	
@@ -241,6 +258,42 @@ impl<'a> Player<'a> {
 	// heatlh values
 	pub fn get_hp(&self) -> f32 {
 		return self.hp
+	}
+
+	//mana values
+	pub fn get_mana(&self) -> i32 {
+		return self.mana
+	}
+
+	pub fn get_max_mana(&self) -> i32 {
+		return self.max_mana
+	}
+
+	pub fn get_mana_timer(&self) -> u128 {
+		self.mana_timer.elapsed().as_millis()
+	}
+
+	pub fn use_mana(&mut self) {
+		self.mana -= 1;
+	}
+
+	pub fn restore_mana(&mut self) {
+		if self.get_mana_timer() < MANA_RESTORE_RATE || self.get_mana() >= self.get_max_mana() {
+			return;
+		}
+
+		self.mana += 1;
+		self.mana_timer = Instant::now();
+	}
+
+	pub fn get_curr_meele(&self) -> String {
+		let s = &self.curr_meele;
+		return s.clone();
+	}
+
+	pub fn get_curr_ability(&self) -> String {
+		let s = &self.curr_ability;
+		return s.clone()
 	}
 
 	pub fn is_dead(&self) -> bool {

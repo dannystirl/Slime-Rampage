@@ -30,6 +30,8 @@ use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
 //use sdl2::render::Texture;
 use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::TextureQuery;
+
 
 use rogue_sdl::{Game, SDLCore};
 use sdl2::video::WindowContext;
@@ -112,14 +114,14 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(1);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let e = enemy::Enemy::new(
 				Rect::new(
-					(CAM_W/2 - TILE_SIZE/2 + 200) as i32,
-					(CAM_H/2 - TILE_SIZE/2) as i32,
+					(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+					(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
 					TILE_SIZE,
 					TILE_SIZE,
 				),
@@ -307,21 +309,25 @@ impl ROGUELIKE {
 	// update enemies
 	pub fn update_enemies(&mut self, xbounds: (i32,i32), ybounds: (i32,i32), mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, speed_limit_adj: f64) -> Vec<i32>{
 		let mut i = 1;
-		let rng = rand::thread_rng();
+		let mut rng = rand::thread_rng();
 		for enemy in enemies {
 			if !enemy.is_alive(){
 				continue;
 			}
-			let mut rng = rand::thread_rng();
-			if rng.gen_range(1..60) < 5 { // chance to fire
-				enemy.is_firing = true;
+
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
+				enemy.set_fire_cooldown();
+				let fire_chance = rng.gen_range(1..60);
+				if fire_chance < 5 { // chance to fire
+					enemy.fire(); // sets is firing true
+				}
 			}
 			// shoot ranged
 			if!(enemy.is_firing){
 				enemy.fire(); 
 				let vec = vec![player.x() as f64 - enemy.x() as f64 , player.y() - enemy.y() as f64];
 				let angle = ((vec[0] / vec[1]).abs()).atan();
-				let speed: f64 = 3.0* speed_limit_adj;
+				let speed: f64 = speed_limit_adj;
 				let mut x = &speed * angle.sin();
 				let mut y = &speed * angle.cos();
 				if vec[0] < 0.0 {
@@ -344,9 +350,7 @@ impl ROGUELIKE {
 				);
 				self.game_data.enemy_projectiles.push(bullet);
 			}
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
-				enemy.set_fire_cooldown();
-			}
+			
 			// aggro / move
 			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 				rngt[i] = rng.gen_range(1..5);
@@ -387,7 +391,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64, speed_limit_adj :f64) {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64, speed_limit_adj: f64) {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - accel_rate_adj as i32);
@@ -414,7 +418,7 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			if!(player.is_firing){
+			if !player.is_firing && player.get_mana() > 0 {
 				player.fire(); 
 				let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
 				let angle = ((vec[0] / vec[1]).abs()).atan();
@@ -427,7 +431,7 @@ impl ROGUELIKE {
 				if vec[1] < 0.0  {
 					y *= -1.0;
 				}
-				let mut bullet = projectile::Projectile::new(
+				let bullet = projectile::Projectile::new(
 					Rect::new(
 						player.pos().x(),
 						player.pos().y(),
@@ -479,7 +483,7 @@ impl ROGUELIKE {
 			
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut(){
-				if check_collision(&projectile.pos(), &enemy.pos()) {
+				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5.0);
 					projectile.die();
@@ -496,7 +500,7 @@ impl ROGUELIKE {
 
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
-				if check_collision(&projectile.pos(), &player.pos()) {
+				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
 					player.minus_hp(5.0);
 					projectile.die();
 				}
@@ -553,6 +557,8 @@ impl ROGUELIKE {
 		if player.get_fire_timer() > player.get_fire_cooldown() {
 			player.set_fire_cooldown();
 		}
+
+		player.restore_mana();
 	}
 
 	//update background
@@ -636,6 +642,75 @@ impl ROGUELIKE {
 			);
 			self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
 		}
+
+		//display mana
+		let mut mana = ui::UI::new(
+			Rect::new(
+				(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*12) as i32,
+				(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+				(TILE_SIZE as f64 * 1.2) as u32,
+				(TILE_SIZE as f64 * 1.2) as u32,
+			),
+			texture_creator.load_texture("images/ui/mana.png")?,
+		);
+		let mut cur_mana = 0;
+		match player.get_mana() {
+			0 => cur_mana = 32 * 4,
+			1 => cur_mana = 32 * 3,
+			2 => cur_mana = 32 * 2,
+			3 => cur_mana = 32 * 1,
+			4 => cur_mana = 32 * 0,
+			_ => cur_mana = 32 * 0,
+		}
+		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE / 2, TILE_SIZE / 2);
+		mana.set_src(mana_src);
+		self.core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
+
+		//get current mana as a string
+		let mana = player.get_mana();
+		let max_mana = player.get_max_mana();
+		let mut s: String = mana.to_string();
+		let mut a: String = max_mana.to_string();
+		s += "/";
+		s += &a;
+
+		//display string next to mana
+
+
+
+
+		//display equipped waepon
+		if player.get_curr_meele() == "sword_l"
+		{
+			let weapon = ui::UI::new(
+				Rect::new(
+					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*8) as i32,
+					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+				),
+				texture_creator.load_texture("images/player/sword_l.png")?,
+			);
+			self.core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+		}
+
+
+		if player.get_curr_ability() == "bullet"
+		{
+			let ability = ui::UI::new(
+				Rect::new(
+					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*6) as i32,
+					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+					(TILE_SIZE as f64 * 1.2) as u32,
+				),
+				texture_creator.load_texture("images/abilities/bullet.png")?,
+			);
+			self.core.wincan.copy(ability.texture(), ability.src(),ability.pos())?;
+		}
+		
+		
+
 		// create coins
 		let coin = ui::UI::new(
 			Rect::new(
