@@ -362,35 +362,7 @@ impl ROGUELIKE {
 					self.game_data.enemy_projectiles.push(bullet);
 				}
 			}
-			
-			// shoot ranged
-			/*if!(enemy.is_firing){
-				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
-				let angle = ((vec[0] / vec[1]).abs()).atan();
-				let speed: f64 = speed_limit_adj;
-				let mut x = &speed * angle.sin();
-				let mut y = &speed * angle.cos();
-				if vec[0] < 0.0 {
-					x *= -1.0;
-				}
-				if vec[1] < 0.0  {
-					y *= -1.0;
-				}
-				let bullet = projectile::Projectile::new(
-					Rect::new(
-						enemy.pos().x(),
-						enemy.pos().y(),
-						TILE_SIZE/2,
-						TILE_SIZE/2,
-					),
-					false,
-					false,
-					0,
-					vec![x,y],
-				);
-				self.game_data.enemy_projectiles.push(bullet);
-			}
-			*/
+		
 			// aggro / move
 			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 				rngt[i] = rng.gen_range(1..5);
@@ -725,9 +697,6 @@ impl ROGUELIKE {
 		s += &a;
 
 		//display string next to mana
-
-
-
 
 		//display equipped waepon
 		if player.get_curr_meele() == "sword_l"
