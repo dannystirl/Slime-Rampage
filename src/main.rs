@@ -156,9 +156,9 @@ impl Game for ROGUELIKE {
 		
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
-			texture_creator.load_texture("images/background/floor_tile_1.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_2.png")?, 
-			texture_creator.load_texture("images/background/floor_tile_maroon.png")?, 
+			texture_creator.load_texture("images/background/tile.png")?,
+			texture_creator.load_texture("images/background/moss_tile.png")?,
+			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/floor_tile_pilar.png")?, 
 			xwalls, 
 			ywalls, 
