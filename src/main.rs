@@ -186,13 +186,13 @@ impl Game for ROGUELIKE {
 			let elapsed = last_time.elapsed();
 			if elapsed > Duration::from_secs(1) {
 				let mut fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-				println!("Average FPS: {:.2}", fps_avg);
+				//println!("Average FPS: {:.2}", fps_avg);
 
 				fps_avg = fps_avg.recip();
 				speed_limit_adj = fps_avg * SPEED_LIMIT;
-				println!("Speed limit adjusted: {}", speed_limit_adj);
+				//println!("Speed limit adjusted: {}", speed_limit_adj);
 				accel_rate_adj = fps_avg * ACCEL_RATE;
-				println!("Acceleration rate adjusted: {}", accel_rate_adj);
+				//println!("Acceleration rate adjusted: {}", accel_rate_adj);
 			}
 			// reset frame
 			for event in self.core.event_pump.poll_iter() {
@@ -218,6 +218,7 @@ impl Game for ROGUELIKE {
 					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 					//println!("{} {}", player.x(), player.y());
 					println!("{}", player.get_hp() / 10.0);
+					println!("{}", ((player.get_hp()/6.0) % 5.0));
 				}
 			// CLEAR BACKGROUND
             self.core.wincan.copy(&background.black, None, None)?;
