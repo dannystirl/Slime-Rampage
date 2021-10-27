@@ -1,7 +1,7 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
+//use sdl2::render::Texture;
 
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
@@ -27,11 +27,6 @@ impl Gold {
             amount,
             been_collected,
 		}
-	}
-
-    pub fn update_pos(&mut self, player_pos_x: i32, player_pos_y: i32) {
-        self.pos.x = self.pos.x ;
-		self.pos.y = self.pos.y ;
 	}
 
     pub fn x(&self) -> i32 {

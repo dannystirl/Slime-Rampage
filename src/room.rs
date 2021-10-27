@@ -8,7 +8,7 @@ pub struct Room{
     pub xbounds: (i32, i32), 
     pub ybounds: (i32, i32), 
     pub tiles: Vec<(bool,i32)>,
-    room_obstacles: Vec<(i32,i32)>, 
+    pub room_obstacles: Vec<(i32,i32)>, 
 }
 
 impl Room{
@@ -17,7 +17,7 @@ impl Room{
         let ywalls = (1,rand::thread_rng().gen_range(10..19));
         let xbounds = ((xwalls.0*TILE_SIZE as i32), ( (xwalls.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
         let ybounds = ((ywalls.0*TILE_SIZE as i32), ( (ywalls.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
-        let tiles: Vec<(bool,i32)> = vec![(true,0); ((xwalls.1+2)*(ywalls.1+1)) as usize]; // (draw?, texture)
+        let mut tiles: Vec<(bool,i32)> = vec![(true,0); ((xwalls.1+2)*(ywalls.1+1)) as usize]; // (draw?, texture)
         let room_obstacles = create_new_map(xwalls, ywalls, &mut tiles);
         Room{
             xbounds, 

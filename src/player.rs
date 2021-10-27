@@ -354,6 +354,7 @@ impl<'a> Player<'a> {
 		let ywalls = game_data.rooms[0].ywalls;
 		let xbounds = game_data.rooms[0].xbounds;
 		let ybounds = game_data.rooms[0].ybounds;
+		let speed_limit_adj = game_data.get_speed_limit();
 		// Slow down to 0 vel if no input and non-zero velocity
 		self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
 		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
@@ -366,7 +367,7 @@ impl<'a> Player<'a> {
 		self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
 
-		for ob in game_data.rooms[game_data.current_room].obstacle_pos {
+		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
 			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
 			if GameData::check_collision(&self.pos(), &obs) {
 				// collision on object top

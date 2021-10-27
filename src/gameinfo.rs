@@ -11,8 +11,8 @@ pub struct GameData{
     pub gold: Vec<Gold>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
-    pub current_room: i32, // used to keep track of the room the player is in once we have multiple rooms
-    pub rooms: vec![],
+    pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
+    pub rooms: Vec<Room>,
     speed_limit: f64, 
     accel_rate: f64, 
 }
@@ -21,23 +21,24 @@ impl GameData{
     pub fn new(room: Room) -> GameData{
         // creating a level: room data
         let current_room = 0; // starting room
-        let num_rooms = rand::thread_rng().gen_range(8..11);
-        let mut rooms = vec![room]; // creating as a vec! instead of Vec for indexing, which then requires an initial value. if init as Vec, don't pass room into GameData
-        let mut i=0;
-        while i < num_rooms {
-            let room = Room::new();
-            rooms[i] = room;
+        let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11)); // creating as a vec! instead of Vec for indexing, which then requires an initial value. if init as Vec, don't pass room into GameData
+        //let mut rooms: vec![Room::new(), rand::thread_rng().gen_range(8..11)];
+        println!("\n{}", rooms.capacity());
+        let mut i: usize = 0;
+        while i <= rooms.capacity() {
+            println!("\n{}", rooms[i].xwalls.0);
+            rooms[i] = Room::new();
+            i+=1;
         }
-        println!("{}", rooms.capacity());
 
         // global values: 
         let speed_limit = 3.0;
 		let accel_rate = 0.0;
 
         // objects
-        let mut gold: Vec<Gold> = Vec::with_capacity(5);
-        let mut player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
-        let mut enemy_projectiles: Vec<Projectile> = Vec::with_capacity(5);
+        let gold: Vec<Gold> = Vec::with_capacity(5);
+        let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
+        let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         GameData{
             current_room, 
             gold,
@@ -50,7 +51,7 @@ impl GameData{
     }
 
     // speed values
-    pub fn set_speed_limit(&self, speed_limit: f64){
+    pub fn set_speed_limit(&mut self, speed_limit: f64){
         //println!("Speed limit adjusted: {}", speed_limit);
         self.speed_limit = speed_limit;
     }
@@ -59,7 +60,7 @@ impl GameData{
         self.speed_limit
     }
 
-    pub fn set_accel_rate(&self, accel_rate: f64){
+    pub fn set_accel_rate(&mut self, accel_rate: f64){
         //println!("Acceleration rate adjusted: {}", accel_rate);
         self.accel_rate = accel_rate;
     }

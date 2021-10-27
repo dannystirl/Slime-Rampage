@@ -18,8 +18,8 @@ use crate::enemy::*;
 use crate::projectile::*;
 use crate::player::*;
 use crate::background::*;
-use crate::ui::*;
-use crate::gold::*;
+//use crate::ui::*;
+//use crate::gold::*;
 use crate::room::*;
 
 use sdl2::rect::Rect;
@@ -30,15 +30,15 @@ use sdl2::mouse::{MouseState};
 //use sdl2::mouse::MouseButtonIterator;
 //use sdl2::mouse::PressedMouseButtonIterator;
 use sdl2::image::LoadTexture;
-use sdl2::pixels::Color;
+//use sdl2::pixels::Color;
 //use sdl2::render::WindowCanvas;
-//use sdl2::render::Texture;
-use sdl2::render::{Texture, TextureCreator};
-use sdl2::render::TextureQuery;
+use sdl2::render::Texture;
+//use sdl2::render::{Texture, TextureCreator};
+//use sdl2::render::TextureQuery;
 
 
 use rogue_sdl::{Game, SDLCore};
-use sdl2::video::WindowContext;
+//use sdl2::video::WindowContext;
 use crate::gameinfo::GameData;
 
 // window globals
@@ -63,15 +63,6 @@ const STARTING_TIMER: u128 = 1000;
 pub struct ROGUELIKE {
 	core: SDLCore,
 	game_data: GameData,
-}
-
-// calculate velocity resistance
-fn resist(vel: i32, delta: i32) -> i32 {
-	if delta == 0 {
-		if vel > 0 {-1}
-		else if vel < 0 {1}
-		else {delta}
-	} else {delta}
 }
 
 // check collision
@@ -120,13 +111,12 @@ impl Game for ROGUELIKE {
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let num = rng.gen_range(1..5);
-			let mut enemy_type: String; 
+			let enemy_type: String; 
 			match num {
 				5 => { enemy_type = String::from("ranged") } 
 				4 => { enemy_type = String::from("ranged") } 
 				_ => { enemy_type = String::from("melee") } 
 			}
-			println!("{}", enemy_type);
 			let e = enemy::Enemy::new(
 				Rect::new(
 					(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
@@ -159,18 +149,18 @@ impl Game for ROGUELIKE {
 		); */
 
 		// CREATE ROOM 
-		let mut background = background::Background::new(
+		let background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/skull.png")?,
-			self.game_data.rooms[0], 
-			self.game_data.rooms[0], 
+			self.game_data.rooms[self.game_data.current_room].xwalls, 
+			self.game_data.rooms[self.game_data.current_room].ywalls, 
 		);
 
 		let mut all_frames = 0;
-		let mut last_time = Instant::now();
+		let last_time = Instant::now();
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -220,7 +210,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE PLAYER
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
-			player.update_player(&mut player, &self.game_data);
+			player.update_player(&self.game_data);
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
@@ -244,7 +234,7 @@ impl Game for ROGUELIKE {
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
 			// DRAW PROJECTILES
-			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);	
+			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;	
 
 			// UPDATE FRAME
 			self.core.wincan.present();
@@ -370,9 +360,9 @@ impl ROGUELIKE {
 				enemy.update_pos(rngt[i], xbounds, ybounds);
 			} else {
 				if enemy.enemy_type == String::from("melee") {
-					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, self.game_data.get_speed_limit());
 				} else {
-					enemy.flee(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+					enemy.flee(player.x().into(), player.y().into(), xbounds, ybounds, self.game_data.get_speed_limit());
 				}
 			}
 			let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
@@ -386,12 +376,10 @@ impl ROGUELIKE {
 	}
 
 	pub fn update_interactables(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
-		let texture_creator = self.core.wincan.texture_creator();
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() {
 				if enemy.has_gold() {
-					//let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 					let coin = gold::Gold::new(
 						Rect::new(
 							enemy.x() as i32,
@@ -412,7 +400,7 @@ impl ROGUELIKE {
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
 
-				self.core.wincan.copy(&coin_texture, coin.src(), pos);
+				self.core.wincan.copy(&coin_texture, coin.src(), pos)?;
 			}
 		}
 		Ok(())
@@ -625,7 +613,7 @@ impl ROGUELIKE {
 		let mana = player.get_mana();
 		let max_mana = player.get_max_mana();
 		let mut s: String = mana.to_string();
-		let mut a: String = max_mana.to_string();
+		let a: String = max_mana.to_string();
 		s += "/";
 		s += &a;
 

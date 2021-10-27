@@ -1,7 +1,7 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
-use sdl2::render::{Texture, TextureCreator};
+//use sdl2::render::{Texture, TextureCreator};
 
 const TILE_SIZE: u32 = 64;
 const CAM_W: u32 = 1280;
