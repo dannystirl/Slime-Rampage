@@ -7,7 +7,7 @@ mod projectile;
 mod credits;
 mod gameinfo;
 mod gold;
-mod room;
+mod room; 
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
@@ -93,7 +93,8 @@ impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-		let game_data = GameData::new(Room::new());
+		let room = Room::new();
+		let game_data = GameData::new(room);
 		Ok(ROGUELIKE{ core, game_data })
 	}
 
@@ -103,6 +104,10 @@ impl Game for ROGUELIKE {
 
 		let mut count = 0;
 		let f_display = 15;
+
+		// FPS calculation
+		let mut speed_limit_adj = 3.0;
+		let mut accel_rate_adj = 0.0;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		let mut player = player::Player::new(
@@ -114,7 +119,7 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
-
+		
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
@@ -172,37 +177,52 @@ impl Game for ROGUELIKE {
 		let mut all_frames = 0;
 		let mut last_time = Instant::now();
 
+		// obstacles that everything should collide with
+		#[allow(unused_variables)]
+		//let obstacle_pos = background.create_new_map(xwalls, ywalls);
+		let obstacle_pos = self.game_data.rooms[0].obstacles;
+
 		// MAIN GAME LOOP
 		'gameloop: loop {
+			all_frames += 1;
+			let elapsed = last_time.elapsed();
+			if elapsed > Duration::from_secs(1) {
+				let mut fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
+				//println!("Average FPS: {:.2}", fps_avg);
+
+				fps_avg = fps_avg.recip();
+				speed_limit_adj = fps_avg * SPEED_LIMIT;
+				//println!("Speed limit adjusted: {}", speed_limit_adj);
+				accel_rate_adj = fps_avg * ACCEL_RATE;
+				//println!("Acceleration rate adjusted: {}", accel_rate_adj);
+			}
+			// reset frame
 			for event in self.core.event_pump.poll_iter() {
 				match event {
 					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
 					_ => {},
 				}
 			}
-			// fps calculations
-			all_frames += 1;
-			let elapsed = last_time.elapsed();
-			if elapsed > Duration::from_secs(1) {
-				let mut fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-				//println!("Average FPS: {:.2}", fps_avg);
-				fps_avg = fps_avg.recip();
-				self.game_data.set_speed_limit(fps_avg * SPEED_LIMIT);
-				self.game_data.set_accel_rate(fps_avg * ACCEL_RATE);
-				
-			}
-			// reset frame values
+
 			player.set_x_delta(0);
 			player.set_y_delta(0);
-			self.core.wincan.copy(&background.black, None, None)?;
 
-			// GET INPUT
 			let mousestate= self.core.event_pump.mouse_state();
 			let keystate: HashSet<Keycode> = self.core.event_pump
 				.keyboard_state()
 				.pressed_scancodes()
 				.filter_map(Keycode::from_scancode)
 				.collect();
+
+				// FOR TESTING ONLY: USE TO FOR PRINT VALUES
+				if keystate.contains(&Keycode::P) {
+					//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
+					//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
+					//println!("{} {}", player.x(), player.y());
+					// println!("{}", player.get_hp());
+				}
+			// CLEAR BACKGROUND
+            self.core.wincan.copy(&background.black, None, None)?;
 
 			// UPDATE BACKGROUND
 			let cur_bg = Rect::new(
@@ -215,12 +235,14 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
-				rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
+				rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player, speed_limit_adj);
 			}
+			// UPDATE INTERACTABLES (EX. GOLD)
+			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture);
 
 			// UPDATE PLAYER
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
-			player.update_player(&mut player, &self.game_data);
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, accel_rate_adj,speed_limit_adj);
+			ROGUELIKE::update_player(self, &mut player, speed_limit_adj);
 			self.draw_player(&count, &f_display, &mut player, &cur_bg);
 			count = count + 1;
 			if count > f_display * 5 {
@@ -264,9 +286,11 @@ pub fn main() -> Result<(), String> {
 // Create map
 impl ROGUELIKE {
 	pub fn update_background(&mut self, player: &Player, background:& Background) -> Result<(), String> {
+		let xwalls = self.game_data.rooms[0].xwalls;
+		let ywalls = self.game_data.rooms[0].xwalls;
 		let mut n = 0;
-		for i in 0..self.game_data.rooms[0].xwalls.1+1 {
-			for j in 0..self.game_data.rooms[0].ywalls.1+1 {
+		for i in 0..xwalls.1+1 {
+			for j in 0..ywalls.1+1 {
 				if background.tiles[n].0 {
 					let num = background.tiles[n].1;
 					let texture;
@@ -298,7 +322,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 	// update enemies
-	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
+	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player, speed_limit_adj: f64) -> Vec<i32>{
 		let xbounds = self.game_data.rooms[0].xbounds;
 		let ybounds = self.game_data.rooms[0].ybounds;
 		let mut i = 1;
@@ -308,7 +332,7 @@ impl ROGUELIKE {
 				continue;
 			}
 
-
+			
 			if enemy.get_fire_timer() > enemy.get_fire_cooldown() && enemy.enemy_type == String::from("ranged"){
 				enemy.set_fire_cooldown();
 				let fire_chance = rng.gen_range(1..60);
@@ -317,7 +341,7 @@ impl ROGUELIKE {
 					let vec = vec![player.x() - enemy.x(), 
 								   player.y() - enemy.y()];
 					let angle = ((vec[0] / vec[1]).abs()).atan();
-					let speed: f64 = self.game_data.get_speed_limit();
+					let speed: f64 = speed_limit_adj;
 					let mut x = &speed * angle.sin();
 					let mut y = &speed * angle.cos();
 					if vec[0] < 0.0 {
@@ -371,7 +395,7 @@ impl ROGUELIKE {
 			}
 			*/
 			// aggro / move
-			if rngt[0] > 30 || ROGUELIKE::check_edge(self, &enemy){
+			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 				rngt[i] = rng.gen_range(1..5);
 				rngt[0] = 0;
 			}
@@ -435,7 +459,7 @@ impl ROGUELIKE {
 			}
 		}
 		for coin in self.game_data.gold.iter_mut() {
-			if !coin.collected() {
+			if(!coin.collected()) {
 				let pos = Rect::new(coin.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
@@ -445,25 +469,26 @@ impl ROGUELIKE {
 		}
 		Ok(())
 	}
+	
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, accel_rate_adj: f64, speed_limit_adj: f64) {
 		// move up
 		if keystate.contains(&Keycode::W) {
-			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
+			player.set_y_delta(player.y_delta() - accel_rate_adj as i32);
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
-			player.set_x_delta(player.x_delta() - self.game_data.get_accel_rate() as i32);
+			player.set_x_delta(player.x_delta() - accel_rate_adj as i32);
 			player.facing_right = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
-			player.set_y_delta(player.y_delta() + self.game_data.get_accel_rate() as i32);
+			player.set_y_delta(player.y_delta() + accel_rate_adj as i32);
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
-			player.set_x_delta(player.x_delta() + self.game_data.get_accel_rate() as i32);
+			player.set_x_delta(player.x_delta() + accel_rate_adj as i32);
 			player.facing_right = true;
 		}
 		// basic attack
@@ -475,19 +500,36 @@ impl ROGUELIKE {
 		// Shoot ranged attack
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit());
+				player.fire(); 
+				let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
+				let angle = ((vec[0] / vec[1]).abs()).atan();
+				let speed: f64 = 3.0* speed_limit_adj;
+				let mut x = &speed * angle.sin();
+				let mut y = &speed * angle.cos();
+				if vec[0] < 0.0 {
+					x *= -1.0;
+				}
+				if vec[1] < 0.0  {
+					y *= -1.0;
+				}
+				let bullet = projectile::Projectile::new(
+					Rect::new(
+						player.pos().x(),
+						player.pos().y(),
+						TILE_SIZE/2,
+						TILE_SIZE/2,
+					),
+					false,
+					false,
+					0,
+					vec![x,y],
+				);
 				self.game_data.player_projectiles.push(bullet);
 			}
 		}
 		//ability
 		if keystate.contains(&Keycode::F){
 			println!("you found the easter egg");
-		}
-		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
-		if keystate.contains(&Keycode::P) {
-			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
-			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
-			//println!("{} {}", player.x(), player.y());
 		}
 			
 	}
@@ -525,7 +567,7 @@ impl ROGUELIKE {
 			for projectile in self.game_data.player_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
-					enemy.minus_hp(5);
+					enemy.minus_hp(5.0);
 					projectile.die();
 				}
 			}
@@ -534,7 +576,7 @@ impl ROGUELIKE {
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
-					enemy.minus_hp(1);
+					enemy.minus_hp(1.0);
 				}
 			}
 
@@ -550,10 +592,68 @@ impl ROGUELIKE {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
 					coin.set_collected();
+					
 				}
 			}
 		}
 		player.set_invincible();
+	}
+
+	// update player
+	fn update_player(&mut self, mut player: &mut Player, speed_limit_adj: f64) {
+		let xwalls = self.game_data.rooms[0].xwalls;
+		let ywalls = self.game_data.rooms[0].ywalls;
+		let xbounds = self.game_data.rooms[0].xbounds;
+		let ybounds = self.game_data.rooms[0].ybounds;
+		let obstacle_pos = self.game_data.rooms[0].obstacles;
+		// Slow down to 0 vel if no input and non-zero velocity
+		player.set_x_delta(resist(player.x_vel() as i32, player.x_delta() as i32));
+		player.set_y_delta(resist(player.y_vel() as i32, player.y_delta() as i32));
+
+		// Don't exceed speed limit
+		player.set_x_vel((player.x_vel() + player.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+		player.set_y_vel((player.y_vel() + player.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+
+		// Stay inside the viewing window
+		player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
+		player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
+
+		for ob in obstacle_pos {
+			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
+			if check_collision(&player.pos(), &obs) {
+				// collision on object top
+				if (player.pos().bottom() >= obs.top()) && (player.pos().bottom() < obs.bottom()) 		// check y bounds
+				&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
+					player.set_y((player.y() + player.y_vel() as f64).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
+				// collision on object bottom
+				} else if (player.pos().top() < obs.bottom()) && (player.pos().top() > obs.top()) 		// check y bounds
+				&& (player.pos().left() > obs.left()) && (player.pos().right() < obs.right()) {			// prevent x moves
+					player.set_y((player.y() + player.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
+				// collision on object left 
+				} else if (player.pos().right() > obs.left()) && (player.pos().right() < obs.right())	// check x bounds
+					   && (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
+					player.set_x((player.x() + player.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
+					// collision on object right
+				} else if (player.pos().left() < obs.right()) && (player.pos().left() > obs.left()) 	// check x bounds
+					   && (player.pos().top() > obs.top()) && (player.pos().bottom() < obs.bottom()) {	// prevent y moves
+					player.set_x((player.x() + player.x_vel() as f64).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
+					(xwalls.1 * TILE_SIZE as i32) as f64));
+				}
+			}
+		}
+
+		player.update_pos(xbounds, ybounds);
+
+		if player.is_attacking { player.set_attack_box(player.x() as i32, player.y() as i32); }
+
+		if player.get_attack_timer() > player.get_cooldown() {
+			player.set_cooldown();
+		}
+		if player.get_fire_timer() > player.get_fire_cooldown() {
+			player.set_fire_cooldown();
+		}
+
+		player.restore_mana();
 	}
 
 	//update background
@@ -574,7 +674,7 @@ impl ROGUELIKE {
 
 	//draw weapon
 	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
-
+		
 		let texture_creator = self.core.wincan.texture_creator();
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let rotation_point;
@@ -766,9 +866,7 @@ impl ROGUELIKE {
 	}
 
 	// force enemy movement
-	pub fn check_edge(&mut self, enemy: &enemy::Enemy) -> bool{
-		let xbounds = self.game_data.rooms[0].xbounds;
-		let ybounds = self.game_data.rooms[0].ybounds;
+	pub fn check_edge(xbounds: (i32,i32), ybounds: (i32,i32), enemy: &enemy::Enemy) -> bool{
 		if  enemy.x() <= xbounds.0 as f64 ||
 		enemy.x() >=  xbounds.1 as f64 ||
 		enemy.y() <= ybounds.0 as f64||

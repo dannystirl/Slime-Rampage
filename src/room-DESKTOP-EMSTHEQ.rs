@@ -1,3 +1,4 @@
+extern crate rogue_sdl;
 use rand::Rng;
 
 const TILE_SIZE: u32 = 64;
@@ -8,29 +9,30 @@ pub struct Room{
     pub xbounds: (i32, i32), 
     pub ybounds: (i32, i32), 
     pub tiles: Vec<(bool,i32)>,
-    room_obstacles: Vec<(i32,i32)>, 
+    pub obstacles: Vec<(i32,i32)>, 
 }
 
 impl Room{
     pub fn new() -> Room{
-        let xwalls = (1,rand::thread_rng().gen_range(19..27)); 
+        let xwalls = (1,rand::thread_rng().gen_range(19..27));
         let ywalls = (1,rand::thread_rng().gen_range(10..19));
         let xbounds = ((xwalls.0*TILE_SIZE as i32), ( (xwalls.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
         let ybounds = ((ywalls.0*TILE_SIZE as i32), ( (ywalls.1 as u32 *TILE_SIZE)-TILE_SIZE) as i32);
         let tiles: Vec<(bool,i32)> = vec![(true,0); ((xwalls.1+2)*(ywalls.1+1)) as usize]; // (draw?, texture)
-        let room_obstacles = create_new_map(xwalls, ywalls, &mut tiles);
+        let obstacles = create_new_map(xwalls, ywalls, tiles);
         Room{
             xbounds, 
             ybounds, 
             xwalls, 
             ywalls,
             tiles, 
-            room_obstacles, 
+            obstacles, 
         }
     }
 }
 
-pub fn create_new_map(xwalls: (i32,i32), ywalls: (i32,i32), tiles: &mut Vec<(bool,i32)>) -> Vec<(i32,i32)> {
+// helper function to create obstacles for a map. requires input values for unintialized rooms
+pub fn create_new_map(xwalls: (i32,i32), ywalls: (i32,i32), tiles: Vec<(bool,i32)> ) -> Vec<(i32,i32)> {
     let mut obs: Vec<(i32,i32)> = vec![(0,0);0];
     let mut n = 0;
     for i in 0..xwalls.1+1 {
@@ -61,6 +63,7 @@ pub fn create_new_map(xwalls: (i32,i32), ywalls: (i32,i32), tiles: &mut Vec<(boo
             n+=1;
         }
     }
-    return obs;
-    
+    return obs;   
 }
+
+// background should be moved into rooms

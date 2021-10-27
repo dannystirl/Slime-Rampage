@@ -25,7 +25,7 @@ pub struct Enemy<'a> {
 	pub y_flipped: bool,
 	pub facing_right: bool,
 	pub is_stunned: bool,
-	pub hp: f32,
+	pub hp: i32,
 	pub alive: bool,
 	pub is_firing: bool,
 	pub enemy_type: String,
@@ -45,7 +45,7 @@ pub struct Enemy<'a> {
 		let facing_right = false;
 		let is_stunned = false;
 		let is_firing =false;
-		let hp = 10.0;
+		let hp = 10;
 		let alive = true;
 		let enemy_type = enemy_type;
 		Enemy {
@@ -240,10 +240,10 @@ pub struct Enemy<'a> {
 		self.is_stunned = stunned;
 	}
 
-	pub fn minus_hp(&mut self, dmg: f32) {
+	pub fn minus_hp(&mut self, dmg: i32) {
 		self.hp -= dmg;
 
-		if self.hp <= 0.0 {
+		if self.hp <= 0 {
 			self.die();
 		}
 	}

@@ -3,9 +3,6 @@ extern crate rogue_sdl;
 use std::time::Instant;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
-use crate::projectile;
-use crate::projectile::Projectile;
-use crate::gameinfo::GameData;
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
@@ -13,10 +10,6 @@ const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
 const FIRE_COOLDOWN: u128 = 300;
 const MANA_RESTORE_RATE: u128 = 1000;
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 
 pub struct Player<'a> {
 	pos: (f64, f64),
@@ -245,35 +238,14 @@ impl<'a> Player<'a> {
 		self.clear_attack_box();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64) -> Projectile {
-			self.is_firing = true;
-			self.use_mana();
-			self.fire_timer = Instant::now();
-
-			let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE / 2) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE / 2) as f64];
-			let angle = ((vec[0] / vec[1]).abs()).atan();
-			let speed: f64 = 3.0 * speed_limit;
-			let mut x = &speed * angle.sin();
-			let mut y = &speed * angle.cos();
-			if vec[0] < 0.0 {
-				x *= -1.0;
-			}
-			if vec[1] < 0.0 {
-				y *= -1.0;
-			}
-			let bullet = projectile::Projectile::new(
-				Rect::new(
-					self.x() as i32,
-					self.y() as i32,
-					TILE_SIZE / 2,
-					TILE_SIZE / 2,
-				),
-				false,
-				false,
-				0,
-				vec![x, y],
-			);
-			return bullet;
+	pub fn fire(&mut self){
+		if self.get_fire_timer() < FIRE_COOLDOWN || self.get_mana() <= 0 {
+			return;
+		}
+		self.is_firing = true;
+		self.use_mana();
+		self.fire_timer = Instant::now();
+		
 	}	
 
 	pub fn get_fire_cooldown(&self)-> u128{
@@ -346,62 +318,6 @@ impl<'a> Player<'a> {
 
 	pub fn get_invincible(&self) -> bool {
 		self.invincible
-	}
-
-	// update player
-	pub fn update_player(&mut self, game_data: &GameData) {
-		let xwalls = game_data.rooms[0].xwalls;
-		let ywalls = game_data.rooms[0].ywalls;
-		let xbounds = game_data.rooms[0].xbounds;
-		let ybounds = game_data.rooms[0].ybounds;
-		// Slow down to 0 vel if no input and non-zero velocity
-		self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
-		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
-
-		// Don't exceed speed limit
-		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-
-		// Stay inside the viewing window
-		self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
-		self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-
-		for ob in game_data.rooms[game_data.current_room].obstacle_pos {
-			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
-			if GameData::check_collision(&self.pos(), &obs) {
-				// collision on object top
-				if (self.pos().bottom() >= obs.top()) && (self.pos().bottom() < obs.bottom()) 		// check y bounds
-				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
-					self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
-				// collision on object bottom
-				} else if (self.pos().top() < obs.bottom()) && (self.pos().top() > obs.top()) 		// check y bounds
-				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
-					self.set_y((self.y() + self.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-				// collision on object left 
-				} else if (self.pos().right() > obs.left()) && (self.pos().right() < obs.right())	// check x bounds
-						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
-					self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
-					// collision on object right
-				} else if (self.pos().left() < obs.right()) && (self.pos().left() > obs.left()) 	// check x bounds
-						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
-					self.set_x((self.x() + self.x_vel() as f64).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
-					(xwalls.1 * TILE_SIZE as i32) as f64));
-				}
-			}
-		}
-
-		self.update_pos(xbounds, ybounds);
-
-		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
-
-		if self.get_attack_timer() > self.get_cooldown() {
-			self.set_cooldown();
-		}
-		if self.get_fire_timer() > self.get_fire_cooldown() {
-			self.set_fire_cooldown();
-		}
-
-		self.restore_mana();
 	}
 }
 
