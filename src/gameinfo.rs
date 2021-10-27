@@ -25,9 +25,9 @@ impl GameData{
         //let mut rooms: vec![Room::new(), rand::thread_rng().gen_range(8..11)];
         println!("\n{}", rooms.capacity());
         let mut i: usize = 0;
-        while i <= rooms.capacity() {
-            println!("\n{}", rooms[i].xwalls.0);
-            rooms[i] = Room::new();
+        while i <= rooms.len() {
+            //println!("\n{}", rooms[i].xwalls.0);
+            rooms.push(Room::new());
             i+=1;
         }
 
