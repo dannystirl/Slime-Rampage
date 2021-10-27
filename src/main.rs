@@ -341,35 +341,7 @@ impl ROGUELIKE {
 					self.game_data.enemy_projectiles.push(bullet);
 				}
 			}
-			
-			// shoot ranged
-			/*if!(enemy.is_firing){
-				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
-				let angle = ((vec[0] / vec[1]).abs()).atan();
-				let speed: f64 = speed_limit_adj;
-				let mut x = &speed * angle.sin();
-				let mut y = &speed * angle.cos();
-				if vec[0] < 0.0 {
-					x *= -1.0;
-				}
-				if vec[1] < 0.0  {
-					y *= -1.0;
-				}
-				let bullet = projectile::Projectile::new(
-					Rect::new(
-						enemy.pos().x(),
-						enemy.pos().y(),
-						TILE_SIZE/2,
-						TILE_SIZE/2,
-					),
-					false,
-					false,
-					0,
-					vec![x,y],
-				);
-				self.game_data.enemy_projectiles.push(bullet);
-			}
-			*/
+		
 			// aggro / move
 			if rngt[0] > 30 || ROGUELIKE::check_edge(self, &enemy){
 				rngt[i] = rng.gen_range(1..5);
@@ -556,22 +528,6 @@ impl ROGUELIKE {
 		player.set_invincible();
 	}
 
-	//update background
-	pub fn unused_background(&mut self, player: &mut Player, background: &mut Background) -> Result<(), String> {
-		let cur_bg = Rect::new(
-			((player.x() as i32 + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (BG_W - CAM_W) as i32),
-			((player.y() as i32 + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (BG_H - CAM_H) as i32),
-			CAM_W,
-			CAM_H,
-		);
-		self.core.wincan.set_draw_color(Color::BLACK);
-		self.core.wincan.clear();
-
-		// Draw subset of bg
-		self.core.wincan.copy(background.texture(), cur_bg, None).unwrap();
-		Ok(())
-	}
-
 	//draw weapon
 	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
 
@@ -674,9 +630,6 @@ impl ROGUELIKE {
 		s += &a;
 
 		//display string next to mana
-
-
-
 
 		//display equipped waepon
 		if player.get_curr_meele() == "sword_l"
