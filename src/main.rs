@@ -114,10 +114,18 @@ impl Game for ROGUELIKE {
 		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(1);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
+			let num = rng.gen_range(1..5);
+			let mut enemy_type: String; 
+			match num {
+				5 => { enemy_type = String::from("ranged") } 
+				4 => { enemy_type = String::from("ranged") } 
+				_ => { enemy_type = String::from("melee") } 
+			}
+			println!("{}", enemy_type);
 			let e = enemy::Enemy::new(
 				Rect::new(
 					(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
@@ -126,6 +134,7 @@ impl Game for ROGUELIKE {
 					TILE_SIZE,
 				),
 				texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+				enemy_type, 
 			);
 			enemies.push(e);
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
@@ -315,39 +324,37 @@ impl ROGUELIKE {
 				continue;
 			}
 
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() && enemy.enemy_type == String::from("ranged") {
 				enemy.set_fire_cooldown();
 				let fire_chance = rng.gen_range(1..60);
 				if fire_chance < 5 { // chance to fire
 					enemy.fire(); // sets is firing true
+					let vec = vec![player.x() - enemy.x(), 
+								   player.y() - enemy.y()];
+					let angle = ((vec[0] / vec[1]).abs()).atan();
+					let speed: f64 = speed_limit_adj;
+					let mut x = &speed * angle.sin();
+					let mut y = &speed * angle.cos();
+					if vec[0] < 0.0 {
+						x *= -1.0;
+					}
+					if vec[1] < 0.0  {
+						y *= -1.0;
+					}
+					let bullet = projectile::Projectile::new(
+						Rect::new(
+							enemy.pos().x(),
+							enemy.pos().y(),
+							TILE_SIZE/2,
+							TILE_SIZE/2,
+						),
+						false,
+						false,
+						0,
+						vec![x,y],
+					);
+					self.game_data.enemy_projectiles.push(bullet);
 				}
-			}
-			// shoot ranged
-			if!(enemy.is_firing){
-				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
-				let angle = ((vec[0] / vec[1]).abs()).atan();
-				let speed: f64 = speed_limit_adj;
-				let mut x = &speed * angle.sin();
-				let mut y = &speed * angle.cos();
-				if vec[0] < 0.0 {
-					x *= -1.0;
-				}
-				if vec[1] < 0.0  {
-					y *= -1.0;
-				}
-				let bullet = projectile::Projectile::new(
-					Rect::new(
-						enemy.pos().x(),
-						enemy.pos().y(),
-						TILE_SIZE/2,
-						TILE_SIZE/2,
-					),
-					false,
-					false,
-					0,
-					vec![x,y],
-				);
-				self.game_data.enemy_projectiles.push(bullet);
 			}
 			
 			// aggro / move
@@ -377,7 +384,11 @@ impl ROGUELIKE {
 			if distance > 300.0 {
 				enemy.update_pos(rngt[i], xbounds, ybounds);
 			} else {
-				enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+				if enemy.enemy_type == String::from("melee") {
+					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+				} else {
+					enemy.flee(player.x().into(), player.y().into(), xbounds, ybounds, speed_limit_adj);
+				}
 			}
 			let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
 								enemy.y() as i32 + (CENTER_H - player.y() as i32),
@@ -457,7 +468,6 @@ impl ROGUELIKE {
 		for projectile in player_projectiles {
 			if projectile.is_active() {
 				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
-				
 			}
 		}
 		for projectile in enemy_projectiles {
@@ -645,10 +655,10 @@ impl ROGUELIKE {
 		//display mana
 		let mut mana = ui::UI::new(
 			Rect::new(
-				(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*12) as i32,
-				(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
-				(TILE_SIZE as f64 * 1.2) as u32,
-				(TILE_SIZE as f64 * 1.2) as u32,
+				(CAM_W-(TILE_SIZE*4)) as i32,
+				(CAM_H-(TILE_SIZE)) as i32,
+				(TILE_SIZE as f64 / 1.2) as u32,
+				(TILE_SIZE as f64 / 1.2) as u32,
 			),
 			texture_creator.load_texture("images/ui/mana.png")?,
 		);
