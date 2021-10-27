@@ -168,7 +168,7 @@ impl Game for ROGUELIKE {
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/moss_tile.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
-			texture_creator.load_texture("images/background/floor_tile_pilar.png")?, 
+			texture_creator.load_texture("images/background/skull.png")?,
 			xwalls, 
 			ywalls, 
 		);
