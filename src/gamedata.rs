@@ -21,9 +21,18 @@ impl GameData{
     pub fn new() -> GameData{
         // creating a level: room data
         let current_room = 0; // starting room
+<<<<<<< HEAD
         let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11)); 
         let mut i = 0;
         while i < rooms.capacity() {
+=======
+        let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11)); // creating as a vec! instead of Vec for indexing, which then requires an initial value. if init as Vec, don't pass room into GameData
+        //let mut rooms: vec![Room::new(), rand::thread_rng().gen_range(8..11)];
+        println!("\n{}", rooms.capacity());
+        let mut i = 0;
+        while i < rooms.capacity() {
+            //println!("\n{}", rooms[i].xwalls.0);
+>>>>>>> 947f1da6e92fc0813a02430a21a346946b52a254
             rooms.push(Room::new());
             i+=1;
         }
