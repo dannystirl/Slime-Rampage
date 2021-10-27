@@ -18,10 +18,11 @@ pub struct Background<'a> {
 	pub x_tiles: (i32,i32),
 	pub y_tiles: (i32,i32),
 	pub tiles: Vec<(bool,i32)>,
+	curr_bg: Rect, 
 }
 
 impl<'a> Background<'a> {
-	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32)) -> Background<'a> {
+	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
 		let tiles: Vec<(bool,i32)> = vec![(true,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize]; // (draw?, texture)
 		Background {
 			black,
@@ -32,6 +33,7 @@ impl<'a> Background<'a> {
 			x_tiles,
 			y_tiles,
 			tiles,
+			curr_bg, 
 		}
 	}
 
@@ -58,6 +60,19 @@ impl<'a> Background<'a> {
 								TILE_SIZE, TILE_SIZE);
 		}
 		return (texture, src, pos);
+	}
+
+	pub fn set_curr_background(&mut self, x:f64, y:f64, w: u32, h:u32){
+		self.curr_bg = Rect::new(
+			(x as i32 + ((w / 2) as i32)) - ((CAM_W / 2) as i32),
+			(y as i32 + ((h / 2) as i32)) - ((CAM_H / 2) as i32),
+			CAM_W,
+			CAM_H,
+		);
+	}
+
+	pub fn get_curr_background(&self) -> Rect {
+		self.curr_bg
 	}
 
 	pub fn texture(&self) -> &Texture {

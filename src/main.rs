@@ -150,7 +150,7 @@ impl Game for ROGUELIKE {
 		); */
 
 		// CREATE ROOM 
-		let background = background::Background::new(
+		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
@@ -158,6 +158,12 @@ impl Game for ROGUELIKE {
 			texture_creator.load_texture("images/background/skull.png")?,
 			self.game_data.rooms[self.game_data.current_room].xwalls, 
 			self.game_data.rooms[self.game_data.current_room].ywalls, 
+			Rect::new(
+				(player.x() as i32 + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32),
+				(player.y() as i32 + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32),
+				CAM_W,
+				CAM_H,
+			),
 		);
 
 		let mut all_frames = 0;
@@ -194,34 +200,29 @@ impl Game for ROGUELIKE {
 				.pressed_scancodes()
 				.filter_map(Keycode::from_scancode)
 				.collect();
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
 
 			// UPDATE BACKGROUND
-			let cur_bg = Rect::new(
-				(player.x() as i32 + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32),
-				(player.y() as i32 + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32),
-				CAM_W,
-				CAM_H,
-			);
-			ROGUELIKE::update_background(self, &player, &background)?;
+			ROGUELIKE::update_background(self, &player, &mut background)?;
+
+			// UPDATE PLAYER
+			player.update_player(&self.game_data);
+			self.draw_player(&count, &f_display, &mut player, background.get_curr_background());
+			count = count + 1;
+			if count > f_display * 5 {
+				count = 0;
+			}
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player);
 			}
 
-			// UPDATE PLAYER
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
-			player.update_player(&self.game_data);
-			self.draw_player(&count, &f_display, &mut player, &cur_bg);
-			count = count + 1;
-			if count > f_display * 5 {
-				count = 0;
-			}
-
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut player, &mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::display_weapon(self, &mut player)?;
+			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
+			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;	
+			ROGUELIKE::draw_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering. 			
@@ -234,9 +235,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
-			// DRAW PROJECTILES
-			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;	
-
+			
 			// UPDATE FRAME
 			self.core.wincan.present();
 		}
@@ -254,7 +253,8 @@ pub fn main() -> Result<(), String> {
 
 // Create map
 impl ROGUELIKE {
-	pub fn update_background(&mut self, player: &Player, background:& Background) -> Result<(), String> {
+	pub fn update_background(&mut self, player: &Player, background: &mut Background) -> Result<(), String> {
+		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 		let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
 		let mut n = 0;
 		for i in 0..self.game_data.rooms[0].xwalls.1+1 {
@@ -365,7 +365,7 @@ impl ROGUELIKE {
 	}
 
 	// update projectiles
-	pub fn update_projectiles(player: &mut Player, player_projectiles: &mut Vec<Projectile>, enemy_projectiles: &mut Vec<Projectile>) {
+	pub fn update_projectiles(player_projectiles: &mut Vec<Projectile>, enemy_projectiles: &mut Vec<Projectile>) {
 		for projectile in player_projectiles {
 			if projectile.is_active() {
 				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
@@ -429,7 +429,7 @@ impl ROGUELIKE {
 	}
 
 	//draw weapon
-	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
+	pub fn draw_weapon(&mut self, player: &mut Player) -> Result<(), String> {
 
 		let texture_creator = self.core.wincan.texture_creator();
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
@@ -508,7 +508,7 @@ impl ROGUELIKE {
 			),
 			texture_creator.load_texture("images/ui/mana.png")?,
 		);
-		let mut cur_mana = 0;
+		let cur_mana;
 		match player.get_mana() {
 			0 => cur_mana = 32 * 4,
 			1 => cur_mana = 32 * 3,
@@ -590,8 +590,8 @@ impl ROGUELIKE {
 	}
 
 	// draw player
-	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, cur_bg: &Rect) {
-		player.set_cam_pos(cur_bg.x(), cur_bg.y());
+	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, curr_bg: Rect) {
+		player.set_cam_pos(curr_bg.x(), curr_bg.y());
 		player.get_frame_display(count, f_display);
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}

@@ -20,7 +20,7 @@ const FIRE_COOLDOWN: u128 = 1500;
 
 pub struct Enemy<'a> {
 	vel: Rect, 
-	pub pos: Rect,
+	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
 	stun_timer: Instant,
