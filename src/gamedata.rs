@@ -27,7 +27,7 @@ impl GameData{
             rooms.push(Room::new());
             i+=1;
         }
-
+        
         // global values: 
         let speed_limit = 3.0;
 		let accel_rate = 0.0;

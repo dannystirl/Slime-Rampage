@@ -107,7 +107,7 @@ impl Game for ROGUELIKE {
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
-		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement
+		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let num = rng.gen_range(1..5);
@@ -206,7 +206,7 @@ impl Game for ROGUELIKE {
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
-				rngt = ROGUELIKE::update_enemies(self, rngt, &mut enemies, &mut player);
+				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player);
 			}
 
 			// UPDATE PLAYER
@@ -255,33 +255,13 @@ pub fn main() -> Result<(), String> {
 // Create map
 impl ROGUELIKE {
 	pub fn update_background(&mut self, player: &Player, background:& Background) -> Result<(), String> {
+		let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
 		let mut n = 0;
 		for i in 0..self.game_data.rooms[0].xwalls.1+1 {
 			for j in 0..self.game_data.rooms[0].ywalls.1+1 {
-				if background.tiles[n].0 {
-					let num = background.tiles[n].1;
-					let texture;
-					match num {
-						7 => { texture = &background.texture_3 } // pillar 
-						6 => { texture = &background.texture_2 } // border tiles
-						1 => { texture = &background.texture_1 } // slime on tile
-						_ => { texture = &background.texture_0 } // regular tile
-					}
-					// double tile size 
-					let src;
-					let pos;
-					if num==7 {
-						src = Rect::new(0, 0, TILE_SIZE * 2, TILE_SIZE * 2);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
-											j * TILE_SIZE as i32 + (CENTER_H - player.y() as i32),
-											TILE_SIZE * 2, TILE_SIZE * 2);
-					} else {
-						src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-						pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - player.x() as i32),
-											j * TILE_SIZE as i32 + (CENTER_H - player.y() as i32),
-											TILE_SIZE, TILE_SIZE);
-					}
-					self.core.wincan.copy(texture, src, pos)?;
+				if tiles[n].0 {
+					let t = background.get_tile_info(tiles[n].1, i, j, player.x(), player.y());
+					self.core.wincan.copy(t.0, t.1, t.2)?;
 				}
 				n+=1;
 			}
@@ -289,91 +269,22 @@ impl ROGUELIKE {
 		Ok(())
 	}
 	// update enemies
-	pub fn update_enemies(&mut self, mut rngt: Vec<i32>, enemies: &mut Vec<Enemy>, player: &mut Player) -> Vec<i32>{
-		let xbounds = self.game_data.rooms[0].xbounds;
-		let ybounds = self.game_data.rooms[0].ybounds;
+	pub fn update_enemies(&mut self, rngt: &mut Vec<i32>, enemies: &mut Vec<Enemy>, player: &Player) -> Vec<i32> {
 		let mut i = 1;
-		let mut rng = rand::thread_rng();
 		for enemy in enemies {
-			if !enemy.is_alive(){
-				continue;
-			}
-
-
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() && enemy.enemy_type == String::from("ranged"){
-				enemy.set_fire_cooldown();
-				let fire_chance = rng.gen_range(1..60);
-				if fire_chance < 5 { // chance to fire
-					enemy.fire(); // sets is firing true
-					let vec = vec![player.x() - enemy.x(), 
-								   player.y() - enemy.y()];
-					let angle = ((vec[0] / vec[1]).abs()).atan();
-					let speed: f64 = self.game_data.get_speed_limit();
-					let mut x = &speed * angle.sin();
-					let mut y = &speed * angle.cos();
-					if vec[0] < 0.0 {
-						x *= -1.0;
-					}
-					if vec[1] < 0.0  {
-						y *= -1.0;
-					}
-					let bullet = projectile::Projectile::new(
-						Rect::new(
-							enemy.pos().x(),
-							enemy.pos().y(),
-							TILE_SIZE/2,
-							TILE_SIZE/2,
-						),
-						false,
-						false,
-						0,
-						vec![x,y],
-					);
-					self.game_data.enemy_projectiles.push(bullet);
+			if enemy.is_alive(){
+				enemy.check_attack(&mut self.game_data, (player.x(), player.y()));
+				if rngt[0] > 30 || enemy.force_move(&self.game_data){
+					rngt[i] = rand::thread_rng().gen_range(1..5);
+					rngt[0] = 0;
 				}
+				let t = enemy.update_pos(&self.game_data, rngt, i, (player.x(), player.y()));
+				self.core.wincan.copy(enemy.txtre(), enemy.src(), t).unwrap();
+				i += 1;
 			}
-		
-			// aggro / move
-			if rngt[0] > 30 || ROGUELIKE::check_edge(self, &enemy){
-				rngt[i] = rng.gen_range(1..5);
-				rngt[0] = 0;
-			}
-			let x_d = (enemy.x() - player.x()).powf(2.0);
-			let y_d = (enemy.y() - player.y()).powf(2.0);
-			let distance = (x_d + y_d).sqrt();
-			if enemy.get_stun_timer() > 1000 {
-				enemy.set_stunned(false);
-			} else {
-				enemy.slow_vel(0.1);
-				let angle = enemy.angle();
-				let mut x = (enemy.get_vel() * -1.0) * angle.sin();
-				if enemy.x_flipped {
-					x *= -1.0;
-				}
-				let mut y = (enemy.get_vel() * -1.0) * angle.cos();
-				if enemy.y_flipped {
-					y *= -1.0;
-				}
-				enemy.pos.set_x(((enemy.x() + x) as i32).clamp(xbounds.0, xbounds.1));
-				enemy.pos.set_y(((enemy.y() + y) as i32).clamp(ybounds.0, ybounds.1));
-			}
-			if distance > 300.0 {
-				enemy.update_pos(rngt[i], xbounds, ybounds);
-			} else {
-				if enemy.enemy_type == String::from("melee") {
-					enemy.aggro(player.x().into(), player.y().into(), xbounds, ybounds, self.game_data.get_speed_limit());
-				} else {
-					enemy.flee(player.x().into(), player.y().into(), xbounds, ybounds, self.game_data.get_speed_limit());
-				}
-			}
-			let pos = Rect::new(enemy.x() as i32 + (CENTER_W - player.x() as i32),
-								enemy.y() as i32 + (CENTER_H - player.y() as i32),
-								TILE_SIZE, TILE_SIZE);
-			self.core.wincan.copy(enemy.txtre(), enemy.src(), pos).unwrap();
-			i += 1;
 		}
 		rngt[0] += 1;
-		return rngt;
+		return rngt.to_vec();
 	}
 
 	pub fn update_interactables(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
@@ -705,17 +616,5 @@ impl ROGUELIKE {
 			}
 		}
 		Ok(())
-	}
-
-	// force enemy movement
-	pub fn check_edge(&mut self, enemy: &enemy::Enemy) -> bool{
-		let xbounds = self.game_data.rooms[0].xbounds;
-		let ybounds = self.game_data.rooms[0].ybounds;
-		if  enemy.x() <= xbounds.0 as f64 ||
-		enemy.x() >=  xbounds.1 as f64 ||
-		enemy.y() <= ybounds.0 as f64||
-		enemy.y() >= ybounds.1 as f64
-		{return true;}
-		else {return false;}
 	}
 }
