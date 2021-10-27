@@ -319,7 +319,7 @@ impl ROGUELIKE {
 			// shoot ranged
 			if!(enemy.is_firing){
 				enemy.fire(); 
-				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
+				let vec = vec![player.x() as f64 - enemy.x() as f64 , player.y() - enemy.y() as f64];
 				let angle = ((vec[0] / vec[1]).abs()).atan();
 				let speed: f64 = 3.0* speed_limit_adj;
 				let mut x = &speed * angle.sin();
