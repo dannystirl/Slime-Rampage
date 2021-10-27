@@ -9,7 +9,7 @@ const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
 const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
 const FIRE_COOLDOWN: u128 = 300;
-const MANA_RESTORE_RATE: u128 = 2500;
+const MANA_RESTORE_RATE: u128 = 1000;
 
 pub struct Player<'a> {
 	pos: (f64, f64),
