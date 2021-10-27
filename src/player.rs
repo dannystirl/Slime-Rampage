@@ -3,6 +3,8 @@ extern crate rogue_sdl;
 use std::time::Instant;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
+use crate::projectile;
+use crate::projectile::Projectile;
 
 const TILE_SIZE: u32 = 64;
 const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
@@ -10,6 +12,10 @@ const ATTK_COOLDOWN: u128 = 300;
 const DMG_COOLDOWN: u128 = 800;
 const FIRE_COOLDOWN: u128 = 300;
 const MANA_RESTORE_RATE: u128 = 1000;
+const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
+const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
+const CAM_W: u32 = 1280;
+const CAM_H: u32 = 720;
 
 pub struct Player<'a> {
 	pos: (f64, f64),
@@ -238,14 +244,35 @@ impl<'a> Player<'a> {
 		self.clear_attack_box();
 	}
 
-	pub fn fire(&mut self){
-		if self.get_fire_timer() < FIRE_COOLDOWN || self.get_mana() <= 0 {
-			return;
-		}
-		self.is_firing = true;
-		self.use_mana();
-		self.fire_timer = Instant::now();
-		
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: &f64) -> Projectile {
+			self.is_firing = true;
+			self.use_mana();
+			self.fire_timer = Instant::now();
+
+			let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE / 2) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE / 2) as f64];
+			let angle = ((vec[0] / vec[1]).abs()).atan();
+			let speed: f64 = 3.0 * *speed_limit;
+			let mut x = &speed * angle.sin();
+			let mut y = &speed * angle.cos();
+			if vec[0] < 0.0 {
+				x *= -1.0;
+			}
+			if vec[1] < 0.0 {
+				y *= -1.0;
+			}
+			let bullet = projectile::Projectile::new(
+				Rect::new(
+					self.x() as i32,
+					self.y() as i32,
+					TILE_SIZE / 2,
+					TILE_SIZE / 2,
+				),
+				false,
+				false,
+				0,
+				vec![x, y],
+			);
+			return bullet;
 	}	
 
 	pub fn get_fire_cooldown(&self)-> u128{

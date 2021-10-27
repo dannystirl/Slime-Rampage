@@ -497,30 +497,7 @@ impl ROGUELIKE {
 		// Shoot ranged attack
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
-				player.fire(); 
-				let vec = vec![mousestate.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, mousestate.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
-				let angle = ((vec[0] / vec[1]).abs()).atan();
-				let speed: f64 = 3.0* speed_limit_adj;
-				let mut x = &speed * angle.sin();
-				let mut y = &speed * angle.cos();
-				if vec[0] < 0.0 {
-					x *= -1.0;
-				}
-				if vec[1] < 0.0  {
-					y *= -1.0;
-				}
-				let bullet = projectile::Projectile::new(
-					Rect::new(
-						player.pos().x(),
-						player.pos().y(),
-						TILE_SIZE/2,
-						TILE_SIZE/2,
-					),
-					false,
-					false,
-					0,
-					vec![x,y],
-				);
+				let bullet = player.fire(mousestate.x(), mousestate.y(), &speed_limit_adj);
 				self.game_data.player_projectiles.push(bullet);
 			}
 		}
@@ -587,7 +564,6 @@ impl ROGUELIKE {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
 					coin.set_collected();
-					
 				}
 			}
 		}
