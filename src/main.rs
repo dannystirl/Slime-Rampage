@@ -330,7 +330,7 @@ impl ROGUELIKE {
 			}
 
 			
-			if enemy.get_fire_timer() > enemy.get_fire_cooldown() {
+			if enemy.get_fire_timer() > enemy.get_fire_cooldown() && enemy.enemy_type == String::from("ranged"){
 				enemy.set_fire_cooldown();
 				let fire_chance = rng.gen_range(1..60);
 				if fire_chance < 5 { // chance to fire
@@ -362,8 +362,9 @@ impl ROGUELIKE {
 					self.game_data.enemy_projectiles.push(bullet);
 				}
 			}
+			
 			// shoot ranged
-			if!(enemy.is_firing){
+			/*if!(enemy.is_firing){
 				let vec = vec![player.x() as f64 - CENTER_W as f64 - (TILE_SIZE/2) as f64, player.y() as f64 - CENTER_H as f64 - (TILE_SIZE/2) as f64];
 				let angle = ((vec[0] / vec[1]).abs()).atan();
 				let speed: f64 = speed_limit_adj;
@@ -389,7 +390,7 @@ impl ROGUELIKE {
 				);
 				self.game_data.enemy_projectiles.push(bullet);
 			}
-			
+			*/
 			// aggro / move
 			if rngt[0] > 30 || ROGUELIKE::check_edge(xbounds, ybounds, &enemy){
 				rngt[i] = rng.gen_range(1..5);
