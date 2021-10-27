@@ -646,21 +646,6 @@ impl ROGUELIKE {
 		player.restore_mana();
 	}
 
-	//update background
-	pub fn unused_background(&mut self, player: &mut Player, background: &mut Background) -> Result<(), String> {
-		let cur_bg = Rect::new(
-			((player.x() as i32 + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32)).clamp(0, (BG_W - CAM_W) as i32),
-			((player.y() as i32 + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32)).clamp(0, (BG_H - CAM_H) as i32),
-			CAM_W,
-			CAM_H,
-		);
-		self.core.wincan.set_draw_color(Color::BLACK);
-		self.core.wincan.clear();
-
-		// Draw subset of bg
-		self.core.wincan.copy(background.texture(), cur_bg, None).unwrap();
-		Ok(())
-	}
 
 	//draw weapon
 	pub fn display_weapon(&mut self, player: &mut Player) -> Result<(), String> {
