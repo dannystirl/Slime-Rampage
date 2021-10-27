@@ -84,7 +84,7 @@ impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-		let game_data = GameData::new(Room::new());
+		let game_data = GameData::new();
 		Ok(ROGUELIKE{ core, game_data })
 	}
 
@@ -126,6 +126,7 @@ impl Game for ROGUELIKE {
 				),
 				texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
 				enemy_type, 
+				i, 
 			);
 			enemies.push(e);
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves

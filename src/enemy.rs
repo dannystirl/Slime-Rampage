@@ -29,10 +29,11 @@ pub struct Enemy<'a> {
 	pub alive: bool,
 	pub is_firing: bool,
 	pub enemy_type: String,
+	pub enemy_number: usize,
 }
 
  impl<'a> Enemy<'a> {
-	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: String) -> Enemy<'a> {
+	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: String, num: usize) -> Enemy<'a> {
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let stun_timer = Instant::now();
@@ -48,6 +49,7 @@ pub struct Enemy<'a> {
 		let hp = 10;
 		let alive = true;
 		let enemy_type = enemy_type;
+		let enemy_number = num-1; 
 		Enemy {
 			vel, 
 			pos,
@@ -66,6 +68,7 @@ pub struct Enemy<'a> {
 			alive,
 			is_firing,
 			enemy_type, 
+			enemy_number, 
 		}
 	}
 
