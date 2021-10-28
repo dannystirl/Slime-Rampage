@@ -19,7 +19,9 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
+use sdl2::pixels::Color;
 use sdl2::render::Texture;
+use sdl2::render::TextureQuery;
 use rogue_sdl::{Game, SDLCore};
 use crate::gamedata::GameData;
 use crate::enemy::*;
@@ -186,6 +188,9 @@ impl Game for ROGUELIKE {
 			if elapsed > Duration::from_secs(2) {
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player);
 			}
+
+			//UPDATE INTERACTABLES (GOLD FOR NOW)
+			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture);
 
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
@@ -391,6 +396,7 @@ impl ROGUELIKE {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
 					coin.set_collected();
+					player.add_coins(coin.get_gold());
 				}
 			}
 		}
@@ -435,6 +441,8 @@ impl ROGUELIKE {
 		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32 - 8, CAM_W, TILE_SIZE*3/2);
 		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
 		self.core.wincan.copy(&ui, src, pos)?;
+		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
+		let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
 
 		//create hearts
 		let mut i=0;
@@ -540,7 +548,10 @@ impl ROGUELIKE {
 			texture_creator.load_texture("images/ui/gold_coin.png")?,
 		);
 		self.core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
-		
+		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
+		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
+		self.core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) );
+																//(text to display, src(none), (positionx, positiony, sizex, sizey))
 		Ok(())
 	}
 
