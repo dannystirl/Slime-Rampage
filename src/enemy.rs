@@ -7,6 +7,9 @@ use sdl2::rect::Rect;
 use std::time::Instant;
 use sdl2::render::Texture;
 use rand::Rng;
+use crate::{gold, main};
+use rogue_sdl::{Game, SDLCore};
+use crate::gold::Gold;
 
 pub struct Enemy<'a> {
 	vel: Rect, 
@@ -327,6 +330,19 @@ pub struct Enemy<'a> {
 			self.die();
 		}
 	}
+
+	 pub fn drop_item(&mut self) -> Gold {
+		 let coin = gold::Gold::new(
+			 Rect::new(
+				 self.x() as i32,
+				 self.y() as i32,
+				 TILE_SIZE,
+				 TILE_SIZE,
+			 ),
+		 );
+		 self.set_no_gold();
+		 return coin;
+	 }
 
 	pub fn die(&mut self){
 		// Set death animation when created

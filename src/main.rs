@@ -15,8 +15,7 @@ use rand::Rng;
 use rogue_sdl::{Game, SDLCore};
 use crate::background::*;
 use crate::enemy::*;
-//use crate::gamedata::*;
-use crate::gamedata::GameData;
+use crate::gamedata::*;
 //use crate::gold::*;
 use crate::player::*;
 use crate::projectile::*;
@@ -29,34 +28,6 @@ use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
-// window globals
-pub const TITLE: &str = "Roguelike";
-pub const CAM_W: u32 = 1280;
-pub const CAM_H: u32 = 720;
-pub const TILE_SIZE: u32 = 64;
-
-pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
-
-//background globals
-pub const BG_W: u32 = 2400;
-pub const BG_H: u32 = 1440;
-
-// game globals
-pub const SPEED_LIMIT: f64 = 200.0;
-pub const ACCEL_RATE: f64 = 200.0;
-pub const STARTING_TIMER: u128 = 1000;
-
-// player globals
-pub const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
-pub const ATTK_COOLDOWN: u128 = 300;
-pub const DMG_COOLDOWN: u128 = 800;
-pub const FIRE_COOLDOWN_P: u128 = 300;
-pub const MANA_RESTORE_RATE: u128 = 1000;
-
-// enemy globals
-pub const STUN_TIME: u32 = 2000;
-pub const FIRE_COOLDOWN_E: u128 = 1500;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -273,20 +244,9 @@ impl ROGUELIKE {
 	pub fn update_interactables(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
 		//add coins to gold vector
 		for enemy in enemies {
-			if !enemy.is_alive() {
-				if enemy.has_gold() {
-					let coin = gold::Gold::new(
-						Rect::new(
-							enemy.x() as i32,
-							enemy.y() as i32,
-							TILE_SIZE,
-							TILE_SIZE,
-						),
-
-					);
-					self.game_data.gold.push(coin);
-					enemy.set_no_gold();
-				}
+			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
+				let drop = enemy.drop_item();
+				self.game_data.gold.push(drop);
 			}
 		}
 		for coin in self.game_data.gold.iter_mut() {
