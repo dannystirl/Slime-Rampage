@@ -32,6 +32,7 @@ pub struct Player<'a> {
 	pub curr_meele: String,
 	pub curr_ability: String,
 	pub is_firing: bool,
+	pub coins: u32,
 }
 
 impl<'a> Player<'a> {
@@ -62,6 +63,7 @@ impl<'a> Player<'a> {
 		let weapon_frame=0; 
 		let curr_meele = String::from("sword_l");
 		let curr_ability = String::from("bullet");
+		let coins = 0;
 
 		Player {
 			pos,
@@ -87,6 +89,7 @@ impl<'a> Player<'a> {
 			curr_meele,
 			curr_ability,
 			is_firing,
+			coins,
 		}
 	}
 
@@ -297,9 +300,8 @@ impl<'a> Player<'a> {
 					TILE_SIZE / 2,
 					TILE_SIZE / 2,
 				),
+				
 				false,
-				false,
-				0,
 				vec![x, y],
 			);
 			return bullet;
@@ -364,6 +366,19 @@ impl<'a> Player<'a> {
 		} else {
 			self.invincible = false;
 		}
+	}
+
+	//coin values
+	pub fn get_coins(&self) -> u32 {
+		return self.coins
+	}
+
+	pub fn add_coins(&mut self, coins_to_add: u32)  {
+		self.coins += coins_to_add;
+	}
+
+	pub fn sub_coins(&mut self, coins_to_add: u32)  {
+		self.coins -= coins_to_add;
 	}
 }
 
