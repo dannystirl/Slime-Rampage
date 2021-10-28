@@ -364,6 +364,7 @@ impl ROGUELIKE {
 			// player collision
 			if check_collision(&player.pos(), &enemy.pos()) {
 				player.minus_hp(5);
+				player.set_invincible();
 			}
 			
 			// player projectile collisions
@@ -387,6 +388,7 @@ impl ROGUELIKE {
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
 					player.minus_hp(5);
+					player.set_invincible();
 					projectile.die();
 				}
 			}	
@@ -399,7 +401,6 @@ impl ROGUELIKE {
 				}
 			}
 		}
-		player.set_invincible();
 	}
 
 	//draw weapon
