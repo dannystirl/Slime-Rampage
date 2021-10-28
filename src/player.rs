@@ -6,17 +6,7 @@ use sdl2::render::Texture;
 use crate::projectile;
 use crate::projectile::Projectile;
 use crate::gamedata::GameData;
-
-const TILE_SIZE: u32 = 64;
-const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
-const ATTK_COOLDOWN: u128 = 300;
-const DMG_COOLDOWN: u128 = 800;
-const FIRE_COOLDOWN: u128 = 300;
-const MANA_RESTORE_RATE: u128 = 1000;
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
+use crate::gamedata::*;
 
 pub struct Player<'a> {
 	pos: (f64, f64),
@@ -149,7 +139,7 @@ impl<'a> Player<'a> {
 			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0); 
 		}
 		// is the player currently firing?
-		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN {
+		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
 			self.is_firing =false;
 		}
 

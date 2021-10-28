@@ -5,7 +5,34 @@ use crate::projectile::*;
 use crate::gold::*;
 use crate::room::*;
 
-const TILE_SIZE: u32 = 64;
+// window globals
+pub const TITLE: &str = "Roguelike";
+pub const CAM_W: u32 = 1280;
+pub const CAM_H: u32 = 720;
+pub const TILE_SIZE: u32 = 64;
+
+pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
+pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
+
+//background globals
+pub const BG_W: u32 = 2400;
+pub const BG_H: u32 = 1440;
+
+// game globals
+pub const SPEED_LIMIT: f64 = 200.0;
+pub const ACCEL_RATE: f64 = 200.0;
+pub const STARTING_TIMER: u128 = 1000;
+
+// player globals
+pub const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
+pub const ATTK_COOLDOWN: u128 = 300;
+pub const DMG_COOLDOWN: u128 = 800;
+pub const FIRE_COOLDOWN_P: u128 = 300;
+pub const MANA_RESTORE_RATE: u128 = 1000;
+
+// enemy globals
+pub const STUN_TIME: u32 = 2000;
+pub const FIRE_COOLDOWN_E: u128 = 1500;
 
 pub struct GameData{
     pub gold: Vec<Gold>,

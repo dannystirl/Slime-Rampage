@@ -1,6 +1,5 @@
 use rand::Rng;
-
-const TILE_SIZE: u32 = 64;
+use crate::gamedata::*;
 
 pub struct Room{
     pub xwalls: (i32, i32), 

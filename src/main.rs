@@ -18,6 +18,7 @@ use crate::enemy::*;
 use crate::projectile::*;
 use crate::player::*;
 use crate::background::*;
+use crate::gamedata::*;
 //use crate::ui::*;
 //use crate::gold::*;
 use crate::room::*;
@@ -40,25 +41,6 @@ use sdl2::render::Texture;
 use rogue_sdl::{Game, SDLCore};
 //use sdl2::video::WindowContext;
 use crate::gamedata::GameData;
-
-// window globals
-const TITLE: &str = "Roguelike";
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const TILE_SIZE: u32 = 64;
-const ATTACK_LENGTH: u32 = TILE_SIZE + (TILE_SIZE / 2);
-
-const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
-
-//background globals
-const BG_W: u32 = 2400;
-const BG_H: u32 = 1440;
-
-// game globals
-const SPEED_LIMIT: f64 = 200.0;
-const ACCEL_RATE: f64 = 200.0;
-const STARTING_TIMER: u128 = 1000;
 
 pub struct ROGUELIKE {
 	core: SDLCore,

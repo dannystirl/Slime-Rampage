@@ -1,5 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::GameData;
+use crate::gamedata::*;
 use crate::projectile;
 use crate::projectile::Projectile;
 
@@ -7,16 +8,6 @@ use sdl2::rect::Rect;
 use std::time::Instant;
 use sdl2::render::Texture;
 use rand::Rng;
-
-const TILE_SIZE: u32 = 64;
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
-
-#[allow(dead_code)]
-const STUN_TIME: u32 = 2000;
-const FIRE_COOLDOWN: u128 = 1500;
 
 pub struct Enemy<'a> {
 	vel: Rect, 
@@ -308,7 +299,7 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn fire(&mut self){
-		if self.get_fire_timer() < FIRE_COOLDOWN {
+		if self.get_fire_timer() < FIRE_COOLDOWN_E {
 		 return;
 		}
 		self.is_firing = true;
@@ -317,7 +308,7 @@ pub struct Enemy<'a> {
 	}	
 
 	pub fn get_fire_cooldown(&self)-> u128{
-		FIRE_COOLDOWN
+		FIRE_COOLDOWN_E
 	}
 	pub fn set_fire_cooldown(&mut self){
 		self.is_firing =false;

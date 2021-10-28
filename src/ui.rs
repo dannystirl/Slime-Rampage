@@ -1,9 +1,8 @@
 extern crate rogue_sdl;
+use crate::gamedata::*;
 
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
-
-const TILE_SIZE: u32 = 64;
 
 pub struct UI<'a>{
 	pos: Rect,
