@@ -117,24 +117,7 @@ impl Game for ROGUELIKE {
 			enemies.push(e);
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
 			i+=1;
-		}
-		// SETUP ARRAY OF PROJECTILES
-		// let mut projectiles: Vec<Projectile> = Vec::with_capacity(3);
-
-		/* // CREATE FIREBALL (SHOULD BE MOVED TO fireball.rs WHEN CREATED)
-        let mut fireball = ranged_attack::RangedAttack::new(
-			Rect::new(
-				(CAM_W/2 - TILE_SIZE/2) as i32,
-				(CAM_H/2 - TILE_SIZE/2) as i32,
-				TILE_SIZE,
-				TILE_SIZE,
-			),
-			false,
-			false,
-			0,
-            texture_creator.load_texture("images/abilities/fireball.png")?,
-		); */
-
+		}		
 		// CREATE ROOM 
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
