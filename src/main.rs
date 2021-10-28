@@ -204,6 +204,9 @@ impl Game for ROGUELIKE {
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player);
 			}
 
+			//UPDATE INTERACTABLES (GOLD FOR NOW)
+			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture);
+
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
