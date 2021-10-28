@@ -307,9 +307,8 @@ impl<'a> Player<'a> {
 					TILE_SIZE / 2,
 					TILE_SIZE / 2,
 				),
+				
 				false,
-				false,
-				0,
 				vec![x, y],
 			);
 			return bullet;

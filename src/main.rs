@@ -8,38 +8,24 @@ mod credits;
 mod gamedata;
 mod gold;
 mod room;
+
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
-//use std::time::Duration;
-//use std::time::Instant;
 use rand::Rng;
-use crate::enemy::*;
-use crate::projectile::*;
-use crate::player::*;
-use crate::background::*;
-//use crate::ui::*;
-//use crate::gold::*;
-use crate::room::*;
-
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
-//use sdl2::mouse::MouseButtonIterator;
-//use sdl2::mouse::PressedMouseButtonIterator;
 use sdl2::image::LoadTexture;
-//use sdl2::pixels::Color;
-//use sdl2::render::WindowCanvas;
 use sdl2::render::Texture;
-//use sdl2::render::{Texture, TextureCreator};
-//use sdl2::render::TextureQuery;
-
-
 use rogue_sdl::{Game, SDLCore};
-//use sdl2::video::WindowContext;
 use crate::gamedata::GameData;
+use crate::enemy::*;
+use crate::projectile::*;
+use crate::player::*;
+use crate::background::*;
 
 // window globals
 const TITLE: &str = "Roguelike";
@@ -52,13 +38,13 @@ const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
 const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 
 //background globals
-const BG_W: u32 = 2400;
-const BG_H: u32 = 1440;
+//const BG_W: u32 = 2400;
+//const BG_H: u32 = 1440;
 
 // game globals
 const SPEED_LIMIT: f64 = 200.0;
 const ACCEL_RATE: f64 = 200.0;
-const STARTING_TIMER: u128 = 1000;
+//const STARTING_TIMER: u128 = 1000;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -368,12 +354,12 @@ impl ROGUELIKE {
 	pub fn update_projectiles(player_projectiles: &mut Vec<Projectile>, enemy_projectiles: &mut Vec<Projectile>) {
 		for projectile in player_projectiles {
 			if projectile.is_active() {
-				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				projectile.update_pos();
 			}
 		}
 		for projectile in enemy_projectiles {
 			if projectile.is_active() {
-				projectile.update_pos((0, (CAM_W - TILE_SIZE) as i32));
+				projectile.update_pos();
 				
 			}
 		}
@@ -560,9 +546,6 @@ impl ROGUELIKE {
 			);
 			self.core.wincan.copy(ability.texture(), ability.src(),ability.pos())?;
 		}
-		
-		
-
 		// create coins
 		let coin = ui::UI::new(
 			Rect::new(
@@ -574,18 +557,7 @@ impl ROGUELIKE {
 			texture_creator.load_texture("images/ui/gold_coin.png")?,
 		);
 		self.core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
-		// x 
-		/* let x = ui::UI::new(
-			Rect::new(
-				(CAM_W-((2*TILE_SIZE) as f64 /1.2) as u32) as i32,
-				(CAM_H-(TILE_SIZE as f64) as u32) as i32,
-				(TILE_SIZE as f64 /1.2) as u32,
-				(TILE_SIZE as f64 /1.2) as u32,
-			),
-			texture_creator.load_texture("images/ui/x.png")?,
-		);
-		self.core.wincan.copy(x.texture(), x.src(), x.pos())?; */
-		// number of coins
+		
 		Ok(())
 	}
 
@@ -597,13 +569,12 @@ impl ROGUELIKE {
 	}
 
 	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
-		let p = Point::new(0, (TILE_SIZE/2) as i32);
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 									projectile.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
-				self.core.wincan.copy_ex(&bullet, None, pos, angle,p,player.facing_right,false)?; // rotation center
+				self.core.wincan.copy(&bullet, projectile.src(), pos)?; // rotation center
 			}
 		}
 		let p = Point::new(0, (TILE_SIZE/2) as i32);

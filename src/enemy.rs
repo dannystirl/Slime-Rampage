@@ -1,7 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::GameData;
-use crate::projectile;
-use crate::projectile::Projectile;
+use crate::projectile::*;
 
 use sdl2::rect::Rect;
 use std::time::Instant;
@@ -286,7 +285,7 @@ pub struct Enemy<'a> {
 				if vec[1] < 0.0  {
 					y *= -1.0;
 				}
-				let bullet = projectile::Projectile::new(
+				let bullet = Projectile::new(
 					Rect::new(
 						self.pos().x(),
 						self.pos().y(),
@@ -294,8 +293,6 @@ pub struct Enemy<'a> {
 						TILE_SIZE/2,
 					),
 					false,
-					false,
-					0,
 					vec![x,y],
 				);
 				game_data.enemy_projectiles.push(bullet);

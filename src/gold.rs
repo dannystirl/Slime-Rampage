@@ -3,10 +3,7 @@ extern crate rogue_sdl;
 use sdl2::rect::Rect;
 //use sdl2::render::Texture;
 
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
+
 const TILE_SIZE: u32 = 64;
 
 pub struct Gold{

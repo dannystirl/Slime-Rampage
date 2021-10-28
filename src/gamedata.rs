@@ -5,7 +5,6 @@ use crate::projectile::*;
 use crate::gold::*;
 use crate::room::*;
 
-const TILE_SIZE: u32 = 64;
 
 pub struct GameData{
     pub gold: Vec<Gold>,
