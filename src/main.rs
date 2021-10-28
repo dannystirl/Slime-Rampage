@@ -21,7 +21,7 @@ use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 use sdl2::render::Texture;
-use sdl2::render::TextureQuery;
+//use sdl2::render::TextureQuery;
 use rogue_sdl::{Game, SDLCore};
 use crate::gamedata::GameData;
 use crate::enemy::*;
@@ -90,7 +90,7 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
+		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 
@@ -190,8 +190,8 @@ impl Game for ROGUELIKE {
 			}
 
 			//UPDATE INTERACTABLES (GOLD FOR NOW)
-			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture);
-
+			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture)?;
+		
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
@@ -203,9 +203,8 @@ impl Game for ROGUELIKE {
 
 			// CHECK COLLISIONS
 			ROGUELIKE::check_collisions(self, &mut player, &mut enemies);
-			if player.is_dead(){
-				break 'gameloop;
-			}
+			if player.is_dead(){break 'gameloop;}
+			
 
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
@@ -555,6 +554,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 
+	
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, curr_bg: Rect) {
 		player.set_cam_pos(curr_bg.x(), curr_bg.y());
@@ -562,22 +562,17 @@ impl ROGUELIKE {
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
 
+
 	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-									projectile.y() as i32 + (CENTER_H - player.y() as i32),
-									TILE_SIZE, TILE_SIZE);
-				self.core.wincan.copy(&bullet, projectile.src(), pos)?; // rotation center
+				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player))?; // rotation center
 			}
 		}
-		let p = Point::new(0, (TILE_SIZE/2) as i32);
+		let p = Point::new(0, (TILE_SIZE/2) as i32);//used for point of rotation later
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				let pos = Rect::new(projectile.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-									projectile.y() as i32 + (CENTER_H - player.y() as i32),
-									TILE_SIZE, TILE_SIZE);
-				self.core.wincan.copy_ex(&bullet, None, pos, angle, p, false, false)?; // rotation center
+				self.core.wincan.copy_ex(&bullet, None, projectile.offset_pos(player), angle, p, false, false)?; // rotation center
 			}
 		}
 		Ok(())
