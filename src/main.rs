@@ -1,64 +1,38 @@
 extern crate rogue_sdl;
-mod enemy;
 mod background;
-mod player;
-mod ui;
-mod projectile;
 mod credits;
+mod enemy;
 mod gamedata;
 mod gold;
+mod player;
+mod projectile;
 mod room;
+mod ui;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
-//use std::time::Duration;
-//use std::time::Instant;
 use rand::Rng;
-use crate::enemy::*;
-use crate::projectile::*;
-use crate::player::*;
+use rogue_sdl::{Game, SDLCore};
 use crate::background::*;
+use crate::enemy::*;
 use crate::gamedata::*;
-//use crate::ui::*;
-//use crate::gold::*;
+use crate::gamedata::GameData;
+use crate::gold::*;
+use crate::player::*;
+use crate::projectile::*;
 use crate::room::*;
+use crate::ui::*;
 
-use sdl2::rect::Rect;
-use sdl2::rect::Point;
+use sdl2::rect::{Rect, Point};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
-//use sdl2::mouse::MouseButtonIterator;
-//use sdl2::mouse::PressedMouseButtonIterator;
 use sdl2::image::LoadTexture;
-//use sdl2::pixels::Color;
-//use sdl2::render::WindowCanvas;
-use sdl2::render::Texture;
-//use sdl2::render::{Texture, TextureCreator};
-//use sdl2::render::TextureQuery;
-
-
-use rogue_sdl::{Game, SDLCore};
-//use sdl2::video::WindowContext;
-use crate::gamedata::GameData;
+use sdl2::render::{Texture, TextureCreator};
 
 pub struct ROGUELIKE {
 	core: SDLCore,
 	game_data: GameData,
-}
-
-// check collision
-fn check_collision(a: &Rect, b: &Rect) -> bool {
-	if a.bottom() < b.top()
-		|| a.top() > b.bottom()
-		|| a.right() < b.left()
-		|| a.left() > b.right()
-	{
-		false
-	}
-	else {
-		true
-	}
 }
 
 // CREATE GAME
@@ -231,6 +205,20 @@ pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
 	//credits::run_credits()
 	Ok(())
+}
+
+// check collision
+fn check_collision(a: &Rect, b: &Rect) -> bool {
+	if a.bottom() < b.top()
+		|| a.top() > b.bottom()
+		|| a.right() < b.left()
+		|| a.left() > b.right()
+	{
+		false
+	}
+	else {
+		true
+	}
 }
 
 // Create map
