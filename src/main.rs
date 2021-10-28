@@ -186,7 +186,7 @@ impl Game for ROGUELIKE {
 			}
 
 			//UPDATE INTERACTABLES (GOLD FOR NOW)
-			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture)?;
+			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture)?;
 		
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
@@ -270,7 +270,7 @@ impl ROGUELIKE {
 		return rngt.to_vec();
 	}
 
-	pub fn update_interactables(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
+	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() {
@@ -518,19 +518,23 @@ impl ROGUELIKE {
 		//display string next to mana
 
 		//display equipped waepon
-		if player.get_curr_meele() == "sword_l"
-		{
-			let weapon = ui::UI::new(
-				Rect::new(
-					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*8) as i32,
-					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
-					(TILE_SIZE as f64 * 1.2) as u32,
-					(TILE_SIZE as f64 * 1.2) as u32,
-				),
-				texture_creator.load_texture("images/player/sword_l.png")?,
-			);
-			self.core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+		match player.weapon{
+			Weapon::Sword=>{
+				let weapon = ui::UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*8) as i32,
+						(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+						(TILE_SIZE as f64 * 1.2) as u32,
+						(TILE_SIZE as f64 * 1.2) as u32,
+					),
+					texture_creator.load_texture("images/player/sword_l.png")?,
+				);
+				self.core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+			}
+			
 		}
+	
+	
 
 
 		if player.get_curr_ability() == "bullet"
