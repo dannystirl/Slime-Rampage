@@ -55,6 +55,15 @@ impl Game for ROGUELIKE {
 			(CENTER_W as f64, CENTER_H as f64),
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
 		);
+		let mut ui = ui::UI::new(
+			Rect::new(
+				(i/10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
+				(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
+				(TILE_SIZE as f64 *1.2) as u32,
+				(TILE_SIZE as f64 *1.2) as u32,
+			), 
+			texture_creator.load_texture("images/ui/heart.png")?,
+		)
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
@@ -399,135 +408,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 
-	//update background
-	pub fn update_ui(&mut self, player: &Player) -> Result<(), String> {
-		// set ui bar
-		let texture_creator = self.core.wincan.texture_creator();
-		let src = Rect::new(0, 0, CAM_W, TILE_SIZE*2);
-		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32 - 16, CAM_W, TILE_SIZE*3/2);
-		let ui = texture_creator.load_texture("images/ui/bb_wide_yellow.png")?;
-		self.core.wincan.copy(&ui, src, pos)?;
-		let pos = Rect::new(0, (CAM_H - TILE_SIZE) as i32 - 8, CAM_W, TILE_SIZE*3/2);
-		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
-		self.core.wincan.copy(&ui, src, pos)?;
-		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
-		let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
-
-		//create hearts
-		let mut i=0;
-		while i+10 < player.get_hp() {
-			let heart = ui::UI::new(
-				Rect::new(
-					(i/10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
-					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
-					(TILE_SIZE as f64 *1.2) as u32,
-					(TILE_SIZE as f64 *1.2) as u32,
-				), 
-				texture_creator.load_texture("images/ui/heart.png")?,
-			);
-			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
-			i+=10;
-		}
-		
-		let mut texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		if  player.get_hp()%10 != 0  {
-			texture = texture_creator.load_texture("images/ui/half_heart.png")?;
-		}
-			let half_heart = ui::UI::new(
-				Rect::new(
-					(i/10) as i32 * (TILE_SIZE as f64 *1.2) as i32,
-					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
-					(TILE_SIZE as f64 *1.2) as u32,
-					(TILE_SIZE as f64 *1.2) as u32,
-				),
-				texture,
-			);
-		self.core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
-
-		//display mana
-		let mut mana = ui::UI::new(
-			Rect::new(
-				(CAM_W-(TILE_SIZE*4)) as i32,
-				(CAM_H-(TILE_SIZE)) as i32,
-				(TILE_SIZE as f64 / 1.2) as u32,
-				(TILE_SIZE as f64 / 1.2) as u32,
-			),
-			texture_creator.load_texture("images/ui/mana.png")?,
-		);
-		let cur_mana;
-		match player.get_mana() {
-			0 => cur_mana = 32 * 4,
-			1 => cur_mana = 32 * 3,
-			2 => cur_mana = 32 * 2,
-			3 => cur_mana = 32 * 1,
-			4 => cur_mana = 32 * 0,
-			_ => cur_mana = 32 * 0,
-		}
-		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE / 2, TILE_SIZE / 2);
-		mana.set_src(mana_src);
-		self.core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
-
-		//get current mana as a string
-		let mana = player.get_mana();
-		let max_mana = player.get_max_mana();
-		let mut s: String = mana.to_string();
-		let a: String = max_mana.to_string();
-		s += "/";
-		s += &a;
-
-		//display string next to mana
-
-		//display equipped waepon
-		match player.weapon{
-			Weapon::Sword=>{
-				let weapon = ui::UI::new(
-					Rect::new(
-						(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*8) as i32,
-						(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
-						(TILE_SIZE as f64 * 1.2) as u32,
-						(TILE_SIZE as f64 * 1.2) as u32,
-					),
-					texture_creator.load_texture("images/player/sword_l.png")?,
-				);
-				self.core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
-			}
-			
-		}
 	
-	
-
-
-		if player.get_curr_ability() == "bullet"
-		{
-			let ability = ui::UI::new(
-				Rect::new(
-					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*6) as i32,
-					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
-					(TILE_SIZE as f64 * 1.2) as u32,
-					(TILE_SIZE as f64 * 1.2) as u32,
-				),
-				texture_creator.load_texture("images/abilities/bullet.png")?,
-			);
-			self.core.wincan.copy(ability.texture(), ability.src(),ability.pos())?;
-		}
-		// create coins
-		let coin = ui::UI::new(
-			Rect::new(
-				(CAM_W-(TILE_SIZE as f64 *1.2) as u32) as i32,
-				(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
-				(TILE_SIZE as f64 *1.2) as u32,
-				(TILE_SIZE as f64 *1.2) as u32,
-			),
-			texture_creator.load_texture("images/ui/gold_coin.png")?,
-		);
-		self.core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
-		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
-		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
-		self.core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) );
-																//(text to display, src(none), (positionx, positiony, sizex, sizey))
-		Ok(())
-	}
-
 	
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, curr_bg: Rect) {

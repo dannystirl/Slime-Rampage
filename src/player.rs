@@ -7,10 +7,15 @@ use crate::projectile;
 use crate::projectile::Projectile;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+
+pub enum Ability{
+	Bullet,
+}
+
 pub enum Weapon{
 	Sword,
-
 }
+
 pub struct Player<'a> {
 	pos: (f64, f64),
 	cam_pos: Rect,
@@ -31,12 +36,11 @@ pub struct Player<'a> {
 	pub mana: i32,
 	pub max_mana: i32,
 	pub is_attacking: bool,
-	pub weapon_frame: i32,
-	
-	pub curr_ability: String,
+	pub weapon_frame: i32,	
 	pub is_firing: bool,
 	pub coins: u32,
 	pub weapon: Weapon,
+	pub ability: Ability,
 }
 
 impl<'a> Player<'a> {
@@ -65,10 +69,9 @@ impl<'a> Player<'a> {
 		let mana_timer = Instant::now();
 		let invincible = true;
 		let weapon_frame=0; 
-		let curr_meele = String::from("sword_l");
-		let curr_ability = String::from("bullet");
 		let coins = 0;
 		let weapon = Weapon::Sword;
+		let ability = Ability::Bullet;
 		Player {
 			pos,
 			cam_pos,
@@ -90,10 +93,10 @@ impl<'a> Player<'a> {
 			max_mana,
 			is_attacking,
 			weapon_frame,
-			curr_ability,
 			is_firing,
 			coins,
 			weapon,
+			ability,
 		}
 	}
 
@@ -338,11 +341,6 @@ impl<'a> Player<'a> {
 	}
 
 
-
-	pub fn get_curr_ability(&self) -> String {
-		let s = &self.curr_ability;
-		return s.clone()
-	}
 
 	// heatlh values
 	pub fn get_hp(&self) -> u32 {

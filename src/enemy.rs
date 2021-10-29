@@ -7,7 +7,7 @@ use sdl2::rect::Rect;
 use std::time::Instant;
 use sdl2::render::Texture;
 use rand::Rng;
-use crate::{gold, main};
+use crate::{gold,main};
 use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
 
