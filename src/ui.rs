@@ -3,7 +3,11 @@ use crate::gamedata::*;
 use crate::{gold,main};
 use crate::Player;
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
+use rogue_sdl::{Game, SDLCore};
+use sdl2::image::LoadTexture;
+use sdl2::render::{Texture, TextureCreator};
+use crate::player::*;
+use sdl2::pixels::Color;
 
 pub struct UI<'a>{
 	pos: Rect,
@@ -39,7 +43,7 @@ impl<'a> UI<'a> {
 
 
 	//update background
-	pub fn update_ui(&mut self, player: &Player,core :&SDLCore) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player, core :&mut SDLCore) -> Result<(), String> {
 		// set ui bar
 		let texture_creator = core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE*2);
@@ -64,7 +68,7 @@ impl<'a> UI<'a> {
 				), 
 				texture_creator.load_texture("images/ui/heart.png")?,
 			);
-			main.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
+			core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
 			i+=10;
 		}
 		
@@ -81,7 +85,7 @@ impl<'a> UI<'a> {
 				),
 				texture,
 			);
-		main::core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
+			core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
 
 		//display mana
 		let mut mana = UI::new(
@@ -104,7 +108,7 @@ impl<'a> UI<'a> {
 		}
 		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE / 2, TILE_SIZE / 2);
 		mana.set_src(mana_src);
-		main::core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
+		core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
 
 		//get current mana as a string
 		let mana = player.get_mana();
@@ -128,7 +132,7 @@ impl<'a> UI<'a> {
 					),
 					texture_creator.load_texture("images/player/sword_l.png")?,
 				);
-				main::core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
 			}
 			
 		}
@@ -143,7 +147,7 @@ impl<'a> UI<'a> {
 				),
 				texture_creator.load_texture("images/abilities/bullet.png")?,
 			);
-			main::core.wincan.copy(ui_ability.texture(), ui_ability.src(),ui_ability.pos())?;
+			core.wincan.copy(ui_ability.texture(), ui_ability.src(),ui_ability.pos())?;
 		}
 	}
 	
@@ -157,10 +161,10 @@ impl<'a> UI<'a> {
 			),
 			texture_creator.load_texture("images/ui/gold_coin.png")?,
 		);
-		main::core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
+		core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
 		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
-		main::core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) );
+		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) );
 																//(text to display, src(none), (positionx, positiony, sizex, sizey))
 		Ok(())
 	}

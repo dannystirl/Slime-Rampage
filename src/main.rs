@@ -57,13 +57,13 @@ impl Game for ROGUELIKE {
 		);
 		let mut ui = ui::UI::new(
 			Rect::new(
-				(i/10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
+				(10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
 				(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 				(TILE_SIZE as f64 *1.2) as u32,
 				(TILE_SIZE as f64 *1.2) as u32,
 			), 
 			texture_creator.load_texture("images/ui/heart.png")?,
-		)
+		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
@@ -183,7 +183,7 @@ impl Game for ROGUELIKE {
 			
 
 			// UPDATE UI
-			ROGUELIKE::update_ui(self, &player)?;
+			ui.update_ui( &player, &mut self.core)?;
 			
 			// UPDATE FRAME
 			self.core.wincan.present();
