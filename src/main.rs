@@ -171,7 +171,7 @@ impl Game for ROGUELIKE {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;	
+			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);	
 			ROGUELIKE::draw_weapon(self, &mut player)?;
 			
 			// UPDATE OBSTACLES
@@ -408,8 +408,6 @@ impl ROGUELIKE {
 		Ok(())
 	}
 
-	
-	
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, curr_bg: Rect) {
 		player.set_cam_pos(curr_bg.x(), curr_bg.y());
@@ -418,18 +416,17 @@ impl ROGUELIKE {
 	}
 
 
-	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player))?; // rotation center
+				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player)); // rotation center
 			}
 		}
 		let p = Point::new(0, (TILE_SIZE/2) as i32);//used for point of rotation later
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy_ex(&bullet, None, projectile.offset_pos(player), angle, p, false, false)?; // rotation center
+				self.core.wincan.copy_ex(&bullet, None, projectile.offset_pos(player), angle, p, false, false); // rotation center
 			}
 		}
-		Ok(())
 	}
 }
