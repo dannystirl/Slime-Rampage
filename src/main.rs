@@ -69,6 +69,7 @@ impl Game for ROGUELIKE {
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
@@ -171,8 +172,8 @@ impl Game for ROGUELIKE {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0);	
-			ROGUELIKE::draw_weapon(self, &mut player)?;
+			ROGUELIKE::draw_projectile(self, &bullet, &player);	
+			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
 			// UPDATE OBSTACLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering. 			
@@ -382,10 +383,8 @@ impl ROGUELIKE {
 	}
 
 	//draw weapon
-	pub fn draw_weapon(&mut self, player: &mut Player) -> Result<(), String> {
+	pub fn draw_weapon(&mut self, player: &Player, texture : &Texture){
 
-		let texture_creator = self.core.wincan.texture_creator();
-		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let rotation_point;
 		let pos;
 		let mut angle;
@@ -404,8 +403,8 @@ impl ROGUELIKE {
 			angle = -angle;
 		}
 
-		self.core.wincan.copy_ex(&sword, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
-		Ok(())
+		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
+	
 	}
 
 	// draw player
@@ -416,17 +415,19 @@ impl ROGUELIKE {
 	}
 
 
-	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) {
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player) {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player)); // rotation center
-			}
+				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player));
 		}
 		let p = Point::new(0, (TILE_SIZE/2) as i32);//used for point of rotation later
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy_ex(&bullet, None, projectile.offset_pos(player), angle, p, false, false); // rotation center
+				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player));
+
+				//self.core.wincan.copy_ex(&bullet, None, projectile.offset_pos(player), angle, p, false, false); // rotation center
 			}
 		}
 	}
+}
 }
