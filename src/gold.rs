@@ -1,13 +1,14 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
+//use sdl2::render::Texture;
 
+use crate::Player;
+const TILE_SIZE: u32 = 64;
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
 const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
 const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
-const TILE_SIZE: u32 = 64;
 
 pub struct Gold{
 	pos: Rect,
@@ -27,11 +28,6 @@ impl Gold {
             amount,
             been_collected,
 		}
-	}
-
-    pub fn update_pos(&mut self, player_pos_x: i32, player_pos_y: i32) {
-        self.pos.x = self.pos.x ;
-		self.pos.y = self.pos.y ;
 	}
 
     pub fn x(&self) -> i32 {
@@ -61,4 +57,9 @@ impl Gold {
     pub fn set_collected(&mut self)  {
         self.been_collected = true;
     }
+    pub fn offset_pos(&self, player:&Player)-> Rect{
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+							self.y() as i32 + (CENTER_H - player.y() as i32),
+		TILE_SIZE, TILE_SIZE);
+	}
 }

@@ -1,7 +1,13 @@
 extern crate rogue_sdl;
 
 use sdl2::render::Texture;
-use rand::Rng;
+use sdl2::rect::Rect;
+
+const TILE_SIZE: u32 = 64;
+const CAM_W: u32 = 1280;
+const CAM_H: u32 = 720;
+const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
+const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 
 pub struct Background<'a> {
 	pub black: Texture<'a>,
@@ -12,10 +18,11 @@ pub struct Background<'a> {
 	pub x_tiles: (i32,i32),
 	pub y_tiles: (i32,i32),
 	pub tiles: Vec<(bool,i32)>,
+	curr_bg: Rect, 
 }
 
 impl<'a> Background<'a> {
-	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32)) -> Background<'a> {
+	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
 		let tiles: Vec<(bool,i32)> = vec![(true,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize]; // (draw?, texture)
 		Background {
 			black,
@@ -26,42 +33,46 @@ impl<'a> Background<'a> {
 			x_tiles,
 			y_tiles,
 			tiles,
+			curr_bg, 
 		}
 	}
 
-	pub fn create_new_map(&mut self, xwalls: (i32,i32), ywalls: (i32,i32)) -> Vec<(i32,i32)> {
-		let mut obs: Vec<(i32,i32)> = vec![(0,0);0];
-		let mut n = 0;
-		for i in 0..xwalls.1+1 {
-			for j in 0..ywalls.1+1 {
-				if i==0 || i==xwalls.1 || j==0 || j==ywalls.1 { // border
-					self.tiles[n].0 = true;
-					self.tiles[n].1 = 6;
-				} else if i==xwalls.0 || i==xwalls.1-1 || j==ywalls.0 || j==ywalls.1-1 { // border-1 random tiles
-					let num = rand::thread_rng().gen_range(0..5);
-					self.tiles[n].0 = true;
-					self.tiles[n].1 = num;
-				} else { // obstacles / nothing
-					let num = rand::thread_rng().gen_range(0..75);
-					if num==7 && self.tiles[n].0==true { 
-						obs.push((i,j));
-						self.tiles[n].1 = num;
-						// prevent overlap
-						self.tiles[n].0 = true;
-						self.tiles[n+1].0=false;
-						self.tiles[n+ywalls.1 as usize].0=false;
-						self.tiles[n+ywalls.1 as usize+1].0=false;
-						self.tiles[n+ywalls.1 as usize+2].0=false;
-
-					} else {
-						self.tiles[n].0 = false;
-					}
-				}
-				n+=1;
-			}
+	pub fn get_tile_info(&self, num: i32, i: i32, j: i32, x: f64, y: f64) -> (&Texture<'a>, Rect, Rect) {
+		let texture;
+		match num {
+			7 => { texture = &self.texture_3 } // pillar 
+			6 => { texture = &self.texture_2 } // border tiles
+			1 => { texture = &self.texture_1 } // slime on tile
+			_ => { texture = &self.texture_0 } // regular tile
 		}
-		return obs;
-		
+		// double tile size 
+		let src;
+		let pos;
+		if num==7 {
+			src = Rect::new(0, 0, TILE_SIZE * 2, TILE_SIZE * 2);
+			pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - x as i32),
+								j * TILE_SIZE as i32 + (CENTER_H - y as i32),
+								TILE_SIZE * 2, TILE_SIZE * 2);
+		} else {
+			src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+			pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - x as i32),
+								j * TILE_SIZE as i32 + (CENTER_H - y as i32),
+								TILE_SIZE, TILE_SIZE);
+		}
+		return (texture, src, pos);
+	}
+
+	pub fn set_curr_background(&mut self, x:f64, y:f64, w: u32, h:u32){
+		self.curr_bg = Rect::new(
+			(x as i32 + ((w / 2) as i32)) - ((CAM_W / 2) as i32),
+			(y as i32 + ((h / 2) as i32)) - ((CAM_H / 2) as i32),
+			CAM_W,
+			CAM_H,
+		);
+	}
+
+	pub fn get_curr_background(&self) -> Rect {
+		self.curr_bg
 	}
 
 	pub fn texture(&self) -> &Texture {
