@@ -271,7 +271,6 @@ pub struct Enemy<'a> {
 		let mut rng = rand::thread_rng();
 		match self.enemy_type {
 			EnemyType::Ranged=>{
-				println!("hello");		
 				if self.get_fire_timer() > self.get_fire_cooldown() {
 					self.set_fire_cooldown();
 					let fire_chance = rng.gen_range(1..60);

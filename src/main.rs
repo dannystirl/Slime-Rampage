@@ -74,8 +74,18 @@ impl Game for ROGUELIKE  {
 		crate_textures.push(crate_texture);
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
-		let mut crate_manager = crateobj::Crate::newc();
-	
+		let mut crate_manager = crateobj::Crate::manager();
+		//crate generation
+		let mut rng = rand::thread_rng();
+		let num = rng.gen_range(1..500);
+
+		let pos = Rect::new(
+		(CAM_W/2 - TILE_SIZE/2 -100 + rng.gen_range(1..200)) as i32,
+		(CAM_H/2 - TILE_SIZE/2) as i32 -100 + rng.gen_range(10..100),
+		TILE_SIZE,
+		TILE_SIZE,);
+		self.game_data.crates.push(crateobj::Crate::new(pos));
+		//crate generation over
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
@@ -178,7 +188,7 @@ impl Game for ROGUELIKE  {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures);
+			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures,&player);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
 			ROGUELIKE::draw_player_projectile(self, &bullet, &player);	
 
@@ -319,10 +329,7 @@ impl ROGUELIKE {
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
-
 			
-			self.game_data.crates.push(crateobj::Crate::newc());
-
 			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 			//println!("{} {}", player.x(), player.y());
