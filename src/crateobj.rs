@@ -10,22 +10,27 @@ use crate::SDLCore;
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
+	velocity: Vec<f64>,
 }
 
 impl Crate {
     pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
         let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let velocity = vec![0.0,0.0];
         Crate{
             pos,
             src,
+			velocity,
         }
     }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let velocity = vec![0.0,0.0];
 		Crate{
 			pos,
 			src,
+			velocity,
 		}
 	}
 
@@ -43,13 +48,24 @@ impl Crate {
 	pub fn x(&self) -> i32 {
 		return self.pos.x;
 	}
-	
 	pub fn y(&self) -> i32 {
 		return self.pos.y;
 	}
+	pub fn update_velocity(&mut self, x: i32, y: i32){
+		self.velocity[0] = x as f64;
+		self.velocity[1] = y as f64;
+	}
+	pub fn set_x(&mut self, x: i32){
+		self.pos.x = x;
+	}
+	pub fn set_y(&mut self, y: i32){
+		self.pos.y = y;
+	}
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
-		 core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
+			self.set_x(self.x() as i32 + self.velocity[0] as i32);
+			self.set_y(self.y() as i32 + self.velocity[1] as i32);
+			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
 		}
 	}
 	pub fn offset_pos(&self, player:&Player)-> Rect{

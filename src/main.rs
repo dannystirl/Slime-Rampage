@@ -419,7 +419,14 @@ impl ROGUELIKE {
 			}
 			for c in self.game_data.crates.iter_mut(){
 				if check_collision(&player.pos(), &c.pos()){
+					// N
+					&c.update_velocity(player.x_vel(), player.y_vel());
 					
+					// E
+
+					// S
+
+					// W
 				}
 			}
 			// enemy projectile collisions
