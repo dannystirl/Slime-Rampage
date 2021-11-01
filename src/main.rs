@@ -469,8 +469,6 @@ impl ROGUELIKE {
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 	}
 
-
-
 	pub fn draw_player_projectile(&mut self, bullet: &Texture, player: &Player)-> Result<(), String>  {
 		let texture_creator = self.core.wincan.texture_creator();
 		for projectile in self.game_data.player_projectiles.iter_mut() {
