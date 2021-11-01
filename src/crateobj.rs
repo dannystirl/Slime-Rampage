@@ -6,6 +6,8 @@ use sdl2::render::{Texture, TextureCreator};
 use crate::player::*;
 use sdl2::pixels;
 use crate::SDLCore;
+use rand::Rng;
+
 
 pub struct Crate{
 	pos: Rect,
@@ -14,7 +16,12 @@ pub struct Crate{
 
 impl Crate {
     pub fn newc() -> Crate{// default constructor for testing
-        let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE, TILE_SIZE);
+		let mut rng = rand::thread_rng();
+
+		let x = rng.gen_range(1..500);
+		let y = rng.gen_range(1..500);
+
+        let pos = Rect::new(x as i32, y as i32, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
         Crate{
             pos,
