@@ -4,19 +4,17 @@ use std::time::Instant;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 use crate::projectile;
-use crate::projectile::Projectile;
+use crate::projectile::*;
 use crate::gamedata::GameData;
+use crate::gamedata::*;
 
-const TILE_SIZE: u32 = 64;
-const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
-const ATTK_COOLDOWN: u128 = 300;
-const DMG_COOLDOWN: u128 = 800;
-const FIRE_COOLDOWN: u128 = 300;
-const MANA_RESTORE_RATE: u128 = 1000;
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
-const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
-const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
+pub enum Ability{
+	Bullet,
+}
+
+pub enum Weapon{
+	Sword,
+}
 
 pub struct Player<'a> {
 	pos: (f64, f64),
@@ -38,11 +36,11 @@ pub struct Player<'a> {
 	pub mana: i32,
 	pub max_mana: i32,
 	pub is_attacking: bool,
-	pub weapon_frame: i32,
-	pub curr_meele: String,
-	pub curr_ability: String,
+	pub weapon_frame: i32,	
 	pub is_firing: bool,
 	pub coins: u32,
+	pub weapon: Weapon,
+	pub ability: Ability,
 }
 
 impl<'a> Player<'a> {
@@ -70,11 +68,10 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let invincible = true;
-		let weapon_frame=0;
-		let curr_meele = String::from("sword_l");
-		let curr_ability = String::from("bullet");
+		let weapon_frame=0; 
 		let coins = 0;
-
+		let weapon = Weapon::Sword;
+		let ability = Ability::Bullet;
 		Player {
 			pos,
 			cam_pos,
@@ -96,10 +93,10 @@ impl<'a> Player<'a> {
 			max_mana,
 			is_attacking,
 			weapon_frame,
-			curr_meele,
-			curr_ability,
 			is_firing,
 			coins,
+			weapon,
+			ability,
 		}
 	}
 
@@ -152,7 +149,7 @@ impl<'a> Player<'a> {
 			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
 		}
 		// is the player currently firing?
-		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN {
+		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
 			self.is_firing =false;
 		}
 
@@ -304,7 +301,7 @@ impl<'a> Player<'a> {
 				y *= -1.0;
 			}
 
-			//let p_type = String::from("bullet");
+			let p_type = ProjectileType::Bullet;
 			let bullet = projectile::Projectile::new(
 				Rect::new(
 					self.x() as i32,
@@ -346,15 +343,7 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
-	pub fn get_curr_meele(&self) -> String {
-		let s = &self.curr_meele;
-		return s.clone();
-	}
 
-	pub fn get_curr_ability(&self) -> String {
-		let s = &self.curr_ability;
-		return s.clone()
-	}
 
 	// heatlh values
 	pub fn get_hp(&self) -> u32 {
