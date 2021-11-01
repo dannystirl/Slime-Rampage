@@ -8,6 +8,7 @@ mod player;
 mod projectile;
 mod room;
 mod ui;
+mod crateobj;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
@@ -21,13 +22,14 @@ use crate::player::*;
 use crate::projectile::*;
 //use crate::room::*;
 //use crate::ui::*;
-use sdl2::pixels::Color;
+//use sdl2::pixels::Color;
 use sdl2::rect::{Rect, Point};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
+use crate::crateobj::*;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -35,7 +37,7 @@ pub struct ROGUELIKE {
 }
 
 // CREATE GAME
-impl Game for ROGUELIKE {
+impl Game for ROGUELIKE  {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
@@ -64,12 +66,13 @@ impl Game for ROGUELIKE {
 			), 
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
-
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
+		let mut crate_manager = crateobj::Crate::newc();
+	
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
@@ -172,6 +175,7 @@ impl Game for ROGUELIKE {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
+			crate_manager.update_crates(&mut self.game_data, &mut self.core);
 			ROGUELIKE::draw_projectile(self, &bullet, &player);	
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
@@ -272,7 +276,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player) {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
@@ -310,11 +314,16 @@ impl ROGUELIKE {
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
+
+			
+			self.game_data.crates.push(crateobj::Crate::newc());
+
 			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 			//println!("{} {}", player.x(), player.y());
-		}
 			
+		}
+		Ok(())	
 	}
 
 	// update projectiles
@@ -331,7 +340,7 @@ impl ROGUELIKE {
 			}
 		}
 	}
-
+	
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>) {
 		let xbounds = self.game_data.rooms[0].xbounds;

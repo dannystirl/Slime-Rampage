@@ -4,6 +4,7 @@ use sdl2::rect::Rect;
 use crate::gold::*;
 use crate::projectile::*;
 use crate::room::*;
+use crate::crateobj::*;
 
 // window globals
 pub const TITLE: &str = "Roguelike";
@@ -40,6 +41,7 @@ pub struct GameData {
     pub enemy_projectiles: Vec<Projectile>,
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,
+    pub crates: Vec<Crate>,
     speed_limit: f64,
     accel_rate: f64,
 }
@@ -63,6 +65,8 @@ impl GameData {
         let gold: Vec<Gold> = Vec::with_capacity(5);
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(5);
+        let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
+
         GameData {
             current_room,
             gold,
@@ -71,6 +75,7 @@ impl GameData {
             rooms,
             speed_limit,
             accel_rate,
+            crates,
         }
     }
 

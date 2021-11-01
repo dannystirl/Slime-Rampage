@@ -3,9 +3,9 @@ use crate::gamedata::*;
 use crate::{gold,main};
 use crate::Player;
 use sdl2::rect::Rect;
-use rogue_sdl::{Game, SDLCore};
+use crate::SDLCore;
 use sdl2::image::LoadTexture;
-use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::{Texture};
 use crate::player::*;
 use sdl2::pixels::Color;
 
