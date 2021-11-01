@@ -417,7 +417,11 @@ impl ROGUELIKE {
 					enemy.minus_hp(1);
 				}
 			}
-
+			for c in self.game_data.crates.iter_mut(){
+				if check_collision(&player.pos(), &c.pos()){
+					
+				}
+			}
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
