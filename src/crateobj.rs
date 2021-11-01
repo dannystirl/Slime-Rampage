@@ -11,6 +11,7 @@ pub struct Crate{
 	pos: Rect,
 	src: Rect,
 	velocity: Vec<f64>,
+	acceleration: Vec<f64>,
 }
 
 impl Crate {
@@ -18,19 +19,23 @@ impl Crate {
         let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let velocity = vec![0.0,0.0];
+		let acceleration = vec![0.0,0.0];
         Crate{
             pos,
             src,
 			velocity,
+			acceleration
         }
     }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let velocity = vec![0.0,0.0];
+		let acceleration = vec![0.0,0.0];
 		Crate{
 			pos,
 			src,
 			velocity,
+			acceleration,
 		}
 	}
 
@@ -52,8 +57,12 @@ impl Crate {
 		return self.pos.y;
 	}
 	pub fn update_velocity(&mut self, x: i32, y: i32){
-		self.velocity[0] = x as f64;
-		self.velocity[1] = y as f64;
+		self.velocity[0] = x as f64 * 2.0;
+		self.velocity[1] = y as f64 * 2.0;
+	}
+	pub fn update_acceleration(&mut self, x: i32, y: i32){
+		self.acceleration[0] = x as f64;
+		self.acceleration[1] = y as f64;
 	}
 	pub fn set_x(&mut self, x: i32){
 		self.pos.x = x;
@@ -63,8 +72,9 @@ impl Crate {
 	}
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
-			self.set_x(self.x() as i32 + self.velocity[0] as i32);
-			self.set_y(self.y() as i32 + self.velocity[1] as i32);
+			//c.update_acceleration(resist(c.velocity[0] as i32, c.acceleration[0] as i32), resist(c.velocity[1] as i32, c.acceleration[1] as i32));
+			c.set_x(c.x() as i32 + c.velocity[0] as i32);
+			c.set_y(c.y() as i32 + c.velocity[1] as i32);
 			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
 		}
 	}
@@ -72,5 +82,13 @@ impl Crate {
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 		self.y() as i32 + (CENTER_H - player.y() as i32),
 		TILE_SIZE, TILE_SIZE);
+	}
+	// calculate velocity resistance
+	fn resist(vel: i32, delta: i32) -> i32 {
+		if delta == 0 {
+			if vel > 0 {-1}
+			else if vel < 0 {1}
+			else {delta}
+		} else {delta}
 	}
 }

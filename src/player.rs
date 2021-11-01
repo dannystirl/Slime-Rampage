@@ -385,7 +385,7 @@ impl<'a> Player<'a> {
 }
 
 // calculate velocity resistance
-fn resist(vel: i32, delta: i32) -> i32 {
+pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 	if delta == 0 {
 		if vel > 0 {-1}
 		else if vel < 0 {1}

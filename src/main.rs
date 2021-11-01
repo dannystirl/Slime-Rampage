@@ -417,18 +417,6 @@ impl ROGUELIKE {
 					enemy.minus_hp(1);
 				}
 			}
-			for c in self.game_data.crates.iter_mut(){
-				if check_collision(&player.pos(), &c.pos()){
-					// N
-					&c.update_velocity(player.x_vel(), player.y_vel());
-
-					// E
-
-					// S
-
-					// W
-				}
-			}
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
@@ -444,6 +432,21 @@ impl ROGUELIKE {
 					coin.set_collected();
 					player.add_coins(coin.get_gold());
 				}
+			}
+		}
+		for c in self.game_data.crates.iter_mut(){
+			if check_collision(&player.pos(), &c.pos()){
+				// N
+				c.update_velocity(player.x_vel(), player.y_vel());
+				println!("Updating Velocity");
+
+				// E
+
+				// S
+
+				// W
+			} else {
+				c.update_velocity(0, 0)
 			}
 		}
 	}
