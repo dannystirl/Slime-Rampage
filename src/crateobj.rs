@@ -6,14 +6,10 @@ use sdl2::render::{Texture, TextureCreator};
 use crate::player::*;
 use sdl2::pixels;
 use crate::SDLCore;
-use rand::Rng;
-
 
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
-	
-
 }
 
 impl Crate {
@@ -25,15 +21,14 @@ impl Crate {
             src,
         }
     }
-	/*pub fn new(pos: Rect) -> Crate {
+	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		Crate{
 			pos,
 			src,
-			crate_texture
 		}
 	}
-*/
+
 	pub fn src(&self) -> Rect {
 		self.src
 	}
