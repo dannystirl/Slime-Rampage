@@ -421,7 +421,7 @@ impl ROGUELIKE {
 				if check_collision(&player.pos(), &c.pos()){
 					// N
 					&c.update_velocity(player.x_vel(), player.y_vel());
-					
+
 					// E
 
 					// S
