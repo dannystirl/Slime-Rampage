@@ -139,6 +139,12 @@ impl<'a> Player<'a> {
 					(xwalls.1 * TILE_SIZE as i32) as f64));
 				}
 			}
+			
+		}
+		for c in &game_data.crates{
+			if GameData::check_collision(&self.pos(), &c.pos()) {
+			
+			}
 		}
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?

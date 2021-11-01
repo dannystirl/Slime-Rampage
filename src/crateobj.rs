@@ -56,9 +56,15 @@ impl Crate {
 	pub fn y(&self) -> i32 {
 		return self.pos.y;
 	}
-	pub fn update_velocity(&mut self, x: i32, y: i32){
-		self.velocity[0] = x as f64 * 2.0;
-		self.velocity[1] = y as f64 * 2.0;
+	pub fn x_vel(&self) -> f64 {
+		return self.velocity[0];
+	}
+	pub fn y_vel(&self) -> f64 {
+		return self.velocity[1];
+	}
+	pub fn update_velocity(&mut self, x: f64, y: f64){
+		self.velocity[0] = x as f64;
+		self.velocity[1] = y as f64;
 	}
 	pub fn update_acceleration(&mut self, x: i32, y: i32){
 		self.acceleration[0] = x as f64;

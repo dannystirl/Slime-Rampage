@@ -81,8 +81,8 @@ impl Game for ROGUELIKE  {
 		let num = rng.gen_range(1..500);
 
 		let pos = Rect::new(
-		(CAM_W/2 - TILE_SIZE/2 -100 + rng.gen_range(1..200)) as i32,
-		(CAM_H/2 - TILE_SIZE/2) as i32 -100 + rng.gen_range(10..100),
+		(CAM_W/2 - TILE_SIZE/2 -200 + rng.gen_range(1..10)) as i32,
+		(CAM_H/2 - TILE_SIZE/2) as i32 -200 + rng.gen_range(0..10),
 		TILE_SIZE,
 		TILE_SIZE,);
 		self.game_data.crates.push(crateobj::Crate::new(pos));
@@ -437,7 +437,7 @@ impl ROGUELIKE {
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
 				// N
-				c.update_velocity(player.x_vel(), player.y_vel());
+				c.update_velocity(player.x_vel() as f64, player.y_vel() as f64);
 				println!("Updating Velocity");
 
 				// E
@@ -446,7 +446,7 @@ impl ROGUELIKE {
 
 				// W
 			} else {
-				c.update_velocity(0, 0)
+				c.update_velocity(0.0,0.0);
 			}
 		}
 	}
