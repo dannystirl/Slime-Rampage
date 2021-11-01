@@ -4,7 +4,7 @@ use std::time::Instant;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 use crate::projectile;
-use crate::projectile::Projectile;
+use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
 
@@ -19,8 +19,8 @@ pub enum Weapon{
 pub struct Player<'a> {
 	pos: (f64, f64),
 	cam_pos: Rect,
-	vel: (i32, i32), 
-	delta: (i32, i32), 
+	vel: (i32, i32),
+	delta: (i32, i32),
 	height: u32,
 	width: u32,
 	src: Rect,
@@ -30,7 +30,7 @@ pub struct Player<'a> {
 	damage_timer: Instant,
 	mana_timer: Instant,
 	texture_all: Texture<'a>,
-	invincible: bool, 
+	invincible: bool,
 	pub facing_right: bool,
 	pub hp: u32,
 	pub mana: i32,
@@ -75,8 +75,8 @@ impl<'a> Player<'a> {
 		Player {
 			pos,
 			cam_pos,
-			vel, 
-			delta, 
+			vel,
+			delta,
 			height,
 			width,
 			src,
@@ -85,7 +85,7 @@ impl<'a> Player<'a> {
 			fire_timer,
 			damage_timer,
 			mana_timer,
-			invincible, 
+			invincible,
 			texture_all,
 			facing_right,
 			hp,
@@ -128,7 +128,7 @@ impl<'a> Player<'a> {
 				} else if (self.pos().top() < obs.bottom()) && (self.pos().top() > obs.top()) 		// check y bounds
 				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
 					self.set_y((self.y() + self.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-				// collision on object left 
+				// collision on object left
 				} else if (self.pos().right() > obs.left()) && (self.pos().right() < obs.right())	// check x bounds
 						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
 					self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
@@ -146,7 +146,7 @@ impl<'a> Player<'a> {
 		if self.get_attack_timer() > ATTK_COOLDOWN {
 			self.is_attacking = false;
 			// clear attack box
-			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0); 
+			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
@@ -178,7 +178,7 @@ impl<'a> Player<'a> {
 	pub fn width(&self) -> u32 {
 		self.width
 	}
-	
+
 	// player y values
 	pub fn set_y(&mut self, y: f64){
 		self.pos.1 = y;
@@ -233,7 +233,7 @@ impl<'a> Player<'a> {
 			TILE_SIZE,
 		);
 	}
-	
+
 	pub fn get_cam_pos(&self) -> Rect {
         self.cam_pos
     }
@@ -284,7 +284,7 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64) -> Projectile {
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType) -> Projectile {
 			self.is_firing = true;
 			self.use_mana();
 			self.fire_timer = Instant::now();
@@ -300,6 +300,8 @@ impl<'a> Player<'a> {
 			if vec[1] < 0.0 {
 				y *= -1.0;
 			}
+
+			let p_type = p_type;
 			let bullet = projectile::Projectile::new(
 				Rect::new(
 					self.x() as i32,
@@ -307,13 +309,14 @@ impl<'a> Player<'a> {
 					TILE_SIZE / 2,
 					TILE_SIZE / 2,
 				),
-				
 				false,
 				vec![x, y],
+				p_type,
 			);
+
 			return bullet;
-	}	
-	
+	}
+
 	//mana values
 	pub fn get_mana(&self) -> i32 {
 		return self.mana
@@ -361,7 +364,7 @@ impl<'a> Player<'a> {
 
 	pub fn set_invincible(&mut self){
 		if self.damage_timer.elapsed().as_millis() < DMG_COOLDOWN {
-			 self.invincible = true; 
+			 self.invincible = true;
 		} else {
 			self.invincible = false;
 		}
