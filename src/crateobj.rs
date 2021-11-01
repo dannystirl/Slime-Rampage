@@ -63,8 +63,8 @@ impl Crate {
 	}
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
-			self.set_x(self.x() as i32 + self.velocity[0] as i32);
-			self.set_y(self.y() as i32 + self.velocity[1] as i32);
+			c.set_x(c.x() as i32 + c.velocity[0] as i32);
+			c.set_y(c.y() as i32 + c.velocity[1] as i32);
 			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
 		}
 	}
