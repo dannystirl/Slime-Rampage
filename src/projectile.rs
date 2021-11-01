@@ -20,7 +20,7 @@ pub struct Projectile{
 
  impl Projectile {
 	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType) -> Projectile {
-		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
+		let mut src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		Projectile {
 			src,
@@ -68,7 +68,7 @@ pub struct Projectile{
     }
 	pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-							self.y() as i32 + (CENTER_H - player.y() as i32),
+		self.y() as i32 + (CENTER_H - player.y() as i32),
 		TILE_SIZE, TILE_SIZE);
 	}
 }

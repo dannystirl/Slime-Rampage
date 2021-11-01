@@ -344,7 +344,7 @@ impl ROGUELIKE {
 		// Shoot ranged attack
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
-				let p_type = String::from("bullet");
+				let p_type = ProjectileType::Bullet;
 				
 				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type);
 				self.game_data.player_projectiles.push(b);
@@ -353,7 +353,7 @@ impl ROGUELIKE {
 		//ability
 		if keystate.contains(&Keycode::F){
 			if !player.is_firing && player.get_mana() > 0 {
-				let p_type = String::from("fireball");
+				let p_type = ProjectileType::Fireball;
 				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
 				self.game_data.player_projectiles.push(bullet);
 			}
@@ -473,7 +473,6 @@ impl ROGUELIKE {
 
 	pub fn draw_player_projectile(&mut self, bullet: &Texture, player: &Player)-> Result<(), String>  {
 		let texture_creator = self.core.wincan.texture_creator();
-
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			let mut p = texture_creator.load_texture("images/abilities/bullet.png")?;
 

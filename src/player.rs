@@ -284,7 +284,7 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: String) -> Projectile {
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType) -> Projectile {
 			self.is_firing = true;
 			self.use_mana();
 			self.fire_timer = Instant::now();
@@ -301,7 +301,7 @@ impl<'a> Player<'a> {
 				y *= -1.0;
 			}
 
-			let p_type = ProjectileType::Bullet;
+			let p_type = p_type;
 			let bullet = projectile::Projectile::new(
 				Rect::new(
 					self.x() as i32,
