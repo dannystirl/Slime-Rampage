@@ -49,12 +49,12 @@ impl Crate {
 	}
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
-		 core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
+			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
 		}
 	}
 	pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE, TILE_SIZE);
+			self.y() as i32 + (CENTER_H - player.y() as i32),
+			TILE_SIZE, TILE_SIZE);
 	}
 }
