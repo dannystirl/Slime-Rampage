@@ -70,7 +70,8 @@ impl Game for ROGUELIKE  {
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
-
+		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
+		crate_textures.push(crate_texture);
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let mut crate_manager = crateobj::Crate::newc();
@@ -177,7 +178,7 @@ impl Game for ROGUELIKE  {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_texture);
+			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures);
 			ROGUELIKE::draw_projectile(self, &bullet, &player);	
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			

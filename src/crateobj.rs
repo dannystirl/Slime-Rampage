@@ -19,6 +19,7 @@ impl Crate {
         Crate{
             pos,
             src,
+			
         }
     }
 	pub fn new(pos: Rect) -> Crate {
@@ -41,9 +42,9 @@ impl Crate {
         self.pos
     }
 
-	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore,crate_texture: &Texture) {
+	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>) {
 		for c in game_data.crates.iter_mut() {
-		 core.wincan.copy(&crate_texture,c.src(),c.pos());
+		 core.wincan.copy(&crate_textures[0],c.src(),c.pos());
 		}
 	
 	}
