@@ -11,29 +11,32 @@ const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
 const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 
 pub struct Projectile{
-	src: Rect, 
+	src: Rect,
 	pos: Rect,
 	pub facing_right: bool,
 	is_active: bool,
 	vector: Vec<f64>,
+	pub p_type: String,
 }
 
  impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>) -> Projectile {
+	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: String) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
+		let p_type = p_type;
 		Projectile {
-			src, 
-			pos,	
+			src,
+			pos,
 			facing_right,
 			is_active,
-			vector
+			vector,
+			p_type,
 		}
 	}
 	pub fn x(&self) -> i32 {
 		return self.pos.x;
 	}
-	
+
 	pub fn y(&self) -> i32 {
 		return self.pos.y;
 	}
@@ -47,7 +50,7 @@ pub struct Projectile{
 	pub fn is_active(&self) -> bool{
 		return self.is_active;
 	}
-	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
+	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
 	pub fn update_pos(&mut self) {
 		self.set_x(self.x() + self.vector[0] as i32);
 		self.set_y(self.y() + self.vector[1] as i32);

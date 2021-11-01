@@ -18,7 +18,7 @@ const STUN_TIME: u32 = 2000;
 const FIRE_COOLDOWN: u128 = 1500;
 
 pub struct Enemy<'a> {
-	vel: Rect, 
+	vel: Rect,
 	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
@@ -55,11 +55,11 @@ pub struct Enemy<'a> {
 		let hp = 10;
 		let alive = true;
 		let enemy_type = enemy_type;
-		let enemy_number = num-1; 
+		let enemy_number = num-1;
 		Enemy {
-			vel, 
+			vel,
 			pos,
-			src,	
+			src,
 			txtre,
 			stun_timer,
 			fire_timer,
@@ -73,8 +73,8 @@ pub struct Enemy<'a> {
 			hp,
 			alive,
 			is_firing,
-			enemy_type, 
-			enemy_number, 
+			enemy_type,
+			enemy_number,
 		}
 	}
 
@@ -267,7 +267,7 @@ pub struct Enemy<'a> {
 		self.angle
 	}
 
-	// attacking 
+	// attacking
 	pub fn check_attack(&mut self, game_data: &mut GameData, (x,y): (f64, f64)) {
 		let mut rng = rand::thread_rng();
 		if self.get_fire_timer() > self.get_fire_cooldown() && self.enemy_type == String::from("ranged"){
@@ -285,6 +285,8 @@ pub struct Enemy<'a> {
 				if vec[1] < 0.0  {
 					y *= -1.0;
 				}
+
+				let p_type = String::from("bullet");
 				let bullet = Projectile::new(
 					Rect::new(
 						self.pos().x(),
@@ -294,6 +296,7 @@ pub struct Enemy<'a> {
 					),
 					false,
 					vec![x,y],
+					p_type,
 				);
 				game_data.enemy_projectiles.push(bullet);
 			}
@@ -310,8 +313,8 @@ pub struct Enemy<'a> {
 		}
 		self.is_firing = true;
 		self.fire_timer = Instant::now();
-		
-	}	
+
+	}
 
 	pub fn get_fire_cooldown(&self)-> u128{
 		FIRE_COOLDOWN

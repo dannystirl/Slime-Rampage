@@ -90,7 +90,7 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
+		let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 
@@ -140,6 +140,9 @@ impl Game for ROGUELIKE {
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
+		let mut p_frames = 0;
+		let mut src_y = 0;
+		let mut count_y = 0;
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			for event in self.core.event_pump.poll_iter() {
@@ -195,7 +198,21 @@ impl Game for ROGUELIKE {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;
+			//ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;
+			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0, p_frames, src_y)?;
+			/*
+				if (p_frames + 1) / 6 > 4 {
+					if count_y < 4 {
+						src_y = src_y + (TILE_SIZE as i32);
+						count_y += 1;
+					}else{
+						src_y = 0;
+					}
+						p_frames = 0;
+				}else {
+					p_frames = p_frames + 1;
+				}
+*/
 			ROGUELIKE::draw_weapon(self, &mut player)?;
 
 			// UPDATE OBSTACLES
@@ -320,13 +337,19 @@ impl ROGUELIKE {
 		// Shoot ranged attack
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit());
+				let p_type = String::from("bullet");
+				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
 				self.game_data.player_projectiles.push(bullet);
 			}
 		}
 		//ability
 		if keystate.contains(&Keycode::F){
-			println!("you found the easter egg");
+			if !player.is_firing && player.get_mana() > 0 {
+				let p_type = String::from("fireball");
+				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
+				self.game_data.player_projectiles.push(bullet);
+			}
+			//println!("you found the easter egg");
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
@@ -373,6 +396,7 @@ impl ROGUELIKE {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5);
 					projectile.die();
+
 				}
 			}
 
@@ -564,12 +588,24 @@ impl ROGUELIKE {
 	}
 
 
-	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64, p_frames: i32, src_y: i32) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player))?; // rotation center
+				if projectile.p_type == String::from("bullet"){
+					let p = texture_creator.load_texture("images/abilities/bullet.png")?;
+					self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player))?; // rotation center
+				}else if projectile.p_type == String::from("fireball"){
+					let p = texture_creator.load_texture("images/abilities/beng.png")?;
+					//let src_x = (p_frames / 6) * TILE_SIZE as i32;
+					//let src = Rect::new(src_x, src_y, TILE_SIZE, TILE_SIZE);
+					//self.core.wincan.copy(&bullet, src, projectile.offset_pos(player))?; // rotation center
+					self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player))?;
+				}
 			}
 		}
+
 		let p = Point::new(0, (TILE_SIZE/2) as i32);//used for point of rotation later
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
