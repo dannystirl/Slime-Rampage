@@ -64,7 +64,7 @@ impl GameData {
         // objects
         let gold: Vec<Gold> = Vec::with_capacity(5);
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
-        let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(5);
+        let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
 
         GameData {

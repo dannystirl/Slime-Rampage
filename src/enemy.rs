@@ -10,9 +10,12 @@ use rand::Rng;
 use crate::{gold,main};
 //use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
-
+pub enum EnemyType{
+	Melee,
+	Ranged,
+}
 pub struct Enemy<'a> {
-	vel: Rect, 
+	vel: Rect,
 	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
@@ -28,12 +31,12 @@ pub struct Enemy<'a> {
 	pub hp: i32,
 	pub alive: bool,
 	pub is_firing: bool,
-	pub enemy_type: String,
+	pub enemy_type: EnemyType,
 	pub enemy_number: usize,
 }
 
  impl<'a> Enemy<'a> {
-	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: String, num: usize) -> Enemy<'a> {
+	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, num: usize) -> Enemy<'a> {
 		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let stun_timer = Instant::now();
@@ -49,11 +52,11 @@ pub struct Enemy<'a> {
 		let hp = 10;
 		let alive = true;
 		let enemy_type = enemy_type;
-		let enemy_number = num-1; 
+		let enemy_number = num-1;
 		Enemy {
-			vel, 
+			vel,
 			pos,
-			src,	
+			src,
 			txtre,
 			stun_timer,
 			fire_timer,
@@ -67,8 +70,8 @@ pub struct Enemy<'a> {
 			hp,
 			alive,
 			is_firing,
-			enemy_type, 
-			enemy_number, 
+			enemy_type,
+			enemy_number,
 		}
 	}
 
@@ -134,12 +137,14 @@ pub struct Enemy<'a> {
 		if distance > 300.0 {
 			self.wander(rngt[i], xbounds, ybounds);
 		} else {
-			if self.enemy_type == String::from("melee") {
-				self.aggro(x.into(), y.into(), xbounds, ybounds, game_data.get_speed_limit());
-			} else {
+			match self.enemy_type {
+			EnemyType::Melee=>{
+				self.aggro(x.into(), y.into(), xbounds, ybounds, game_data.get_speed_limit());}
+			EnemyType::Ranged =>{
 				self.flee(x.into(), y.into(), xbounds, ybounds, game_data.get_speed_limit());
 			}
 		}
+	}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
 						 TILE_SIZE, TILE_SIZE);
@@ -261,36 +266,41 @@ pub struct Enemy<'a> {
 		self.angle
 	}
 
-	// attacking 
+	// attacking
 	pub fn check_attack(&mut self, game_data: &mut GameData, (x,y): (f64, f64)) {
 		let mut rng = rand::thread_rng();
-		if self.get_fire_timer() > self.get_fire_cooldown() && self.enemy_type == String::from("ranged"){
-			self.set_fire_cooldown();
-			let fire_chance = rng.gen_range(1..60);
-			if fire_chance < 5 { // chance to fire
-				self.fire(); // sets is firing true
-				let vec = vec![x - self.x(), y - self.y()];
-				let angle = ((vec[0] / vec[1]).abs()).atan();
-				let mut x = &game_data.get_speed_limit() * angle.sin();
-				let mut y = &game_data.get_speed_limit() * angle.cos();
-				if vec[0] < 0.0 {
-					x *= -1.0;
+		match self.enemy_type {
+			EnemyType::Ranged=>{
+				if self.get_fire_timer() > self.get_fire_cooldown() {
+					self.set_fire_cooldown();
+					let fire_chance = rng.gen_range(1..60);
+					if fire_chance < 5 { // chance to fire
+						self.fire(); // sets is firing true
+						let vec = vec![x - self.x(), y - self.y()];
+						let angle = ((vec[0] / vec[1]).abs()).atan();
+						let mut x = &game_data.get_speed_limit() * angle.sin();
+						let mut y = &game_data.get_speed_limit() * angle.cos();
+						if vec[0] < 0.0 {
+							x *= -1.0;
+						}
+						if vec[1] < 0.0  {
+							y *= -1.0;
+						}
+						let bullet = Projectile::new(
+							Rect::new(
+								self.pos().x(),
+								self.pos().y(),
+								TILE_SIZE/2,
+								TILE_SIZE/2,
+							),
+							true,
+							vec![x,y],
+							ProjectileType::Bullet,
+						);
+					game_data.enemy_projectiles.push(bullet);
+					}
 				}
-				if vec[1] < 0.0  {
-					y *= -1.0;
-				}
-				let bullet = Projectile::new(
-					Rect::new(
-						self.pos().x(),
-						self.pos().y(),
-						TILE_SIZE/2,
-						TILE_SIZE/2,
-					),
-					false,
-					vec![x,y],
-				);
-				game_data.enemy_projectiles.push(bullet);
-			}
+			} EnemyType::Melee=>{}
 		}
 	}
 
@@ -304,8 +314,8 @@ pub struct Enemy<'a> {
 		}
 		self.is_firing = true;
 		self.fire_timer = Instant::now();
-		
-	}	
+
+	}
 
 	pub fn get_fire_cooldown(&self)-> u128{
 		FIRE_COOLDOWN_E
