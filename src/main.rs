@@ -90,7 +90,7 @@ impl Game for ROGUELIKE {
 		);
 
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
+		let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 
@@ -99,11 +99,11 @@ impl Game for ROGUELIKE {
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let num = rng.gen_range(1..5);
-			let enemy_type: String; 
+			let enemy_type: String;
 			match num {
-				5 => { enemy_type = String::from("ranged") } 
-				4 => { enemy_type = String::from("ranged") } 
-				_ => { enemy_type = String::from("melee") } 
+				5 => { enemy_type = String::from("ranged") }
+				4 => { enemy_type = String::from("ranged") }
+				_ => { enemy_type = String::from("melee") }
 			}
 			let e = enemy::Enemy::new(
 				Rect::new(
@@ -113,22 +113,22 @@ impl Game for ROGUELIKE {
 					TILE_SIZE,
 				),
 				texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-				enemy_type, 
-				i, 
+				enemy_type,
+				i,
 			);
 			enemies.push(e);
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
 			i+=1;
-		}		
-		// CREATE ROOM 
+		}
+		// CREATE ROOM
 		let mut background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/skull.png")?,
-			self.game_data.rooms[self.game_data.current_room].xwalls, 
-			self.game_data.rooms[self.game_data.current_room].ywalls, 
+			self.game_data.rooms[self.game_data.current_room].xwalls,
+			self.game_data.rooms[self.game_data.current_room].ywalls,
 			Rect::new(
 				(player.x() as i32 + ((player.width() / 2) as i32)) - ((CAM_W / 2) as i32),
 				(player.y() as i32 + ((player.height() / 2) as i32)) - ((CAM_H / 2) as i32),
@@ -140,6 +140,9 @@ impl Game for ROGUELIKE {
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
+		let mut p_frames = 0;
+		let mut src_y = 0;
+		let mut count_y = 0;
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			for event in self.core.event_pump.poll_iter() {
@@ -157,7 +160,7 @@ impl Game for ROGUELIKE {
 				fps_avg = fps_avg.recip();
 				self.game_data.set_speed_limit(fps_avg * SPEED_LIMIT);
 				self.game_data.set_accel_rate(fps_avg * ACCEL_RATE);
-				
+
 			}
 			// reset frame values
 			player.set_x_delta(0);
@@ -191,24 +194,38 @@ impl Game for ROGUELIKE {
 
 			//UPDATE INTERACTABLES (GOLD FOR NOW)
 			ROGUELIKE::update_interactables(self, &mut enemies, &mut player, &coin_texture)?;
-		
+
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;	
+			//ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0)?;
+			ROGUELIKE::draw_projectile(self, &bullet, &player, 0.0, p_frames, src_y)?;
+			/*
+				if (p_frames + 1) / 6 > 4 {
+					if count_y < 4 {
+						src_y = src_y + (TILE_SIZE as i32);
+						count_y += 1;
+					}else{
+						src_y = 0;
+					}
+						p_frames = 0;
+				}else {
+					p_frames = p_frames + 1;
+				}
+*/
 			ROGUELIKE::draw_weapon(self, &mut player)?;
-			
+
 			// UPDATE OBSTACLES
-			// function to check explosive barrels stuff like that should go here. placed for ordering. 			
+			// function to check explosive barrels stuff like that should go here. placed for ordering.
 
 			// CHECK COLLISIONS
 			ROGUELIKE::check_collisions(self, &mut player, &mut enemies);
 			if player.is_dead(){break 'gameloop;}
-			
+
 
 			// UPDATE UI
 			ROGUELIKE::update_ui(self, &player)?;
-			
+
 			// UPDATE FRAME
 			self.core.wincan.present();
 		}
@@ -320,13 +337,19 @@ impl ROGUELIKE {
 		// Shoot ranged attack
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit());
+				let p_type = String::from("bullet");
+				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
 				self.game_data.player_projectiles.push(bullet);
 			}
 		}
 		//ability
 		if keystate.contains(&Keycode::F){
-			println!("you found the easter egg");
+			if !player.is_firing && player.get_mana() > 0 {
+				let p_type = String::from("fireball");
+				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
+				self.game_data.player_projectiles.push(bullet);
+			}
+			//println!("you found the easter egg");
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
@@ -334,7 +357,7 @@ impl ROGUELIKE {
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 			//println!("{} {}", player.x(), player.y());
 		}
-			
+
 	}
 
 	// update projectiles
@@ -347,7 +370,7 @@ impl ROGUELIKE {
 		for projectile in enemy_projectiles {
 			if projectile.is_active() {
 				projectile.update_pos();
-				
+
 			}
 		}
 	}
@@ -366,13 +389,14 @@ impl ROGUELIKE {
 				player.minus_hp(5);
 				player.set_invincible();
 			}
-			
+
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5);
 					projectile.die();
+
 				}
 			}
 
@@ -391,7 +415,7 @@ impl ROGUELIKE {
 					player.set_invincible();
 					projectile.die();
 				}
-			}	
+			}
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
@@ -453,13 +477,13 @@ impl ROGUELIKE {
 					(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 					(TILE_SIZE as f64 *1.2) as u32,
 					(TILE_SIZE as f64 *1.2) as u32,
-				), 
+				),
 				texture_creator.load_texture("images/ui/heart.png")?,
 			);
 			self.core.wincan.copy(heart.texture(), heart.src(), heart.pos())?;
 			i+=10;
 		}
-		
+
 		let mut texture = texture_creator.load_texture("images/ui/heart.png")? ;
 		if  player.get_hp()%10 != 0  {
 			texture = texture_creator.load_texture("images/ui/half_heart.png")?;
@@ -555,7 +579,7 @@ impl ROGUELIKE {
 		Ok(())
 	}
 
-	
+
 	// draw player
 	pub fn draw_player(&mut self, count: &i32, f_display: &i32, player: &mut Player, curr_bg: Rect) {
 		player.set_cam_pos(curr_bg.x(), curr_bg.y());
@@ -564,12 +588,24 @@ impl ROGUELIKE {
 	}
 
 
-	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64) -> Result<(), String> {
+	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player, angle: f64, p_frames: i32, src_y: i32) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player))?; // rotation center
+				if projectile.p_type == String::from("bullet"){
+					let p = texture_creator.load_texture("images/abilities/bullet.png")?;
+					self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player))?; // rotation center
+				}else if projectile.p_type == String::from("fireball"){
+					let p = texture_creator.load_texture("images/abilities/beng.png")?;
+					//let src_x = (p_frames / 6) * TILE_SIZE as i32;
+					//let src = Rect::new(src_x, src_y, TILE_SIZE, TILE_SIZE);
+					//self.core.wincan.copy(&bullet, src, projectile.offset_pos(player))?; // rotation center
+					self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player))?;
+				}
 			}
 		}
+
 		let p = Point::new(0, (TILE_SIZE/2) as i32);//used for point of rotation later
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
