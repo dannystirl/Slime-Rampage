@@ -69,7 +69,6 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // CREATE GAME
 impl Game for ROGUELIKE {
-
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
 		let game_data = GameData::new();
@@ -105,18 +104,36 @@ impl Game for ROGUELIKE {
 				4 => { enemy_type = String::from("ranged") }
 				_ => { enemy_type = String::from("melee") }
 			}
-			let e = enemy::Enemy::new(
-				Rect::new(
-					(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-					(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-					TILE_SIZE,
-					TILE_SIZE,
-				),
-				texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-				enemy_type,
-				i,
-			);
-			enemies.push(e);
+
+			if enemy_type == String::from("melee"){
+				let e = enemy::Enemy::new(
+					Rect::new(
+						(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+						(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+					enemy_type,
+					i,
+				);
+				enemies.push(e);
+			}else if enemy_type == String::from("ranged"){
+				let e = enemy::Enemy::new(
+					Rect::new(
+						(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+						(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
+					enemy_type,
+					i,
+				);
+				enemies.push(e);
+			}
+
+
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
 			i+=1;
 		}
