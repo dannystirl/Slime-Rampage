@@ -41,12 +41,10 @@ impl Crate {
         self.pos
     }
 
-	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore)->Result<(), String> {
-		let texture_creator = core.wincan.texture_creator();
-		let cra = texture_creator.load_texture("images/objects/crate.png")?;
+	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore,crate_texture: &Texture) {
 		for c in game_data.crates.iter_mut() {
-		 core.wincan.copy(&cra,c.src(),c.pos());
+		 core.wincan.copy(&crate_texture,c.src(),c.pos());
 		}
-		Ok(())
+	
 	}
 }
