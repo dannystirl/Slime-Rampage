@@ -46,6 +46,5 @@ impl Crate {
 		for c in game_data.crates.iter_mut() {
 		 core.wincan.copy(&crate_textures[0],c.src(),c.pos());
 		}
-	
 	}
 }

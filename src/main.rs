@@ -82,11 +82,11 @@ impl Game for ROGUELIKE  {
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let num = rng.gen_range(1..5);
-			let enemy_type: String; 
+			let enemy_type: EnemyType; 
 			match num {
-				5 => { enemy_type = String::from("ranged") } 
-				4 => { enemy_type = String::from("ranged") } 
-				_ => { enemy_type = String::from("melee") } 
+				5 => { enemy_type = EnemyType::Ranged } 
+				4 => { enemy_type=  EnemyType::Ranged } 
+				_ => { enemy_type = EnemyType::Melee } 
 			}
 			let e = enemy::Enemy::new(
 				Rect::new(
@@ -179,7 +179,9 @@ impl Game for ROGUELIKE  {
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures);
-			ROGUELIKE::draw_projectile(self, &bullet, &player);	
+			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
+			ROGUELIKE::draw_player_projectile(self, &bullet, &player);	
+
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
 			// UPDATE OBSTACLES
@@ -307,8 +309,8 @@ impl ROGUELIKE {
 		// Shoot ranged attack
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit());
-				self.game_data.player_projectiles.push(bullet);
+				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit());
+				self.game_data.player_projectiles.push(b);
 			}
 		}
 		//ability
@@ -428,18 +430,18 @@ impl ROGUELIKE {
 	}
 
 
-	pub fn draw_projectile(&mut self, bullet: &Texture, player: &Player) {
+	pub fn draw_player_projectile(&mut self, bullet: &Texture, player: &Player) {
+	
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player));
 		}
-		let p = Point::new(0, (TILE_SIZE/2) as i32);//used for point of rotation later
-		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			if projectile.is_active(){
-				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player));
-
-				//self.core.wincan.copy_ex(&bullet, None, projectile.offset_pos(player), angle, p, false, false); // rotation center
-			}
+	}
+}
+pub fn draw_enemy_projectile(&mut self, bullet: &Texture, player: &Player) {
+	for projectile in self.game_data.enemy_projectiles.iter_mut() {
+		if projectile.is_active(){
+			self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player));
 		}
 	}
 }
