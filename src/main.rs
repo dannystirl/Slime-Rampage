@@ -154,6 +154,8 @@ impl Game for ROGUELIKE {
 			),
 		);
 
+		let mut map = ROGUELIKE::create_map();
+
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
@@ -244,6 +246,16 @@ pub fn main() -> Result<(), String> {
 
 // Create map
 impl ROGUELIKE {
+	pub fn create_map() -> [[i32; 10]; 10] {
+		let mut map = [[0; 10]; 10];
+		for i in 0..10 {
+			for j in 0..10 {
+				println!("{}", map[i][j]);
+			}
+		}
+		return map;
+	}
+
 	pub fn update_background(&mut self, player: &Player, background: &mut Background) -> Result<(), String> {
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 		let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
