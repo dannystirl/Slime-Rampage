@@ -147,33 +147,61 @@ impl<'a> Player<'a> {
 			
 		}
 		for c in &game_data.crates{
+			let pos = c.pos();
 			if GameData::check_collision(&self.pos(), &c.pos()) {
 				//println!("welcome to hell");
 				//if player collide with top of box
-				if self.pos().bottom() > c.pos().top() {
+				if (self.pos().bottom() >= pos.top()) && (self.pos().bottom() < pos.bottom()) 		// check y bounds
+				&& (self.pos().left() > pos.left()) && (self.pos().right() < pos.right()) {			// prevent x moves
+					
 					self.set_y((self.y() + self.y_vel() as f64).clamp(0.0 , c.pos().top()as f64) );
+				// collision on object bottom
+				} else if (self.pos().top() < pos.bottom()) && (self.pos().top() > pos.top()) 		// check y bounds
+				&& (self.pos().left() > pos.left()) && (self.pos().right() < pos.right()) {			// prevent x moves
+					self.set_y((self.y()  +self.y_vel() as f64 ).clamp(c.pos().bottom()as f64, 0.0) );
+				// collision on object left
+				} else if (self.pos().right() > pos.left()) && (self.pos().right() < pos.right())	// check x bounds
+						&& (self.pos().top() > pos.top()) && (self.pos().bottom() < pos.bottom()) {	// prevent y moves
+							self.set_x((self.x()   + self.x_vel()as f64).clamp(0.0,c.pos().left()as f64 ) );
+					// collision on object right
+				} else if (self.pos().left() < pos.right()) && (self.pos().left() > pos.left()) 	// check x bounds
+						&& (self.pos().top() > pos.top()) && (self.pos().bottom() < pos.bottom()) {	// prevent y moves
+							self.set_x((self.x() + self.x_vel() as f64).clamp(c.pos().right()as f64  ,0.0) );
+					
+				}
+
+
+				/*if self.pos().bottom() > c.pos().top() && self.pos().top()  {
+					println!("top");
+					//self.set_y((self.y() + self.y_vel() as f64).clamp(0.0 , c.pos().top()as f64) );
 				}
 
 				//{clamp y velocity to only be positive }
 
 				//if player collide bottom
 				 if self.pos().top() < c.pos().bottom() {
-					self.set_y((self.y()  +self.y_vel() as f64 ).clamp(c.pos().bottom()as f64, 0.0) );
+					println!("bottom");
+
+				//	self.set_y((self.y()  +self.y_vel() as f64 ).clamp(c.pos().bottom()as f64, 0.0) );
 				}
 				//{clamp y velocity to only be negative }
 
 				//if player collide left
 				 if self.pos().right() > c.pos().left(){
-					self.set_x((self.x()   + self.x_vel()as f64).clamp(0.0,c.pos().left()as f64 ) );
+					println!("left");
+
+					//self.set_x((self.x()   + self.x_vel()as f64).clamp(0.0,c.pos().left()as f64 ) );
 				}
 				//{clamp x velocity to only be positive }
 
 				//if player collide right
 				 if self.pos().left() < c.pos().right(){
-					self.set_x((self.x() + self.x_vel() as f64).clamp(c.pos().right()as f64  ,0.0) );
+					println!("right");
+
+				//	self.set_x((self.x() + self.x_vel() as f64).clamp(c.pos().right()as f64  ,0.0) );
 				}
 				//{clamp x velocity to only be negative }
-
+*/
 
 			}
 		}
