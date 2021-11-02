@@ -405,31 +405,14 @@ impl ROGUELIKE {
 
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut(){
-				if projectile.get_bounce() == 4 {
-					projectile.die();
-				}
+			
 
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5);
 					projectile.die();
 				}
-				if projectile.x() <= xbounds.0 && projectile.is_active() {
-					projectile.set_xvel( -projectile.xvel() );
-					//projectile.inc_bounce();
-				}
-				if projectile.x() >= xbounds.1 && projectile.is_active() {
-					projectile.set_xvel( -projectile.xvel() );
-					//projectile.inc_bounce();
-				}
-				if projectile.y() <= ybounds.0 && projectile.is_active() {
-					projectile.set_yvel( -projectile.yvel() );
-					//projectile.inc_bounce();
-				}
-				if projectile.y() >= ybounds.1 && projectile.is_active() {
-					projectile.set_yvel( -projectile.yvel() );
-					//projectile.inc_bounce();
-				}
+				
 			}
 
 			// player melee collisions
@@ -439,7 +422,7 @@ impl ROGUELIKE {
 					enemy.minus_hp(1);
 				}
 			}
-
+		
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
@@ -448,6 +431,10 @@ impl ROGUELIKE {
 					projectile.die();
 				}
 			}
+		}
+
+		for projectile in self.game_data.player_projectiles.iter_mut(){
+			projectile.check_bounce( xbounds, ybounds);
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {

@@ -57,7 +57,7 @@ pub struct Projectile{
 	pub fn yvel(&self) -> f64 {
 		return self.vector[1];
 	}
-
+	
 	 pub fn set_x(&mut self, x: i32){
 		 self.pos.x = x;
 	 }
@@ -68,6 +68,27 @@ pub struct Projectile{
 		return self.is_active;
 	}
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
+	pub fn check_bounce(&mut self, xbounds:(i32,i32), ybounds: (i32,i32)){
+		if self.get_bounce() >= 4 {
+			self.die();
+		}
+		if self.x() <= xbounds.0 && self.is_active() {
+			self.set_xvel( -self.xvel() );
+			self.inc_bounce();
+		}
+		if self.x() >= xbounds.1 && self.is_active() {
+			self.set_xvel( -self.xvel() );
+			self.inc_bounce();
+		}
+		if self.y() <= ybounds.0 && self.is_active() {
+			self.set_yvel( -self.yvel() );
+			self.inc_bounce();
+		}
+		if self.y() >= ybounds.1 && self.is_active() {
+			self.set_yvel( -self.yvel() );
+			self.inc_bounce();
+		}
+	}
 	pub fn update_pos(&mut self) {
 		self.set_x(self.x() + self.vector[0] as i32);
 		self.set_y(self.y() + self.vector[1] as i32);
