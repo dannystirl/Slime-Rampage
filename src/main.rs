@@ -339,7 +339,7 @@ impl ROGUELIKE {
 					recurse[rec_length].2.2,
 					recurse[rec_length].2.3));
 				if y > 2 && new_map[x][y - 2] == 0 { 	// can move direction
-					recurse.push((x,y-1,(false,false,true,false)));
+					recurse.push((x,y-2,(false,false,true,false)));
 					rec_length+=1;
 					update = true;
 					new_map[x][y - 1] = 7;
@@ -354,7 +354,7 @@ impl ROGUELIKE {
 					recurse[rec_length].2.2,
 					recurse[rec_length].2.3));
 				if x < MAP_SIZE_W - 2 && new_map[x + 2][y] == 0{
-					recurse.push((x+1,y,(false,false,false,true)));
+					recurse.push((x+2,y,(false,false,false,true)));
 					rec_length+=1;
 					update = true;
 					new_map[x + 1][y] = 7;
@@ -369,7 +369,7 @@ impl ROGUELIKE {
 					true,
 					recurse[rec_length].2.3));
 				if y < MAP_SIZE_H - 2 && new_map[x][y + 2] == 0{
-					recurse.push((x,y+1,(true,false,false,false)));
+					recurse.push((x,y+2,(true,false,false,false)));
 					rec_length+=1;
 					update = true;
 					new_map[x][y + 1] = 7;
@@ -384,7 +384,7 @@ impl ROGUELIKE {
 					recurse[rec_length].2.2,
 					true));
 				if x > 2 && new_map[x - 2][y] == 0{
-					recurse.push((x-1,y,(false,true,false,false)));
+					recurse.push((x-2,y,(false,true,false,false)));
 					rec_length+=1;
 					update = true;
 					new_map[x - 1][y] = 7;
