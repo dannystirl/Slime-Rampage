@@ -389,6 +389,9 @@ impl ROGUELIKE {
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>) {
 		let xbounds = self.game_data.rooms[0].xbounds;
 		let ybounds = self.game_data.rooms[0].ybounds;
+		let bounds1 = Rect::new(xbounds.0, ybounds.0, TILE_SIZE, TILE_SIZE);
+		let bounds2 = Rect::new(xbounds.1, ybounds.1, TILE_SIZE, TILE_SIZE);
+
 		for enemy in enemies {
 			if !enemy.is_alive() {
 				continue;
@@ -396,18 +399,20 @@ impl ROGUELIKE {
 
 			// player collision
 			if check_collision(&player.pos(), &enemy.pos()) {
-				player.minus_hp(5);
+				//player.minus_hp(5);
 				player.set_invincible();
 			}
 
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut(){
+			
+
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5);
 					projectile.die();
-
 				}
+				
 			}
 
 			// player melee collisions
@@ -417,14 +422,19 @@ impl ROGUELIKE {
 					enemy.minus_hp(1);
 				}
 			}
+		
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-					player.minus_hp(5);
+					//player.minus_hp(5);
 					player.set_invincible();
 					projectile.die();
 				}
 			}
+		}
+
+		for projectile in self.game_data.player_projectiles.iter_mut(){
+			projectile.check_bounce( xbounds, ybounds);
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {

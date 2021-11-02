@@ -123,7 +123,7 @@ impl<'a> Player<'a> {
 		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
 
 		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
-			let obj_pos = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
+			let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
 			let p_pos =self.pos();
 
 			if GameData::check_collision(&self.pos(), &obj_pos) {//I hate collisions
@@ -335,8 +335,8 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel() as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
-		self.pos.1 = (self.y() + self.y_vel() as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
+		self.pos.0 = (self.x() + (self.x_vel() * 2) as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
+		self.pos.1 = (self.y() + (self.y_vel( )*2) as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
