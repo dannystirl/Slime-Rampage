@@ -436,17 +436,12 @@ impl ROGUELIKE {
 		}
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
-				// N
-				c.update_velocity(player.x_vel() as f64, player.y_vel() as f64);
-				println!("Updating Velocity");
-
-				// E
-
-				// S
-
-				// W
+				// provide impulse
+				c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
+				player.set_x_vel(0);
+				player.set_y_vel(0);
 			} else {
-				c.update_velocity(0.0,0.0);
+				c.friction();
 			}
 		}
 	}

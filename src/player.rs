@@ -19,6 +19,7 @@ pub enum Weapon{
 pub struct Player<'a> {
 	pos: (f64, f64),
 	cam_pos: Rect,
+	mass: f64,
 	vel: (i32, i32),
 	delta: (i32, i32),
 	height: u32,
@@ -51,6 +52,7 @@ impl<'a> Player<'a> {
 			TILE_SIZE,
 			TILE_SIZE,
 		);
+		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
 		let height = TILE_SIZE; // 32;
@@ -75,6 +77,7 @@ impl<'a> Player<'a> {
 		Player {
 			pos,
 			cam_pos,
+			mass,
 			vel,
 			delta,
 			height,
@@ -243,6 +246,8 @@ impl<'a> Player<'a> {
 	pub fn get_cam_pos(&self) -> Rect {
         self.cam_pos
     }
+
+	pub fn get_mass(&self) -> f64 { self.mass }
 
 	pub fn texture_all(&self) -> &Texture {
         &self.texture_all
