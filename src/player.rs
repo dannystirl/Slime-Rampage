@@ -208,6 +208,74 @@ impl<'a> Player<'a> {
 			}
 		}
 		
+				/*// NW
+				if (p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom())
+					&& (p_pos.right() >= crate_pos.left()) && (p_pos.right() < crate_pos.right()) {
+					println!("top left");
+					if self.x_vel() > 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() > 0 {
+						self.set_y_vel(-self.y_vel()); }
+				}
+				//NE
+				else if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom()
+					&& (p_pos.left() <= crate_pos.right()) && (p_pos.left() > crate_pos.left()) {
+					println!("top right");
+					if self.x_vel() < 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() > 0 {
+						self.set_y_vel(-self.y_vel()); }
+
+				}
+				// SE
+				else if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top()
+					&& (p_pos.left() <= crate_pos.right()) && (p_pos.left() > crate_pos.left()) {
+					if self.x_vel() < 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() < 0 {
+						self.set_y_vel(-self.y_vel()); }
+					//self.set_y_vel(0);
+					println!("bottom right");
+				}
+				// SW
+				else if (p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top())
+					&& (p_pos.right() >= crate_pos.left()) && (p_pos.right() < crate_pos.right()) {
+					if self.x_vel() > 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() < 0 {
+						self.set_y_vel(-self.y_vel()); }
+					println!("bottom left");
+					//self.set_x_vel(0);
+				}
+				//N
+				else if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom(){
+					println!("top");
+					self.set_y_vel(-self.y_vel());
+
+				}
+				// E
+				else if (p_pos.left() <= crate_pos.right() && p_pos.left() > crate_pos.left()){
+					println!("right");
+					self.set_x_vel(-self.x_vel());
+
+				}
+				// S
+				else if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top(){
+					self.set_y_vel(-self.y_vel());
+					println!("bottom");
+				}
+				// W
+				else if (p_pos.right() >= crate_pos.left() && p_pos.right() < crate_pos.right())
+				{
+					println!("left");
+					self.set_x_vel(-self.x_vel());
+				}
+			}
+			}*/
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
