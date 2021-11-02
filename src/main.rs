@@ -381,7 +381,7 @@ impl ROGUELIKE {
 					if recurse[rec_length].2.0 == false {		// has moved direction
 						recurse[rec_length] = (x,y,(true,recurse[rec_length].2.1,recurse[rec_length].2.2,recurse[rec_length].2.3), recurse[rec_length].3 - 1);
 						if y > 2 && new_map[x][y - 2] == 0 { 	// can move direction
-							recurse.push((x,y-1,(false,false,true,false), 3));
+							recurse.push((x,y-2,(false,false,true,false), 3));
 							rec_length+=1;
 							update = true;
 							new_map[x][y - 1] = 7;
@@ -394,7 +394,7 @@ impl ROGUELIKE {
 					if recurse[rec_length].2.1 == false {
 						recurse[rec_length] = (x,y,(recurse[rec_length].2.0,true,recurse[rec_length].2.2,recurse[rec_length].2.3), recurse[rec_length].3 - 1);
 						if x < MAP_SIZE_W - 2 && new_map[x + 2][y] == 0 {
-							recurse.push((x+1,y,(false,false,false,true), 3));
+							recurse.push((x+2,y,(false,false,false,true), 3));
 							rec_length+=1;
 							update = true;
 							new_map[x + 1][y] = 7;
@@ -407,7 +407,7 @@ impl ROGUELIKE {
 					if recurse[rec_length].2.2 == false {
 						recurse[rec_length] = (x,y,(recurse[rec_length].2.0,recurse[rec_length].2.1,true,recurse[rec_length].2.3), recurse[rec_length].3 - 1);
 						if y < MAP_SIZE_H - 2 && new_map[x][y + 2] == 0 {
-							recurse.push((x,y+1,(true,false,false,false), 3));
+							recurse.push((x,y+2,(true,false,false,false), 3));
 							rec_length+=1;
 							update = true;
 							new_map[x][y + 1] = 7;
@@ -419,8 +419,8 @@ impl ROGUELIKE {
 					// North
 					if recurse[rec_length].2.3 == false {
 						recurse[rec_length] = (x,y,(recurse[rec_length].2.0,recurse[rec_length].2.1,recurse[rec_length].2.2,true), recurse[rec_length].3 - 1);
-						if x > 2 && new_map[x - 2][y] == 0{
-							recurse.push((x-1,y,(false,true,false,false), 3));
+						if x > 2 && new_map[x - 2][y] == 0 {
+							recurse.push((x-2,y,(false,true,false,false), 3));
 							rec_length+=1;
 							update = true;
 							new_map[x - 1][y] = 7;
@@ -429,9 +429,10 @@ impl ROGUELIKE {
 					}
 				}
 			}
+
 			if update {
 				new_map[x][y] = 7;
-			} else if recurse[rec_length].2.3 == true {
+			} else if recurse[rec_length].3 == 0 {
 				recurse.pop();
 				rec_length -= 1;
 				x = recurse[rec_length].0;
