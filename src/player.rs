@@ -147,7 +147,7 @@ impl<'a> Player<'a> {
 			
 		}
 		*/
-		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
+		/*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
 			let obj_pos = Rect::new(ob.0  as i32, ob.1  as i32, TILE_SIZE, TILE_SIZE);
 
 			let p_pos =self.pos();
@@ -175,6 +175,7 @@ impl<'a> Player<'a> {
 					}
 				}
 		}
+		*/
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
@@ -188,7 +189,7 @@ impl<'a> Player<'a> {
 						self.set_y_vel(-self.y_vel());
 					}
 				}
-				 if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top()//bottom
+				if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top()//bottom
 				{
 					if(self.y_vel() < 0){
 						self.set_y_vel(-self.y_vel());
@@ -205,7 +206,7 @@ impl<'a> Player<'a> {
 					}
 				}
 			}
-			}
+		}
 		
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?
