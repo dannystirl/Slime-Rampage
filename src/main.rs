@@ -12,6 +12,7 @@ mod crateobj;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
+use std::cmp;
 use rand::Rng;
 use rogue_sdl::{Game, SDLCore};
 use crate::background::*;
@@ -263,13 +264,13 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_rooms(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	pub fn create_rooms(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
 		let mut new_map = map;
 
-		let mut num_rooms = 3;
+		let mut num_rooms = 1;
 		let mut count = 0;
-		while count < 30 {
+		while count < 300 {
 			let y = rng.gen_range(0..MAP_SIZE_H);
 			let x = rng.gen_range(0..MAP_SIZE_W);
 			let height = rng.gen_range(MIN_ROOM_H..MAX_ROOM_H);
@@ -312,15 +313,16 @@ impl ROGUELIKE {
 				count += 1;
 			}
 		}
-		return new_map;
+
+		return (num_rooms - 1, new_map);
 	}
 
-	pub fn build_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool),i32)>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	pub fn build_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], num_maze: &i32, recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool),i32)>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut rec_length = recurse.len()-1;
 		let mut y = recurse[rec_length].0;
 		let mut x = recurse[rec_length].1;
 		let mut new_map = map;
-		new_map[y][x] = 1;
+		new_map[y][x] = *num_maze;
 		
 		while rec_length >= 1 {
 			let mut update = false;
@@ -345,7 +347,7 @@ impl ROGUELIKE {
 									recurse.push((y-2,x,(false,false,true,false), 3));	// push a new point for recursion
 									rec_length+=1;
 									update = true;
-									new_map[y-1][x] = 1;
+									new_map[y-1][x] = *num_maze;
 									y = y - 2;
 								}
 							}
@@ -367,7 +369,7 @@ impl ROGUELIKE {
 									recurse.push((y,x+2,(false,false,false,true), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y][x+1] = 1;
+									new_map[y][x+1] = *num_maze;
 									x = x + 2;
 								}
 							}
@@ -389,7 +391,7 @@ impl ROGUELIKE {
 									recurse.push((y+2,x,(true,false,false,false), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y+1][x] = 1;
+									new_map[y+1][x] = *num_maze;
 									y = y + 2;
 								}
 							}
@@ -411,7 +413,7 @@ impl ROGUELIKE {
 									recurse.push((y,x-2,(false,true,false,false), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y][x-1] = 1;
+									new_map[y][x-1] = *num_maze;
 									x = x - 2;
 								}
 							}
@@ -420,7 +422,7 @@ impl ROGUELIKE {
 				}
 			}
 			if update {
-				new_map[y][x] = 1;
+				new_map[y][x] = *num_maze;
 			} else if recurse[rec_length].3 == 0 {
 				recurse.pop();
 				rec_length -= 1;
@@ -431,65 +433,170 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn create_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
 		let mut y = 1;
 		let mut x = 1;
+		let mut num_mazes = *num_rooms;
 		let mut new_map = map;
 		for h in (1..MAP_SIZE_H).step_by(2) {
 			for w in (1..MAP_SIZE_W).step_by(2) {
-				if map[h][w] == 0 {
+				if new_map[h][w] == 0 {
 					y = h;
 					x = w;
 					recurse.push((y,x,(false,false,false,false), 4));
 					recurse.push((y,x,(false,false,false,false), 4)); // dupe prevents edge case
-					new_map = ROGUELIKE::build_maze(new_map, &mut recurse);
+					num_mazes += 1;
+					println!("{}", num_mazes);
+					new_map = ROGUELIKE::build_maze(new_map, &num_mazes, &mut recurse);
 				}
 			}
 		}
+
+		return (num_mazes, new_map);
+	}
+
+	pub fn get_connectors(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<(usize, usize, i32, i32)> {
+		let mut connectors: Vec<(usize, usize, i32, i32)> = Vec::new();
+
+		for h in 0..MAP_SIZE_H as i32 {
+			for w in 0..MAP_SIZE_W as i32 {
+				if (map[h as usize][w as usize] != 0) &&
+				   (map[h as usize][w as usize] != 1) &&
+				   (map[h as usize][w as usize] != 2) {
+					for k in 0..3 as i32 {
+						for l in 0..3 as i32 {
+							if h + 2 * k - 2 < 0 ||
+							   w + 2 * l - 2 < 0 ||
+							   h + 2 * k - 2 >= MAP_SIZE_H as i32 ||
+							   w + 2 * l - 2 >= MAP_SIZE_W as i32 {
+								   continue;
+							}
+							if map[h as usize + k as usize - 1][w as usize] == 0 && 
+							   map[h as usize + 2 * (k as usize) - 2][w as usize] != 0 {
+								let r1 = map[h as usize + 2 * (k as usize) - 2][w as usize];
+								let mut r2 = 0;
+								if k == 0 {
+									r2 = map[(h as usize + 2 * (k as usize) - 2) + 2][w as usize];
+								} else if k == 1 {
+									r2 = map[h as usize + 2 * (k as usize) - 2][w as usize];
+								} else {
+									r2 = map[(h as usize + 2 * (k as usize) - 2) - 2][w as usize];
+								}
+
+								if r1 != r2 {
+									connectors.push((h as usize + k as usize - 1, w as usize, r1, r2));
+								}
+							}
+							else if map[h as usize][w as usize + l as usize - 1] == 0 && 
+									map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
+								let r1 = map[h as usize][w as usize + 2 * (l as usize) - 2];
+								let mut r2 = 0;
+								if l == 0 {
+									r2 = map[h as usize][(w as usize + 2 * (l as usize) - 2) + 2];
+								} else if l == 1 {
+									r2 = map[h as usize][w as usize + 2 * (l as usize) - 2];
+								} else {
+									r2 = map[h as usize][(w as usize + 2 * (l as usize) - 2) - 2];
+								}
+
+								if r1 != r2 {
+									connectors.push((h as usize, w as usize + l as usize - 1, r1, r2));
+								}
+							}
+						}
+					}
+				}
+			}
+		}	
+
+		return connectors;
+	}
+
+	pub fn coalesce(r1: i32, r2: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+
+		let region = cmp::min(r1, r2);
+		
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if new_map[h][w] == r1 || new_map[h][w] == r2 {
+					new_map[h][w] = region;
+				}
+			}
+		}
+
+		return new_map;
+	}
+
+	pub fn connect_maze(num_regions: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rng = rand::thread_rng();
+
+		let mut new_map = map;
+
+		let mut connectors = ROGUELIKE::get_connectors(new_map);
+
+		while connectors.len() > 0 {
+			let rand_connection = rng.gen_range(0..connectors.len());
+			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 2;
+			new_map = ROGUELIKE::coalesce(connectors[rand_connection].2, connectors[rand_connection].3, new_map);
+			connectors = ROGUELIKE::get_connectors(new_map);
+		}
+
 		return new_map;
 	}
 
 	pub fn create_walls(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
+
 		for h in 0..MAP_SIZE_H as i32 {
 			for w in 0..MAP_SIZE_W as i32 {
-				if (new_map[h as usize][w as usize] != 1) && (new_map[h as usize][w as usize] != 0) && (new_map[h as usize][w as usize] != 2) {
+				if (new_map[h as usize][w as usize] != 0) &&
+				   (new_map[h as usize][w as usize] != 1) &&
+				   (new_map[h as usize][w as usize] != 2) {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
-							if h + 2*k - 2 < 0 ||
-							   w + 2*l - 2 < 0 ||
-							   h + 2*k - 2 >= MAP_SIZE_H as i32 ||
-							   w + 2*l - 2 >= MAP_SIZE_W as i32 {
+							if h + 2 * k - 2 < 0 ||
+							   w + 2 * l - 2 < 0 ||
+							   h + 2 * k - 2 >= MAP_SIZE_H as i32 ||
+							   w + 2 * l - 2 >= MAP_SIZE_W as i32 {
 								   continue;
 							}
 							if new_map[h as usize + k as usize - 1][w as usize] == 0 && 
-							   new_map[h as usize + 2*(k as usize) - 2][w as usize] != 0 {
-								new_map[h as usize + k as usize - 1][w as usize] = 2;
+							   new_map[h as usize + 2 * (k as usize) - 2][w as usize] != 0 {
+							   new_map[h as usize + k as usize - 1][w as usize] = 2;
 							}
 							else if new_map[h as usize][w as usize + l as usize - 1] == 0 && 
-									new_map[h as usize][w as usize + 2*(l as usize) - 2] != 0 {
-								new_map[h as usize][w as usize + l as usize - 1] = 2;
+									new_map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
+									new_map[h as usize][w as usize + l as usize - 1] = 2;
 							}
 						}
 					}
 				}
 			}
 		}
+
 		return new_map;
 	}
 
 	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+		let mut num_rooms = 0;
+		let mut num_mazes = 0;
 
-		map = ROGUELIKE::create_rooms(map);
-		map = ROGUELIKE::create_maze(map);
-		map = ROGUELIKE::create_walls(map);
+		let rooms_tuple = ROGUELIKE::create_rooms(map);
+		num_rooms = rooms_tuple.0;
+		map = rooms_tuple.1;
+		let maze_tuple = ROGUELIKE::create_maze(&num_rooms, map);
+		num_mazes = maze_tuple.0;
+		map = maze_tuple.1;
+		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
+		// map = ROGUELIKE::create_walls(map);
 
 		println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				if map[h][w] == 0 {
+				/* if map[h][w] == 0 {
 					print!("  ");
 				}
 				else if map[h][w] == 1 {
@@ -502,6 +609,18 @@ impl ROGUELIKE {
 					print!("{} ", map[h][w]);
 				}
 				else {
+					print!("{}", map[h][w]);
+				} */
+				/*if map[h][w] == 0 {
+					print!("  ");
+				} else {
+					print!(". ");
+				}*/
+				if map[h][w] == 0 {
+					print!("  ");
+				} else if map[h][w] < 10 {
+					print!("{} ", map[h][w]);
+				} else {
 					print!("{}", map[h][w]);
 				}
 			}
