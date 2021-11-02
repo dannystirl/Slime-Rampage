@@ -337,7 +337,7 @@ impl ROGUELIKE {
 			if recurse[rec_length].2.0 == false {		// has moved direction
 				recurse[rec_length] = (x,y,(true,false,false,false));
 				if y > 2 && new_map[x][y - 2] == 0 { 	// can move direction
-					recurse.push((x,y-2,(false,false,false,false)));
+					recurse.push((x,y-1,(false,false,true,false)));
 					rec_length+=1;
 					update = true;
 					new_map[x][y - 1] = 7;
@@ -348,7 +348,7 @@ impl ROGUELIKE {
 			else if recurse[rec_length].2.1 == false {
 				recurse[rec_length] = (x,y,(true,true,false,false));
 				if x < MAP_SIZE_W - 2 && new_map[x + 2][y] == 0{
-					recurse.push((x+1,y,(true,false,false,false)));
+					recurse.push((x+1,y,(false,false,false,true)));
 					rec_length+=1;
 					update = true;
 					new_map[x + 1][y] = 7;
@@ -359,7 +359,7 @@ impl ROGUELIKE {
 			else if recurse[rec_length].2.2 == false {
 				recurse[rec_length] = (x,y,(true,true,true,false));
 				if y < MAP_SIZE_H - 2 && new_map[x][y + 2] == 0{
-					recurse.push((x,y+1,(false,true,false,false)));
+					recurse.push((x,y+1,(true,false,false,false)));
 					rec_length+=1;
 					update = true;
 					new_map[x][y + 1] = 7;
@@ -370,7 +370,7 @@ impl ROGUELIKE {
 			else if recurse[rec_length].2.3 == false {
 				recurse[rec_length] = (x,y,(true,true,true,true));
 				if x > 2 && new_map[x - 2][y] == 0{
-					recurse.push((x-1,y,(false,false,true,false)));
+					recurse.push((x-1,y,(false,true,false,false)));
 					rec_length+=1;
 					update = true;
 					new_map[x - 1][y] = 7;
@@ -399,8 +399,18 @@ impl ROGUELIKE {
 
 	pub fn create_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool))> = Vec::new(); // x, y, direction
-		recurse.push((1,1,(false,false,false,false)));
-		recurse.push((1,1,(false,false,false,false))); // dupe prevents edge case
+		let mut x = 1;
+		let mut y = 1;
+		if map[x][y]!=0 {
+			if x + 2 < MAP_SIZE_W {
+				x += 2; 
+			} else {
+				y += 2;
+				x = 1;
+			}
+		}
+		recurse.push((x,y,(false,false,false,false)));
+		recurse.push((x,y,(false,false,false,false))); // dupe prevents edge case
 		let mut new_map = ROGUELIKE::build_maze(map, recurse);
 		return new_map;
 	}
