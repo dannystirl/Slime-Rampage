@@ -438,8 +438,8 @@ impl ROGUELIKE {
 			if check_collision(&player.pos(), &c.pos()){
 				// provide impulse
 				c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
-				player.set_x_vel(0);
-				player.set_y_vel(0);
+				//player.set_x_vel(0);
+				//player.set_y_vel(0);
 			} else {
 				c.friction();
 			}

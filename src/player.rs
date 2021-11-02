@@ -119,9 +119,9 @@ impl<'a> Player<'a> {
 		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		
 		// Stay inside the viewing window
-		self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
-		self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-
+		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
+		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
+/*
 		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
 			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
 			if GameData::check_collision(&self.pos(), &obs) {
@@ -146,65 +146,36 @@ impl<'a> Player<'a> {
 			}
 			
 		}
+		*/
 		for c in &game_data.crates{
-			let pos = c.pos();
+			let crate_pos = c.pos();
+			let p_pos =self.pos();
 			if GameData::check_collision(&self.pos(), &c.pos()) {
 				//println!("welcome to hell");
 				//if player collide with top of box
-				if (self.pos().bottom() >= pos.top()) && (self.pos().bottom() < pos.bottom()) 		// check y bounds
-				&& (self.pos().left() > pos.left()) && (self.pos().right() < pos.right()) {			// prevent x moves
-					
-					self.set_y((self.y() + self.y_vel() as f64).clamp(0.0 , c.pos().top()as f64) );
-				// collision on object bottom
-				} else if (self.pos().top() < pos.bottom()) && (self.pos().top() > pos.top()) 		// check y bounds
-				&& (self.pos().left() > pos.left()) && (self.pos().right() < pos.right()) {			// prevent x moves
-					self.set_y((self.y()  +self.y_vel() as f64 ).clamp(c.pos().bottom()as f64, 0.0) );
-				// collision on object left
-				} else if (self.pos().right() > pos.left()) && (self.pos().right() < pos.right())	// check x bounds
-						&& (self.pos().top() > pos.top()) && (self.pos().bottom() < pos.bottom()) {	// prevent y moves
-							self.set_x((self.x()   + self.x_vel()as f64).clamp(0.0,c.pos().left()as f64 ) );
-					// collision on object right
-				} else if (self.pos().left() < pos.right()) && (self.pos().left() > pos.left()) 	// check x bounds
-						&& (self.pos().top() > pos.top()) && (self.pos().bottom() < pos.bottom()) {	// prevent y moves
-							self.set_x((self.x() + self.x_vel() as f64).clamp(c.pos().right()as f64  ,0.0) );
-					
-				}
-
-
-				/*if self.pos().bottom() > c.pos().top() && self.pos().top()  {
+				if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom()&& p_pos.left() > crate_pos.left() && (p_pos.right() < crate_pos.right()){
 					println!("top");
-					//self.set_y((self.y() + self.y_vel() as f64).clamp(0.0 , c.pos().top()as f64) );
-				}
+					self.set_y_vel(0);
 
-				//{clamp y velocity to only be positive }
-
-				//if player collide bottom
-				 if self.pos().top() < c.pos().bottom() {
+				}else if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top(){
+					self.set_y_vel(0);
 					println!("bottom");
 
-				//	self.set_y((self.y()  +self.y_vel() as f64 ).clamp(c.pos().bottom()as f64, 0.0) );
 				}
-				//{clamp y velocity to only be negative }
-
-				//if player collide left
-				 if self.pos().right() > c.pos().left(){
+				else if (p_pos.right() >= crate_pos.left() && p_pos.right() < crate_pos.right()){
 					println!("left");
 
-					//self.set_x((self.x()   + self.x_vel()as f64).clamp(0.0,c.pos().left()as f64 ) );
+					self.set_x_vel(0);
+				}else if (p_pos.right() <= crate_pos.left()&& p_pos.left() > crate_pos.left()){
+
+					self.set_x_vel(0);					println!("right");
+
 				}
-				//{clamp x velocity to only be positive }
-
-				//if player collide right
-				 if self.pos().left() < c.pos().right(){
-					println!("right");
-
-				//	self.set_x((self.x() + self.x_vel() as f64).clamp(c.pos().right()as f64  ,0.0) );
-				}
-				//{clamp x velocity to only be negative }
-*/
-
 			}
-		}
+
+
+			
+			}
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
