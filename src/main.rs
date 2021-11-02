@@ -267,8 +267,9 @@ impl ROGUELIKE {
 		let mut rng = rand::thread_rng();
 		let mut new_map = map;
 
+		let mut num_rooms = 3;
 		let mut count = 0;
-		while count < 100 {
+		while count < 30 {
 			let y = rng.gen_range(0..MAP_SIZE_H);
 			let x = rng.gen_range(0..MAP_SIZE_W);
 			let height = rng.gen_range(MIN_ROOM_H..MAX_ROOM_H);
@@ -281,21 +282,21 @@ impl ROGUELIKE {
 				for h in 0..height {
 					for w in 0..width {
 						if x > 2 && y > 2 {
-							if new_map[y-1][x-1] == 1 {
+							if new_map[y-1][x-1] != 0 {
 								collided = true;
 							}
 						}
 						if y > 2 {
-							if new_map[y-1][x+w] == 1 {
+							if new_map[y-1][x+w] != 0 {
 								collided = true;
 							}
 						}
 						if x > 2 {
-							if new_map[y+h][x-1] == 1 {
+							if new_map[y+h][x-1] != 0 {
 								collided = true;
 							}
 						}
-						if new_map[y+h+1][x+w+1] == 1 {
+						if new_map[y+h+1][x+w+1] != 0 {
 							collided = true;
 						}
 					}
@@ -303,9 +304,10 @@ impl ROGUELIKE {
 				if !collided {
 					for h in 0..height {
 						for w in 0..width {
-							new_map[y + h][x + w] = 1;
+							new_map[y + h][x + w] = num_rooms;
 						}
 					}
+					num_rooms += 1;
 				}
 				count += 1;
 			}
@@ -318,7 +320,7 @@ impl ROGUELIKE {
 		let mut y = recurse[rec_length].0;
 		let mut x = recurse[rec_length].1;
 		let mut new_map = map;
-		new_map[y][x] = 7;
+		new_map[y][x] = 1;
 		
 		while rec_length >= 1 {
 			let mut update = false;
@@ -343,7 +345,7 @@ impl ROGUELIKE {
 									recurse.push((y-2,x,(false,false,true,false), 3));	// push a new point for recursion
 									rec_length+=1;
 									update = true;
-									new_map[y-1][x] = 7;
+									new_map[y-1][x] = 1;
 									y = y - 2;
 								}
 							}
@@ -365,7 +367,7 @@ impl ROGUELIKE {
 									recurse.push((y,x+2,(false,false,false,true), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y][x+1] = 7;
+									new_map[y][x+1] = 1;
 									x = x + 2;
 								}
 							}
@@ -387,7 +389,7 @@ impl ROGUELIKE {
 									recurse.push((y+2,x,(true,false,false,false), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y+1][x] = 7;
+									new_map[y+1][x] = 1;
 									y = y + 2;
 								}
 							}
@@ -409,7 +411,7 @@ impl ROGUELIKE {
 									recurse.push((y,x-2,(false,true,false,false), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y][x-1] = 7;
+									new_map[y][x-1] = 1;
 									x = x - 2;
 								}
 							}
@@ -418,7 +420,7 @@ impl ROGUELIKE {
 				}
 			}
 			if update {
-				new_map[y][x] = 7;
+				new_map[y][x] = 1;
 			} else if recurse[rec_length].3 == 0 {
 				recurse.pop();
 				rec_length -= 1;
@@ -450,27 +452,30 @@ impl ROGUELIKE {
 
 	pub fn create_walls(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
-
-		for w in 0..MAP_SIZE_W as i32 {
-			for h in 0..MAP_SIZE_H as i32 {
-				if new_map[h as usize][w as usize] == 0 {
+		for h in 0..MAP_SIZE_H as i32 {
+			for w in 0..MAP_SIZE_W as i32 {
+				if (new_map[h as usize][w as usize] != 1) && (new_map[h as usize][w as usize] != 0) && (new_map[h as usize][w as usize] != 2) {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
-							if h + k - 1 < 0 ||
-							   w + l - 1 < 0 ||
-							   h + k - 1 >= MAP_SIZE_H as i32 ||
-							   w + l - 1 >= MAP_SIZE_W as i32 {
-								continue;
+							if h + 2*k - 2 < 0 ||
+							   w + 2*l - 2 < 0 ||
+							   h + 2*k - 2 >= MAP_SIZE_H as i32 ||
+							   w + 2*l - 2 >= MAP_SIZE_W as i32 {
+								   continue;
 							}
-							if new_map[h as usize + k as usize - 1][w as usize + l as usize - 1] == 1 {
-								new_map[h as usize][w as usize] = 2;
+							if new_map[h as usize + k as usize - 1][w as usize] == 0 && 
+							   new_map[h as usize + 2*(k as usize) - 2][w as usize] != 0 {
+								new_map[h as usize + k as usize - 1][w as usize] = 2;
+							}
+							else if new_map[h as usize][w as usize + l as usize - 1] == 0 && 
+									new_map[h as usize][w as usize + 2*(l as usize) - 2] != 0 {
+								new_map[h as usize][w as usize + l as usize - 1] = 2;
 							}
 						}
 					}
 				}
 			}
 		}
-
 		return new_map;
 	}
 
@@ -479,12 +484,23 @@ impl ROGUELIKE {
 
 		map = ROGUELIKE::create_rooms(map);
 		map = ROGUELIKE::create_maze(map);
-		// map = ROGUELIKE::create_walls(map);
+		map = ROGUELIKE::create_walls(map);
 
 		println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				print!("{} ", map[h][w]);
+				if map[h][w] == 0 {
+					print!("  ");
+				}
+				else if map[h][w] == 1 {
+					print!("# ");
+				}
+				else if map[h][w] == 2 {
+					print!("+ ");
+				}
+				else {
+					print!(". ");
+				}
 			}
 			println!("");
 		}
