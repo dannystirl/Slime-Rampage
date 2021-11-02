@@ -1,10 +1,10 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
+//use crate::gamedata::*;
 //use sdl2::render::Texture;
-
-
-const TILE_SIZE: u32 = 64;
+use crate::gamedata::*;
+use crate::Player;
 
 pub struct Gold{
 	pos: Rect,
@@ -53,4 +53,9 @@ impl Gold {
     pub fn set_collected(&mut self)  {
         self.been_collected = true;
     }
+    pub fn offset_pos(&self, player:&Player)-> Rect{
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+							self.y() as i32 + (CENTER_H - player.y() as i32),
+		TILE_SIZE, TILE_SIZE);
+	}
 }

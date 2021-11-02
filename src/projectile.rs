@@ -1,35 +1,40 @@
 extern crate rogue_sdl;
 
+use crate::Player;
 use sdl2::rect::Rect;
-//use sdl2::render::{Texture, TextureCreator};
+use crate::gamedata::*;
 
-const TILE_SIZE: u32 = 64;
-
+pub enum ProjectileType{
+	Bullet,
+	Fireball,
+}
 
 pub struct Projectile{
-	src: Rect, 
+	src: Rect,
 	pos: Rect,
 	pub facing_right: bool,
 	is_active: bool,
 	vector: Vec<f64>,
+	pub p_type: ProjectileType,
 }
 
  impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>) -> Projectile {
-		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
+	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType) -> Projectile {
+		let mut src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		Projectile {
-			src, 
-			pos,	
+			src,
+			pos,
 			facing_right,
 			is_active,
-			vector
+			vector,
+			p_type,
 		}
 	}
 	pub fn x(&self) -> i32 {
 		return self.pos.x;
 	}
-	
+
 	pub fn y(&self) -> i32 {
 		return self.pos.y;
 	}
@@ -43,7 +48,7 @@ pub struct Projectile{
 	pub fn is_active(&self) -> bool{
 		return self.is_active;
 	}
-	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there. 
+	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
 	pub fn update_pos(&mut self) {
 		self.set_x(self.x() + self.vector[0] as i32);
 		self.set_y(self.y() + self.vector[1] as i32);
@@ -61,4 +66,9 @@ pub struct Projectile{
     pub fn pos(&self) -> Rect {
 		self.pos
     }
+	pub fn offset_pos(&self, player:&Player)-> Rect{
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+		self.y() as i32 + (CENTER_H - player.y() as i32),
+		TILE_SIZE, TILE_SIZE);
+	}
 }
