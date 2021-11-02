@@ -7,6 +7,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::crateobj::*;
 
 pub enum Ability{
 	Bullet,
@@ -108,6 +109,7 @@ impl<'a> Player<'a> {
 		let xwalls = game_data.rooms[0].xwalls;
 		let ywalls = game_data.rooms[0].ywalls;
 		let speed_limit_adj = game_data.get_speed_limit();
+		
 		// Slow down to 0 vel if no input and non-zero velocity
 		self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
 		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
@@ -115,7 +117,7 @@ impl<'a> Player<'a> {
 		// Don't exceed speed limit
 		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-
+		
 		// Stay inside the viewing window
 		self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
@@ -146,7 +148,33 @@ impl<'a> Player<'a> {
 		}
 		for c in &game_data.crates{
 			if GameData::check_collision(&self.pos(), &c.pos()) {
-			
+				//println!("welcome to hell");
+				//if player collide with top of box
+				if self.pos().bottom() > c.pos().top() {
+					self.set_y((self.y() + self.y_vel() as f64).clamp(0.0 , c.pos().top()as f64) );
+				}
+
+				//{clamp y velocity to only be positive }
+
+				//if player collide bottom
+				 if self.pos().top() < c.pos().bottom() {
+					self.set_y((self.y()  +self.y_vel() as f64 ).clamp(c.pos().bottom()as f64, 0.0) );
+				}
+				//{clamp y velocity to only be negative }
+
+				//if player collide left
+				 if self.pos().right() > c.pos().left(){
+					self.set_x((self.x()   + self.x_vel()as f64).clamp(0.0,c.pos().left()as f64 ) );
+				}
+				//{clamp x velocity to only be positive }
+
+				//if player collide right
+				 if self.pos().left() < c.pos().right(){
+					self.set_x((self.x() + self.x_vel() as f64).clamp(c.pos().right()as f64  ,0.0) );
+				}
+				//{clamp x velocity to only be negative }
+
+
 			}
 		}
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
