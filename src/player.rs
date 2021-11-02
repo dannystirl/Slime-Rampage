@@ -147,35 +147,66 @@ impl<'a> Player<'a> {
 			
 		}
 		*/
+		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
+			let obj_pos = Rect::new(ob.0  as i32, ob.1  as i32, TILE_SIZE, TILE_SIZE);
+
+			let p_pos =self.pos();
+			if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom() //top
+				{
+					if(self.y_vel() > 0){
+						self.set_y_vel(-self.y_vel());
+					}
+				}
+				 if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()//bottom
+				{
+					if(self.y_vel() < 0){
+						self.set_y_vel(-self.y_vel());
+					}
+				}
+				if p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right(){//right 
+					if(self.x_vel()>0){
+						self.set_x_vel(-self.y_vel());
+					}
+				}
+				if p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left(){//left
+
+					if(self.x_vel()<0){
+						self.set_x_vel(-self.y_vel());
+					}
+				}
+		}
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
-			if GameData::check_collision(&self.pos(), &c.pos()) {
+		
+			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
 				//println!("welcome to hell");
 				//if player collide with top of box
-				if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom()&& p_pos.left() > crate_pos.left() && (p_pos.right() < crate_pos.right()){
-					println!("top");
-					self.set_y_vel(0);
-
-				}else if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top(){
-					self.set_y_vel(0);
-					println!("bottom");
-
+				if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom() //top
+				{
+					if(self.y_vel() > 0){
+						self.set_y_vel(-self.y_vel());
+					}
 				}
-				else if (p_pos.right() >= crate_pos.left() && p_pos.right() < crate_pos.right()){
-					println!("left");
-
-					self.set_x_vel(0);
-				}else if (p_pos.right() <= crate_pos.left()&& p_pos.left() > crate_pos.left()){
-
-					self.set_x_vel(0);					println!("right");
-
+				 if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top()//bottom
+				{
+					if(self.y_vel() < 0){
+						self.set_y_vel(-self.y_vel());
+					}
+				}
+				if p_pos.right() >= crate_pos.left() && p_pos.right() < crate_pos.right(){//right 
+					if(self.x_vel()>0){
+						self.set_x_vel(-self.y_vel());
+					}
+				}
+				if p_pos.left() <= crate_pos.right() && p_pos.left() > crate_pos.left(){//left
+					if(self.x_vel()<0){
+						self.set_x_vel(-self.y_vel());
+					}
 				}
 			}
-
-
-			
 			}
+		
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
