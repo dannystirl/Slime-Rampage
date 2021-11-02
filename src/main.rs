@@ -461,9 +461,9 @@ impl ROGUELIKE {
 
 		for h in 0..MAP_SIZE_H as i32 {
 			for w in 0..MAP_SIZE_W as i32 {
-				if (map[h as usize][w as usize] != 0) &&
-				   (map[h as usize][w as usize] != 1) &&
-				   (map[h as usize][w as usize] != 2) {
+				if (map[h as usize][w as usize] != 0) /*&&*/
+				   /*(map[h as usize][w as usize] != 1) &&
+				   (map[h as usize][w as usize] != 2)*/ {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
 							if h + 2 * k - 2 < 0 ||
@@ -546,14 +546,46 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
+	pub fn remove_dead_ends(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+		let mut still_removing = true;
+		
+		while still_removing {
+			still_removing = false;
+			for h in 0..MAP_SIZE_H {
+				for w in 0..MAP_SIZE_W {
+					if new_map[h][w] == 1 {
+						let mut count = 0;
+						if new_map[h + 1][w] == 0 {
+							count += 1;
+						}
+						if new_map[h - 1][w] == 0 {
+							count += 1;
+						}
+						if new_map[h][w + 1] == 0 {
+							count += 1;
+						}
+						if new_map[h][w - 1] == 0 {
+							count += 1;
+						}
+						if count >= 3 {
+							still_removing = true;
+							new_map[h][w] = 0;
+						}
+					}
+				}
+			}
+		}
+
+		return new_map;
+	}
+
 	pub fn create_walls(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
 
 		for h in 0..MAP_SIZE_H as i32 {
 			for w in 0..MAP_SIZE_W as i32 {
-				if (new_map[h as usize][w as usize] != 0) &&
-				   (new_map[h as usize][w as usize] != 1) &&
-				   (new_map[h as usize][w as usize] != 2) {
+				/*if (new_map[h as usize][w as usize] == 1) {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
 							if h + 2 * k - 2 < 0 ||
@@ -569,6 +601,21 @@ impl ROGUELIKE {
 							else if new_map[h as usize][w as usize + l as usize - 1] == 0 && 
 									new_map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
 									new_map[h as usize][w as usize + l as usize - 1] = 2;
+							}
+						}
+					}
+				}*/
+				if new_map[h as usize][w as usize] == 0 {
+					for k in 0..3 as i32 {
+						for l in 0..3 as i32 {
+							if h + k - 1 < 0 ||
+							   w + l - 1 < 0 ||
+							   h + k >= MAP_SIZE_H as i32 ||
+							   w + l >= MAP_SIZE_W as i32 {
+								   continue;
+							}
+							if new_map[h as usize + k as usize - 1][w as usize + l as usize - 1] == 1 {
+								new_map[h as usize][w as usize] = 2;
 							}
 						}
 					}
@@ -591,38 +638,35 @@ impl ROGUELIKE {
 		num_mazes = maze_tuple.0;
 		map = maze_tuple.1;
 		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
-		// map = ROGUELIKE::create_walls(map);
+		map = ROGUELIKE::remove_dead_ends(map);
+		map = ROGUELIKE::create_walls(map);
 
 		println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				/* if map[h][w] == 0 {
+				if map[h][w] == 0 {
 					print!("  ");
 				}
 				else if map[h][w] == 1 {
-					print!("# ");
-				}
-				else if map[h][w] == 2 {
-					print!("+ ");
-				}
-				else if map[h][w] < 10{
-					print!("{} ", map[h][w]);
+					print!(". ");
 				}
 				else {
-					print!("{}", map[h][w]);
-				} */
+					print!("+ ");
+				}
 				/*if map[h][w] == 0 {
 					print!("  ");
 				} else {
 					print!(". ");
 				}*/
-				if map[h][w] == 0 {
+				/*if map[h][w] == 0 {
 					print!("  ");
+				} else if map[h][w] == 2 {
+					print!("% ");
 				} else if map[h][w] < 10 {
 					print!("{} ", map[h][w]);
 				} else {
 					print!("{}", map[h][w]);
-				}
+				}*/
 			}
 			println!("");
 		}
