@@ -154,6 +154,15 @@ impl Game for ROGUELIKE  {
 
 		let mut map = ROGUELIKE::create_map();
 
+		// WARNING! WIDTH AND HEIGHT ARE SWITCHED!
+		println!("");
+		for i in 0..MAP_SIZE_W {
+			for j in 0..MAP_SIZE_H {
+				print!("{} ", map[j][i]);
+			}
+			println!("");
+		}
+
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
@@ -263,13 +272,171 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_map() -> [[i32; 10]; 10] {
-		let mut map = [[0; 10]; 10];
-		for i in 0..10 {
-			for j in 0..10 {
-				println!("{}", map[i][j]);
+	pub fn create_rooms(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rng = rand::thread_rng();
+
+		let mut new_map = map;
+
+		let num_attempts = 200;
+		let mut count = 0;
+		while count < num_attempts {
+			count += 1;
+			let x = rng.gen_range(0..MAP_SIZE_W);
+			let y = rng.gen_range(0..MAP_SIZE_H);
+			let width = rng.gen_range(11..21);
+			let height = rng.gen_range(11..21);
+			if x % 2 == 0 || y % 2 == 0 || width % 2 == 0 || height % 2 == 0 {
+				count -= 1;
+				continue;
+			}
+			if x + width < MAP_SIZE_W && y + height < MAP_SIZE_H {
+				let mut collided = false;
+				for j in 0..width {
+					for k in 0..height {
+						if x > 1 && y > 1 {
+							if new_map[x - 1][y - 1] == 1 {
+								collided = true;
+							}
+						}
+						if x > 1 {
+							if new_map[x - 1][y + k] == 1 {
+								collided = true;
+							}
+						}
+						if y > 1 {
+							if new_map[x + j][y - 1] == 1 {
+								collided = true;
+							}
+						}
+						if new_map[x + j + 1][y + k + 1] == 1 {
+							collided = true;
+						}
+					}
+				}
+				if collided {
+					continue;
+				}
+				for j in 0..width {
+					for k in 0..height {
+						new_map[x + j][y + k] = 1;
+					}
+				}
+				count += 1;
 			}
 		}
+		
+		return new_map;
+	}
+
+	pub fn build_maze(mut x: usize, mut y: usize, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+
+		let mut count = 0;
+		let target = 300;
+		let mut direction = 0;
+		while count < target {
+			count += 1;
+			new_map[x][y] = 7;
+			if count > 1 {
+				match direction {
+					0 => new_map[x][y + 1] = 7,
+					1 => new_map[x - 1][y] = 7,
+					2 => new_map[x][y - 1] = 7,
+					3 => new_map[x + 1][y] = 7,
+					_ => new_map[x][y] = 7,
+				}
+			}
+
+			println!("");
+			for i in 0..MAP_SIZE_W {
+				for j in 0..MAP_SIZE_H {
+					print!("{} ", new_map[j][i]);
+				}
+				println!("");
+			}
+
+			// North
+			if y > 2 {
+				if new_map[x][y - 2] == 0 {
+					y = y - 2;
+					direction = 0;
+					println!("West");
+					continue;
+				}
+			}
+			// East
+			if x < MAP_SIZE_W - 2 {
+				if new_map[x + 2][y] == 0 {
+					x = x + 2;
+					direction = 1;
+					println!("South");
+					continue;
+				}
+			}
+			// South
+			if y < MAP_SIZE_H - 2 {
+				if new_map[x][y + 2] == 0 {
+					y = y + 2;
+					direction = 2;
+					println!("East");
+					continue;
+				}
+			}
+			// West
+			if x > 2 {
+				if new_map[x - 2][y] == 0 {
+					x = x - 2;
+					direction = 3;
+					println!("North");
+					continue;
+				}
+			}
+		}
+
+		return new_map;
+	}
+
+	pub fn create_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let x = 1;
+		let y = 1;
+		let mut new_map = ROGUELIKE::build_maze(x, y, map);
+
+		return new_map;
+	}
+
+	pub fn create_walls(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+
+		for i in 0..MAP_SIZE_W as i32 {
+			for j in 0..MAP_SIZE_H as i32 {
+				if new_map[i as usize][j as usize] == 0 {
+					for k in 0..3 as i32 {
+						for l in 0..3 as i32 {
+							if i + k - 1 < 0 ||
+							   j + l - 1 < 0 ||
+							   i + k - 1 >= MAP_SIZE_W as i32 ||
+							   j + l - 1 >= MAP_SIZE_H as i32 {
+								continue;
+							}
+							if new_map[i as usize + k as usize - 1][j as usize + l as usize - 1] == 1 {
+								new_map[i as usize][j as usize] = 2;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return new_map;
+	}
+
+	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+
+		map = ROGUELIKE::create_rooms(map);
+		map = ROGUELIKE::create_maze(map);
+		// map = ROGUELIKE::create_walls(map);
+
 		return map;
 	}
 
