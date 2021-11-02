@@ -461,9 +461,7 @@ impl ROGUELIKE {
 
 		for h in 0..MAP_SIZE_H as i32 {
 			for w in 0..MAP_SIZE_W as i32 {
-				if (map[h as usize][w as usize] != 0) /*&&*/
-				   /*(map[h as usize][w as usize] != 1) &&
-				   (map[h as usize][w as usize] != 2)*/ {
+				if (map[h as usize][w as usize] != 0) {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
 							if h + 2 * k - 2 < 0 ||
@@ -585,26 +583,6 @@ impl ROGUELIKE {
 
 		for h in 0..MAP_SIZE_H as i32 {
 			for w in 0..MAP_SIZE_W as i32 {
-				/*if (new_map[h as usize][w as usize] == 1) {
-					for k in 0..3 as i32 {
-						for l in 0..3 as i32 {
-							if h + 2 * k - 2 < 0 ||
-							   w + 2 * l - 2 < 0 ||
-							   h + 2 * k - 2 >= MAP_SIZE_H as i32 ||
-							   w + 2 * l - 2 >= MAP_SIZE_W as i32 {
-								   continue;
-							}
-							if new_map[h as usize + k as usize - 1][w as usize] == 0 && 
-							   new_map[h as usize + 2 * (k as usize) - 2][w as usize] != 0 {
-							   new_map[h as usize + k as usize - 1][w as usize] = 2;
-							}
-							else if new_map[h as usize][w as usize + l as usize - 1] == 0 && 
-									new_map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
-									new_map[h as usize][w as usize + l as usize - 1] = 2;
-							}
-						}
-					}
-				}*/
 				if new_map[h as usize][w as usize] == 0 {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
@@ -653,20 +631,6 @@ impl ROGUELIKE {
 				else {
 					print!("+ ");
 				}
-				/*if map[h][w] == 0 {
-					print!("  ");
-				} else {
-					print!(". ");
-				}*/
-				/*if map[h][w] == 0 {
-					print!("  ");
-				} else if map[h][w] == 2 {
-					print!("% ");
-				} else if map[h][w] < 10 {
-					print!("{} ", map[h][w]);
-				} else {
-					print!("{}", map[h][w]);
-				}*/
 			}
 			println!("");
 		}
