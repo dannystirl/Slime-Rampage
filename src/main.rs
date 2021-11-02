@@ -319,7 +319,9 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn build_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool))>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	pub fn build_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool),i32)>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rng = rand::thread_rng();
+
 		let mut rec_length = recurse.len()-1;
 		let mut x = recurse[rec_length].0;
 		let mut y = recurse[rec_length].1;
@@ -333,48 +335,98 @@ impl ROGUELIKE {
 			let mut update = false;
 			count += 1;
 
-			// West
-			if recurse[rec_length].2.0 == false {		// has moved direction
-				recurse[rec_length] = (x,y,(true,false,false,false));
-				if y > 2 && new_map[x][y - 2] == 0 { 	// can move direction
-					recurse.push((x,y-1,(false,false,true,false)));
-					rec_length+=1;
-					update = true;
-					new_map[x][y - 1] = 7;
-					y = y - 2;
+			let roll = rng.gen_range(1..4);
+			let mut roll_count = 0;
+			let mut direction = 0;
+			for i in 0..4 {
+				match i {
+					0 => {
+						if recurse[rec_length].2.0 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								direction = i;
+							}
+						}
+					},
+					1 => {
+						if recurse[rec_length].2.1 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								direction = i;
+							}
+						}
+					},
+					2 => {
+						if recurse[rec_length].2.2 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								direction = i;
+							}
+						}
+					},
+					_ => {
+						if recurse[rec_length].2.3 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								direction = i;
+							}
+						}
+					},
 				}
 			}
-			// South
-			else if recurse[rec_length].2.1 == false {
-				recurse[rec_length] = (x,y,(true,true,false,false));
-				if x < MAP_SIZE_W - 2 && new_map[x + 2][y] == 0{
-					recurse.push((x+1,y,(false,false,false,true)));
-					rec_length+=1;
-					update = true;
-					new_map[x + 1][y] = 7;
-					x = x + 2;
-				}
-			}
-			// East
-			else if recurse[rec_length].2.2 == false {
-				recurse[rec_length] = (x,y,(true,true,true,false));
-				if y < MAP_SIZE_H - 2 && new_map[x][y + 2] == 0{
-					recurse.push((x,y+1,(true,false,false,false)));
-					rec_length+=1;
-					update = true;
-					new_map[x][y + 1] = 7;
-					y = y + 2;
-				}
-			}
-			// North
-			else if recurse[rec_length].2.3 == false {
-				recurse[rec_length] = (x,y,(true,true,true,true));
-				if x > 2 && new_map[x - 2][y] == 0{
-					recurse.push((x-1,y,(false,true,false,false)));
-					rec_length+=1;
-					update = true;
-					new_map[x - 1][y] = 7;
-					x = x - 2;
+
+			match direction {
+				0 => {
+					// West
+					if recurse[rec_length].2.0 == false {		// has moved direction
+						recurse[rec_length] = (x,y,(true,recurse[rec_length].2.1,recurse[rec_length].2.2,recurse[rec_length].2.3), recurse[rec_length].3 - 1);
+						if y > 2 && new_map[x][y - 2] == 0 { 	// can move direction
+							recurse.push((x,y-1,(false,false,true,false), 3));
+							rec_length+=1;
+							update = true;
+							new_map[x][y - 1] = 7;
+							y = y - 2;
+						}
+					}
+				},
+				1 => {
+					// South
+					if recurse[rec_length].2.1 == false {
+						recurse[rec_length] = (x,y,(recurse[rec_length].2.0,true,recurse[rec_length].2.2,recurse[rec_length].2.3), recurse[rec_length].3 - 1);
+						if x < MAP_SIZE_W - 2 && new_map[x + 2][y] == 0 {
+							recurse.push((x+1,y,(false,false,false,true), 3));
+							rec_length+=1;
+							update = true;
+							new_map[x + 1][y] = 7;
+							x = x + 2;
+						}
+					}
+				},
+				2 => {
+					// East
+					if recurse[rec_length].2.2 == false {
+						recurse[rec_length] = (x,y,(recurse[rec_length].2.0,recurse[rec_length].2.1,true,recurse[rec_length].2.3), recurse[rec_length].3 - 1);
+						if y < MAP_SIZE_H - 2 && new_map[x][y + 2] == 0 {
+							recurse.push((x,y+1,(true,false,false,false), 3));
+							rec_length+=1;
+							update = true;
+							new_map[x][y + 1] = 7;
+							y = y + 2;
+						}
+					}
+				},
+				_ => {
+					// North
+					if recurse[rec_length].2.3 == false {
+						recurse[rec_length] = (x,y,(recurse[rec_length].2.0,recurse[rec_length].2.1,recurse[rec_length].2.2,true), recurse[rec_length].3 - 1);
+						if x > 2 && new_map[x - 2][y] == 0{
+							recurse.push((x-1,y,(false,true,false,false), 3));
+							rec_length+=1;
+							update = true;
+							new_map[x - 1][y] = 7;
+							x = x - 2;
+						}
+					}
 				}
 			}
 			if update {
@@ -398,7 +450,7 @@ impl ROGUELIKE {
 	}
 
 	pub fn create_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
-		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool))> = Vec::new(); // x, y, direction
+		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // x, y, direction
 		let mut x = 1;
 		let mut y = 1;
 		let mut new_map = map;
@@ -407,8 +459,8 @@ impl ROGUELIKE {
 				if map[i][j] == 0 {
 					x = i;
 					y = j;
-					recurse.push((x,y,(false,false,false,false)));
-					recurse.push((x,y,(false,false,false,false))); // dupe prevents edge case
+					recurse.push((x,y,(false,false,false,false), 4));
+					recurse.push((x,y,(false,false,false,false), 4)); // dupe prevents edge case
 					new_map = ROGUELIKE::build_maze(new_map, &mut recurse);
 				}
 			}
