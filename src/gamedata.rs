@@ -19,8 +19,13 @@ pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 pub const BG_W: u32 = 2400;
 pub const BG_H: u32 = 1440;
 
+// room globals
+pub const MIN_ROOM_W: usize = 7;
+pub const MAX_ROOM_W: usize = 11;
 pub const MAP_SIZE_W: usize = 51;
-pub const MAP_SIZE_H: usize = 51;
+pub const MIN_ROOM_H: usize = 11;
+pub const MAX_ROOM_H: usize = 21;
+pub const MAP_SIZE_H: usize = 101;
 
 // game globals
 pub const SPEED_LIMIT: f64 = 200.0;
