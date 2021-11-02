@@ -329,17 +329,14 @@ impl ROGUELIKE {
 		let mut count = 0;
 		let target = 100;
 		
-		// while recurse.len() != 1 {
 		while rec_length >= 1 {
 			let mut update = false;
 			count += 1;
 
 			// West
 			if recurse[rec_length].2.0 == false {		// has moved direction
-				println!("Checking West");
 				recurse[rec_length] = (x,y,(true,false,false,false));
 				if y > 2 && new_map[x][y - 2] == 0 { 	// can move direction
-					println!("West");
 					recurse.push((x,y-2,(false,false,false,false)));
 					rec_length+=1;
 					update = true;
@@ -349,10 +346,8 @@ impl ROGUELIKE {
 			}
 			// South
 			else if recurse[rec_length].2.1 == false {
-				println!("Checking South");
 				recurse[rec_length] = (x,y,(true,true,false,false));
 				if x < MAP_SIZE_W - 2 && new_map[x + 2][y] == 0{
-					println!("South");
 					recurse.push((x+1,y,(true,false,false,false)));
 					rec_length+=1;
 					update = true;
@@ -362,12 +357,10 @@ impl ROGUELIKE {
 			}
 			// East
 			else if recurse[rec_length].2.2 == false {
-				println!("Checking East");
 				recurse[rec_length] = (x,y,(true,true,true,false));
 				if y < MAP_SIZE_H - 2 && new_map[x][y + 2] == 0{
 					recurse.push((x,y+1,(false,true,false,false)));
 					rec_length+=1;
-					println!("East");
 					update = true;
 					new_map[x][y + 1] = 7;
 					y = y + 2;
@@ -375,10 +368,8 @@ impl ROGUELIKE {
 			}
 			// North
 			else if recurse[rec_length].2.3 == false {
-				println!("Checking North");
 				recurse[rec_length] = (x,y,(true,true,true,true));
 				if x > 2 && new_map[x - 2][y] == 0{
-					println!("North");
 					recurse.push((x-1,y,(false,false,true,false)));
 					rec_length+=1;
 					update = true;
@@ -394,14 +385,14 @@ impl ROGUELIKE {
 				x = recurse[rec_length].0;
 		 		y = recurse[rec_length].1;
 			}
-			print!("\nx: {} y: {} len: {}", x, y, recurse.len());
+			/* print!("\nx: {} y: {} len: {}", x, y, recurse.len());
 			println!("");
 			for i in 0..MAP_SIZE_W {
 				for j in 0..MAP_SIZE_H {
 					print!("{} ", new_map[i][j]);
 				}
 				println!("");
-			}
+			} */
 		}
 		return new_map;
 	}
@@ -446,6 +437,14 @@ impl ROGUELIKE {
 		map = ROGUELIKE::create_rooms(map);
 		map = ROGUELIKE::create_maze(map);
 		// map = ROGUELIKE::create_walls(map);
+
+		println!("");
+		for i in 0..MAP_SIZE_W {
+			for j in 0..MAP_SIZE_H {
+				print!("{} ", map[i][j]);
+			}
+			println!("");
+		}
 
 		return map;
 	}
