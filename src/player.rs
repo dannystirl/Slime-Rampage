@@ -121,94 +121,89 @@ impl<'a> Player<'a> {
 		// Stay inside the viewing window
 		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-/*
+
 		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
-			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
-			if GameData::check_collision(&self.pos(), &obs) {
-				// collision on object top
-				if (self.pos().bottom() >= obs.top()) && (self.pos().bottom() < obs.bottom()) 		// check y bounds
-				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
-					self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
-				// collision on object bottom
-				} else if (self.pos().top() < obs.bottom()) && (self.pos().top() > obs.top()) 		// check y bounds
-				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
-					self.set_y((self.y() + self.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-				// collision on object left
-				} else if (self.pos().right() > obs.left()) && (self.pos().right() < obs.right())	// check x bounds
-						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
-					self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
-					// collision on object right
-				} else if (self.pos().left() < obs.right()) && (self.pos().left() > obs.left()) 	// check x bounds
-						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
-					self.set_x((self.x() + self.x_vel() as f64).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
-					(xwalls.1 * TILE_SIZE as i32) as f64));
+			let obj_pos = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
+			let p_pos =self.pos();
+
+			if GameData::check_collision(&self.pos(), &obj_pos) {//I hate collisions
+				//println!("welcome to hell");
+				// NW
+				if (p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom())
+					&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
+					println!("top left");
+					if self.x_vel() > 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() > 0 {
+						self.set_y_vel(-self.y_vel()); }
+				}
+				//NE
+				else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom()
+					&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
+					println!("top right");
+					if self.x_vel() < 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() > 0 {
+						self.set_y_vel(-self.y_vel()); }
+
+				}
+				// SE
+				else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()
+					&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
+					if self.x_vel() < 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() < 0 {
+						self.set_y_vel(-self.y_vel()); }
+					//self.set_y_vel(0);
+					println!("bottom right");
+				}
+				// SW
+				else if (p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top())
+					&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
+					if self.x_vel() > 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() < 0 {
+						self.set_y_vel(-self.y_vel()); }
+					println!("bottom left");
+					//self.set_x_vel(0);
+				}
+				//N
+				else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom(){
+					println!("top");
+					self.set_y_vel(-self.y_vel());
+
+				}
+				// E
+				else if (p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left()){
+					println!("right");
+					self.set_x_vel(-self.x_vel());
+
+				}
+				// S
+				else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top(){
+					self.set_y_vel(-self.y_vel());
+					println!("bottom");
+				}
+				// W
+				else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right())
+				{
+					println!("left");
+					self.set_x_vel(-self.x_vel());
 				}
 			}
 			
 		}
-		*/
-		/*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
-			let obj_pos = Rect::new(ob.0  as i32, ob.1  as i32, TILE_SIZE, TILE_SIZE);
-
-			let p_pos =self.pos();
-			if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom() //top
-				{
-					if(self.y_vel() > 0){
-						self.set_y_vel(-self.y_vel());
-					}
-				}
-				 if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()//bottom
-				{
-					if(self.y_vel() < 0){
-						self.set_y_vel(-self.y_vel());
-					}
-				}
-				if p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right(){//right 
-					if(self.x_vel()>0){
-						self.set_x_vel(-self.y_vel());
-					}
-				}
-				if p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left(){//left
-
-					if(self.x_vel()<0){
-						self.set_x_vel(-self.y_vel());
-					}
-				}
-		}
-		*/
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
 		
 			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
 				//println!("welcome to hell");
-				//if player collide with top of box
-				if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom() //top
-				{
-					if(self.y_vel() > 0){
-						self.set_y_vel(-self.y_vel());
-					}
-				}
-				if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top()//bottom
-				{
-					if(self.y_vel() < 0){
-						self.set_y_vel(-self.y_vel());
-					}
-				}
-				if p_pos.right() >= crate_pos.left() && p_pos.right() < crate_pos.right(){//right 
-					if(self.x_vel()>0){
-						self.set_x_vel(-self.y_vel());
-					}
-				}
-				if p_pos.left() <= crate_pos.right() && p_pos.left() > crate_pos.left(){//left
-					if(self.x_vel()<0){
-						self.set_x_vel(-self.y_vel());
-					}
-				}
-			}
-		}
-		
-				/*// NW
+				// NW
 				if (p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom())
 					&& (p_pos.right() >= crate_pos.left()) && (p_pos.right() < crate_pos.right()) {
 					println!("top left");
@@ -275,7 +270,7 @@ impl<'a> Player<'a> {
 					self.set_x_vel(-self.x_vel());
 				}
 			}
-			}*/
+			}
 		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
