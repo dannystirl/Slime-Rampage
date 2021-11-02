@@ -415,14 +415,28 @@ impl ROGUELIKE {
 		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool))> = Vec::new(); // x, y, direction
 		let mut x = 1;
 		let mut y = 1;
-		if map[x][y]!=0 {
+		let mut coordinates_found = false;
+		for i in (1..MAP_SIZE_W).step_by(2) {
+			for j in (1..MAP_SIZE_H).step_by(2) {
+				if map[i][j] == 0 {
+					x = i;
+					y = j;
+					coordinates_found = true;
+					break;
+				}
+			}
+			if coordinates_found {
+				break;
+			}
+		}
+		/*if map[x][y]!=0 {
 			if x + 2 < MAP_SIZE_W {
 				x += 2; 
 			} else {
 				y += 2;
 				x = 1;
 			}
-		}
+		}*/
 		recurse.push((x,y,(false,false,false,false)));
 		recurse.push((x,y,(false,false,false,false))); // dupe prevents edge case
 		let mut new_map = ROGUELIKE::build_maze(map, recurse);
