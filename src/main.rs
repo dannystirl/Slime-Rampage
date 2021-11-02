@@ -498,8 +498,11 @@ impl ROGUELIKE {
 				else if map[h][w] == 2 {
 					print!("+ ");
 				}
+				else if map[h][w] < 10{
+					print!("{} ", map[h][w]);
+				}
 				else {
-					print!(". ");
+					print!("{}", map[h][w]);
 				}
 			}
 			println!("");
