@@ -160,8 +160,8 @@ impl Game for ROGUELIKE  {
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
 				if map[h][w] == 3 {
-					player.set_x((w * TILE_SIZE as usize - ((CAM_W - TILE_SIZE)/2) as usize) as f64);
-					player.set_y((h * TILE_SIZE as usize - ((CAM_H - TILE_SIZE)/2) as usize) as f64);
+					player.set_x((w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
+					player.set_y((h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
 					break;
 				}
 			}
