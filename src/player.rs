@@ -154,7 +154,7 @@ impl<'a> Player<'a> {
 							// NW
 							if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
 								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-								println!("top left");
+								// println!("top left");
 									self.set_x_vel(self.x_vel().clamp(-100,0));
 								
 									//self.set_y_vel(-self.y_vel()); 
@@ -164,7 +164,7 @@ impl<'a> Player<'a> {
 							//NE
 							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
 								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-								println!("top right");
+								// println!("top right");
 									self.set_x_vel(self.x_vel().clamp(0,100));
 
 								
@@ -181,7 +181,7 @@ impl<'a> Player<'a> {
 
 								
 								//self.set_y_vel(0);
-								println!("bottom right");
+								// println!("bottom right");
 							}
 							// SW
 							else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
@@ -193,18 +193,18 @@ impl<'a> Player<'a> {
 									self.set_y_vel(self.x_vel().clamp(0,100));
 
 								
-								println!("bottom left");
+								// println!("bottom left");
 								//self.set_x_vel(0);
 							}
 							//N
 							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
-								println!("top");
+								// println!("top");
 								//self.set_y_vel(-self.y_vel());
 								self.y_vel().clamp(-100,0);
 							}
 							// E
 							else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
-								println!("right");
+								// println!("right");
 								self.x_vel().clamp(0,100);
 
 			
@@ -214,12 +214,12 @@ impl<'a> Player<'a> {
 								
 								self.y_vel().clamp(0,100);
 
-								println!("bottom");
+								// println!("bottom");
 							}
 							// W
 							else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
 							{
-								println!("left");
+								// println!("left");
 								//self.set_x_vel(-self.x_vel());
 
 								self.x_vel().clamp(-100,0);
