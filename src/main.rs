@@ -203,7 +203,7 @@ impl Game for ROGUELIKE  {
 			}
 
 			// UPDATE PLAYER
-			player.update_player(&self.game_data);
+			player.update_player(&self.game_data, map);
 			self.draw_player(&count, &f_display, &mut player, background.get_curr_background());
 			count = count + 1;
 			if count > f_display * 5 {
@@ -643,7 +643,9 @@ impl ROGUELIKE {
 
 	pub fn update_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
-		
+		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+		let tile = texture_creator.load_texture("images/background/tile.png")?;
+
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
@@ -663,11 +665,11 @@ impl ROGUELIKE {
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 1 {
-					let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
-					self.core.wincan.copy(&texture, src, pos);
+					//let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+					self.core.wincan.copy(&floor, src, pos);
 				} else {
-					let texture = texture_creator.load_texture("images/background/tile.png")?;
-					self.core.wincan.copy(&texture, src, pos);
+					//let texture = texture_creator.load_texture("images/background/tile.png")?;
+					self.core.wincan.copy(&tile, src, pos);
 				}
 			}
 		}
