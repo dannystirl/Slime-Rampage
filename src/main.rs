@@ -86,7 +86,7 @@ impl Game for ROGUELIKE  {
 		(CAM_H/2 - TILE_SIZE/2) as i32 -200 + rng.gen_range(0..10),
 		TILE_SIZE,
 		TILE_SIZE,);
-		self.game_data.crates.push(crateobj::Crate::new(pos));
+		//self.game_data.crates.push(crateobj::Crate::new(pos));
 		//crate generation over
 
 		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies

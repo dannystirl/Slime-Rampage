@@ -122,7 +122,7 @@ impl<'a> Player<'a> {
 		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
 
-		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
+		/* for ob in &game_data.rooms[game_data.current_room].room_obstacles {
 			let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
 			let p_pos =self.pos();
 
@@ -196,8 +196,8 @@ impl<'a> Player<'a> {
 				}
 			}
 			
-		}
-		for c in &game_data.crates{
+		} */
+		/* for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
 		
@@ -270,8 +270,8 @@ impl<'a> Player<'a> {
 					self.set_x_vel(-self.x_vel());
 				}
 			}
-			}
-		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
+		} */
+		//self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		if self.get_attack_timer() > ATTK_COOLDOWN {
