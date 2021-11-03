@@ -653,13 +653,11 @@ impl ROGUELIKE {
 
 				// Add upstairs (3)
 				if stairs_added == 0 {
-					println!("HEY");
 					new_map[h][w] = 3;
 					stairs_added += 1;
 				}
 				// Add downstairs (4)
 				else if stairs_added == 1 {
-					println!("YO");
 					new_map[h][w] = 4;
 					stairs_added += 1;
 				}
@@ -675,7 +673,6 @@ impl ROGUELIKE {
 
 		// Add upstairs (3)
 		if stairs_added == 0 {
-			println!("HOMIE");
 			new_map[h][w] = 4;
 			stairs_added += 1;
 		} */
