@@ -159,9 +159,9 @@ impl Game for ROGUELIKE  {
 
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				if map[h][w] == 3{
-					player.set_x((w * TILE_SIZE as usize - ((CAM_W - TILE_SIZE)/2)as usize)as f64);
-					player.set_y((h * TILE_SIZE as usize - ((CAM_H - TILE_SIZE)/2)as usize)as f64);
+				if map[h][w] == 3 {
+					player.set_x((w * TILE_SIZE as usize - ((CAM_W - TILE_SIZE)/2) as usize) as f64);
+					player.set_y((h * TILE_SIZE as usize - ((CAM_H - TILE_SIZE)/2) as usize) as f64);
 					break;
 				}
 			}
