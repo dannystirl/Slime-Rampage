@@ -157,6 +157,16 @@ impl Game for ROGUELIKE  {
 
 		let mut map = ROGUELIKE::create_map();
 
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if map[h][w] == 3{
+					player.set_x((w * TILE_SIZE as usize - ((CAM_W - TILE_SIZE)/2)as usize)as f64);
+					player.set_y((h * TILE_SIZE as usize - ((CAM_H - TILE_SIZE)/2)as usize)as f64);
+					break;
+				}
+			}
+		}
+
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
@@ -640,6 +650,7 @@ impl ROGUELIKE {
 				if stairs_added == 0 {
 					new_map[h][w] = 3;
 					stairs_added += 1;
+
 				}
 				// Add downstairs (4)
 				else if stairs_added == 1 {
