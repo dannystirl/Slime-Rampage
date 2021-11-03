@@ -125,7 +125,7 @@ impl<'a> Player<'a> {
 		// Stay inside the viewing window
 		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-		let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0, 0, TILE_SIZE/4, TILE_SIZE/4);
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
@@ -155,55 +155,44 @@ impl<'a> Player<'a> {
 							if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
 								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
 								println!("top left");
-								if self.x_vel() > 0{
 									self.set_x_vel(self.x_vel().clamp(-100,0));
-								}
-								if self.y_vel() > 0 {
+								
 									//self.set_y_vel(-self.y_vel()); 
 									self.set_y_vel(self.x_vel().clamp(-100,0));
-								}
+								
 							}
 							//NE
 							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
 								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
 								println!("top right");
-								if self.x_vel() < 0{
 									self.set_x_vel(self.x_vel().clamp(0,100));
 
-								}
-								if self.y_vel() > 0 {
+								
 									self.set_y_vel(self.x_vel().clamp(-100,0));
-
 									//self.set_y_vel(-self.y_vel()); 
-								}
+								
 			
 							}
 							// SE
 							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
 								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-								if self.x_vel() < 0{
 									self.set_x_vel(self.x_vel().clamp(0,100));
-
-								}
-								if self.y_vel() < 0 {
 									self.set_y_vel(self.x_vel().clamp(0,100));
 
-								}
+								
 								//self.set_y_vel(0);
 								println!("bottom right");
 							}
 							// SW
 							else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
 								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-								if self.x_vel() > 0{
 
 									self.set_y_vel(self.x_vel().clamp(-100,0));
 
-								}
-								if self.y_vel() < 0 {
+								
 									self.set_y_vel(self.x_vel().clamp(0,100));
 
-								}
+								
 								println!("bottom left");
 								//self.set_x_vel(0);
 							}
@@ -474,8 +463,8 @@ impl<'a> Player<'a> {
 		self.cam_pos = Rect::new(
 			self.x() as i32 - x,
 			self.y() as i32 - y,
-			TILE_SIZE,
-			TILE_SIZE,
+			TILE_SIZE/2,
+			TILE_SIZE/2,
 		);
 	}
 
