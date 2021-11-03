@@ -12,6 +12,7 @@ mod crateobj;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
+use std::cmp;
 use rand::Rng;
 use rogue_sdl::{Game, SDLCore};
 use crate::background::*;
@@ -88,7 +89,7 @@ impl Game for ROGUELIKE  {
 		self.game_data.crates.push(crateobj::Crate::new(pos));
 		//crate generation over
 
-		let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::with_capacity(0);	// Size is max number of enemies
 		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
@@ -152,6 +153,8 @@ impl Game for ROGUELIKE  {
 			),
 		);
 
+		let mut map = ROGUELIKE::create_map();
+
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
@@ -192,7 +195,7 @@ impl Game for ROGUELIKE  {
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
 
 			// UPDATE BACKGROUND
-			ROGUELIKE::update_background(self, &player, &mut background)?;
+			ROGUELIKE::update_background(self, &player, &mut background, map)?;
 
 			// UPDATE PLAYER
 			player.update_player(&self.game_data);
@@ -261,9 +264,408 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // Create map
 impl ROGUELIKE {
-	pub fn update_background(&mut self, player: &Player, background: &mut Background) -> Result<(), String> {
+	pub fn create_rooms(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+		let mut rng = rand::thread_rng();
+		let mut new_map = map;
+
+		let mut num_rooms = 1;
+		let mut count = 0;
+		while count < 300 {
+			let y = rng.gen_range(0..MAP_SIZE_H);
+			let x = rng.gen_range(0..MAP_SIZE_W);
+			let height = rng.gen_range(MIN_ROOM_H..MAX_ROOM_H);
+			let width = rng.gen_range(MIN_ROOM_W..MAX_ROOM_W);
+			if y % 2 == 0 || x % 2 == 0 || height % 2 == 0 || width % 2 == 0 {
+				continue;
+			}
+			if y + height < MAP_SIZE_H && x + width < MAP_SIZE_W {
+				let mut collided = false;
+				for h in 0..height {
+					for w in 0..width {
+						if x > 2 && y > 2 {
+							if new_map[y-1][x-1] != 0 {
+								collided = true;
+							}
+						}
+						if y > 2 {
+							if new_map[y-1][x+w] != 0 {
+								collided = true;
+							}
+						}
+						if x > 2 {
+							if new_map[y+h][x-1] != 0 {
+								collided = true;
+							}
+						}
+						if new_map[y+h+1][x+w+1] != 0 {
+							collided = true;
+						}
+					}
+				}
+				if !collided {
+					for h in 0..height {
+						for w in 0..width {
+							new_map[y + h][x + w] = num_rooms;
+						}
+					}
+					num_rooms += 1;
+				}
+				count += 1;
+			}
+		}
+
+		return (num_rooms - 1, new_map);
+	}
+
+	pub fn build_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], num_maze: &i32, recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool),i32)>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rec_length = recurse.len()-1;
+		let mut y = recurse[rec_length].0;
+		let mut x = recurse[rec_length].1;
+		let mut new_map = map;
+		new_map[y][x] = *num_maze;
+		
+		while rec_length >= 1 {
+			let mut update = false;
+
+			let roll = rand::thread_rng().gen_range(1..4);
+			let mut roll_count = 0;
+			for direction in 0..4 {
+				match direction {
+					// NORTH
+					0 => {
+						if recurse[rec_length].2.0 == false {	// test if already moved west
+							roll_count += 1;
+							if roll_count == roll {				// random roll check
+								recurse[rec_length] = (y,x,(	// update current position's directions
+									true,
+									recurse[rec_length].2.1,
+									recurse[rec_length].2.2,
+									recurse[rec_length].2.3), 
+									recurse[rec_length].3 - 1);
+								if y > 2 && new_map[y-2][x] == 0 { 	// can move direction
+									//println!("North");
+									recurse.push((y-2,x,(false,false,true,false), 3));	// push a new point for recursion
+									rec_length+=1;
+									update = true;
+									new_map[y-1][x] = *num_maze;
+									y = y - 2;
+								}
+							}
+						}
+					},
+					// EAST
+					1 => {
+						if recurse[rec_length].2.1 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								recurse[rec_length] = (y,x,(
+									recurse[rec_length].2.0,
+									true,
+									recurse[rec_length].2.2,
+									recurse[rec_length].2.3), 
+									recurse[rec_length].3 - 1);
+								if x < MAP_SIZE_W - 2 && new_map[y][x+2] == 0 {
+									//println!("East");
+									recurse.push((y,x+2,(false,false,false,true), 3));
+									rec_length+=1;
+									update = true;
+									new_map[y][x+1] = *num_maze;
+									x = x + 2;
+								}
+							}
+						}
+					},
+					// SOUTH
+					2 => {
+						if recurse[rec_length].2.2 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								recurse[rec_length] = (y,x,(
+									recurse[rec_length].2.0,
+									recurse[rec_length].2.1,
+									true,
+									recurse[rec_length].2.3), 
+									recurse[rec_length].3 - 1);
+								if y < MAP_SIZE_H - 2 && new_map[y+2][x] == 0 {
+									//println!("South");
+									recurse.push((y+2,x,(true,false,false,false), 3));
+									rec_length+=1;
+									update = true;
+									new_map[y+1][x] = *num_maze;
+									y = y + 2;
+								}
+							}
+						}
+					},
+					// WEST
+					_ => {
+						if recurse[rec_length].2.3 == false {
+							roll_count += 1;
+							if roll_count == roll {
+								recurse[rec_length] = (y,x,(
+									recurse[rec_length].2.0,
+									recurse[rec_length].2.1,
+									recurse[rec_length].2.2,
+									true), 
+									recurse[rec_length].3 - 1);
+								if x > 2 && new_map[y][x-2] == 0{
+									//println!("West");
+									recurse.push((y,x-2,(false,true,false,false), 3));
+									rec_length+=1;
+									update = true;
+									new_map[y][x-1] = *num_maze;
+									x = x - 2;
+								}
+							}
+						}
+					},
+				}
+			}
+			if update {
+				new_map[y][x] = *num_maze;
+			} else if recurse[rec_length].3 == 0 {
+				recurse.pop();
+				rec_length -= 1;
+				y = recurse[rec_length].0;
+		 		x = recurse[rec_length].1;
+			}
+		}
+		return new_map;
+	}
+
+	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
+		let mut y = 1;
+		let mut x = 1;
+		let mut num_mazes = *num_rooms;
+		let mut new_map = map;
+		for h in (1..MAP_SIZE_H).step_by(2) {
+			for w in (1..MAP_SIZE_W).step_by(2) {
+				if new_map[h][w] == 0 {
+					y = h;
+					x = w;
+					recurse.push((y,x,(false,false,false,false), 4));
+					recurse.push((y,x,(false,false,false,false), 4)); // dupe prevents edge case
+					num_mazes += 1;
+					println!("{}", num_mazes);
+					new_map = ROGUELIKE::build_maze(new_map, &num_mazes, &mut recurse);
+				}
+			}
+		}
+
+		return (num_mazes, new_map);
+	}
+
+	pub fn get_connectors(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<(usize, usize, i32, i32)> {
+		let mut connectors: Vec<(usize, usize, i32, i32)> = Vec::new();
+
+		for h in 0..MAP_SIZE_H as i32 {
+			for w in 0..MAP_SIZE_W as i32 {
+				if (map[h as usize][w as usize] != 0) {
+					for k in 0..3 as i32 {
+						for l in 0..3 as i32 {
+							if h + 2 * k - 2 < 0 ||
+							   w + 2 * l - 2 < 0 ||
+							   h + 2 * k - 2 >= MAP_SIZE_H as i32 ||
+							   w + 2 * l - 2 >= MAP_SIZE_W as i32 {
+								   continue;
+							}
+							if map[h as usize + k as usize - 1][w as usize] == 0 && 
+							   map[h as usize + 2 * (k as usize) - 2][w as usize] != 0 {
+								let r1 = map[h as usize + 2 * (k as usize) - 2][w as usize];
+								let mut r2 = 0;
+								if k == 0 {
+									r2 = map[(h as usize + 2 * (k as usize) - 2) + 2][w as usize];
+								} else if k == 1 {
+									r2 = map[h as usize + 2 * (k as usize) - 2][w as usize];
+								} else {
+									r2 = map[(h as usize + 2 * (k as usize) - 2) - 2][w as usize];
+								}
+
+								if r1 != r2 {
+									connectors.push((h as usize + k as usize - 1, w as usize, r1, r2));
+								}
+							}
+							else if map[h as usize][w as usize + l as usize - 1] == 0 && 
+									map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
+								let r1 = map[h as usize][w as usize + 2 * (l as usize) - 2];
+								let mut r2 = 0;
+								if l == 0 {
+									r2 = map[h as usize][(w as usize + 2 * (l as usize) - 2) + 2];
+								} else if l == 1 {
+									r2 = map[h as usize][w as usize + 2 * (l as usize) - 2];
+								} else {
+									r2 = map[h as usize][(w as usize + 2 * (l as usize) - 2) - 2];
+								}
+
+								if r1 != r2 {
+									connectors.push((h as usize, w as usize + l as usize - 1, r1, r2));
+								}
+							}
+						}
+					}
+				}
+			}
+		}	
+
+		return connectors;
+	}
+
+	pub fn coalesce(r1: i32, r2: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+
+		let region = cmp::min(r1, r2);
+		
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if new_map[h][w] == r1 || new_map[h][w] == r2 {
+					new_map[h][w] = region;
+				}
+			}
+		}
+
+		return new_map;
+	}
+
+	pub fn connect_maze(num_regions: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rng = rand::thread_rng();
+
+		let mut new_map = map;
+
+		let mut connectors = ROGUELIKE::get_connectors(new_map);
+
+		while connectors.len() > 0 {
+			let rand_connection = rng.gen_range(0..connectors.len());
+			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 2;
+			new_map = ROGUELIKE::coalesce(connectors[rand_connection].2, connectors[rand_connection].3, new_map);
+			connectors = ROGUELIKE::get_connectors(new_map);
+		}
+
+		return new_map;
+	}
+
+	pub fn remove_dead_ends(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+		let mut still_removing = true;
+		
+		while still_removing {
+			still_removing = false;
+			for h in 0..MAP_SIZE_H {
+				for w in 0..MAP_SIZE_W {
+					if new_map[h][w] == 1 {
+						let mut count = 0;
+						if new_map[h + 1][w] == 0 {
+							count += 1;
+						}
+						if new_map[h - 1][w] == 0 {
+							count += 1;
+						}
+						if new_map[h][w + 1] == 0 {
+							count += 1;
+						}
+						if new_map[h][w - 1] == 0 {
+							count += 1;
+						}
+						if count >= 3 {
+							still_removing = true;
+							new_map[h][w] = 0;
+						}
+					}
+				}
+			}
+		}
+
+		return new_map;
+	}
+
+	pub fn create_walls(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut new_map = map;
+
+		for h in 0..MAP_SIZE_H as i32 {
+			for w in 0..MAP_SIZE_W as i32 {
+				if new_map[h as usize][w as usize] == 0 {
+					for k in 0..3 as i32 {
+						for l in 0..3 as i32 {
+							if h + k - 1 < 0 ||
+							   w + l - 1 < 0 ||
+							   h + k >= MAP_SIZE_H as i32 ||
+							   w + l >= MAP_SIZE_W as i32 {
+								   continue;
+							}
+							if new_map[h as usize + k as usize - 1][w as usize + l as usize - 1] == 1 {
+								new_map[h as usize][w as usize] = 2;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return new_map;
+	}
+
+	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+		let mut num_rooms = 0;
+		let mut num_mazes = 0;
+
+		let rooms_tuple = ROGUELIKE::create_rooms(map);
+		num_rooms = rooms_tuple.0;
+		map = rooms_tuple.1;
+		let maze_tuple = ROGUELIKE::create_maze(&num_rooms, map);
+		num_mazes = maze_tuple.0;
+		map = maze_tuple.1;
+		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
+		map = ROGUELIKE::remove_dead_ends(map);
+		map = ROGUELIKE::create_walls(map);
+
+		println!("");
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if map[h][w] == 0 {
+					print!("  ");
+				}
+				else if map[h][w] == 1 {
+					print!(". ");
+				}
+				else {
+					print!("+ ");
+				}
+			}
+			println!("");
+		}
+		return map;
+	}
+
+	pub fn update_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
-		let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
+
+		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as usize;
+		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as usize;
+	
+		for h in 0..(CAM_H / TILE_SIZE) + 1 {
+			for w in 0..(CAM_W / TILE_SIZE) + 1 {
+				let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+				let pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
+					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
+					TILE_SIZE, TILE_SIZE);
+				if h as usize + h_bounds_offset >= MAP_SIZE_H ||
+				   w as usize + w_bounds_offset >= MAP_SIZE_W ||
+				   map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 0 {
+					continue;
+				} else if map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 1 {
+					let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+					self.core.wincan.copy(&texture, src, pos);
+				} else {
+					let texture = texture_creator.load_texture("images/background/tile.png")?;
+					self.core.wincan.copy(&texture, src, pos);
+				}
+			}
+		}
+
+		/*let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
 		let mut n = 0;
 		for i in 0..self.game_data.rooms[0].xwalls.1+1 {
 			for j in 0..self.game_data.rooms[0].ywalls.1+1 {
@@ -273,7 +675,7 @@ impl ROGUELIKE {
 				}
 				n+=1;
 			}
-		}
+		}*/
 		Ok(())
 	}
 	// update enemies

@@ -197,6 +197,7 @@ impl<'a> Player<'a> {
 			}
 			
 		}
+    
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
@@ -271,7 +272,7 @@ impl<'a> Player<'a> {
 				}
 			}
 			}
-		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
+		self.update_pos(/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */(-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		if self.get_attack_timer() > ATTK_COOLDOWN {
@@ -335,8 +336,8 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + (self.x_vel() * 2) as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
-		self.pos.1 = (self.y() + (self.y_vel( )*2) as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
+		self.pos.0 = (self.x() + self.x_vel() * 2as f64)/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		self.pos.1 = (self.y() + self.y_vel() * 2as f64)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
