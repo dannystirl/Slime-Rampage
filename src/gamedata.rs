@@ -20,8 +20,8 @@ pub const BG_W: u32 = 2400;
 pub const BG_H: u32 = 1440;
 
 // room globals
-pub const MIN_ROOM_W: usize = 7;
-pub const MAX_ROOM_W: usize = 11;
+pub const MIN_ROOM_W: usize = 11;
+pub const MAX_ROOM_W: usize = 21;
 pub const MAP_SIZE_W: usize = 101;
 pub const MIN_ROOM_H: usize = 11;
 pub const MAX_ROOM_H: usize = 21;

@@ -195,7 +195,7 @@ impl Game for ROGUELIKE  {
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
 
 			// UPDATE BACKGROUND
-			ROGUELIKE::update_background(self, &player, &mut background)?;
+			ROGUELIKE::update_background(self, &player, &mut background, map)?;
 
 			// UPDATE PLAYER
 			player.update_player(&self.game_data);
@@ -637,9 +637,35 @@ impl ROGUELIKE {
 		return map;
 	}
 
-	pub fn update_background(&mut self, player: &Player, background: &mut Background) -> Result<(), String> {
+	pub fn update_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
+		let texture_creator = self.core.wincan.texture_creator();
+		
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
-		let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
+
+		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as usize;
+		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as usize;
+	
+		for h in 0..(CAM_H / TILE_SIZE) {
+			for w in 0..(CAM_W / TILE_SIZE) {
+				let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+				let pos = Rect::new((w as i32 + 0 as i32) /* * TILE_SIZE as i32  */+ (CENTER_W - player.x() as i32),
+					(h as i32 + 0 as i32) /* * TILE_SIZE as i32  */+ (CENTER_H - player.y() as i32),
+					TILE_SIZE, TILE_SIZE);
+				if h as usize + h_bounds_offset >= MAP_SIZE_H ||
+				   w as usize + w_bounds_offset >= MAP_SIZE_W ||
+				   map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 0 {
+					continue;
+				} else if map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 1 {
+					let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+					self.core.wincan.copy(&texture, src, pos);
+				} else {
+					let texture = texture_creator.load_texture("images/background/tile.png")?;
+					self.core.wincan.copy(&texture, src, pos);
+				}
+			}
+		}
+
+		/*let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
 		let mut n = 0;
 		for i in 0..self.game_data.rooms[0].xwalls.1+1 {
 			for j in 0..self.game_data.rooms[0].ywalls.1+1 {
@@ -649,7 +675,7 @@ impl ROGUELIKE {
 				}
 				n+=1;
 			}
-		}
+		}*/
 		Ok(())
 	}
 	// update enemies
