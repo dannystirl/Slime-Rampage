@@ -69,9 +69,18 @@ pub struct Projectile{
 	}
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
 	pub fn check_bounce(&mut self, xbounds:(i32,i32), ybounds: (i32,i32)){
-		if self.get_bounce() >= 4 {
-			self.die();
-		}
+		match self.p_type{
+			ProjectileType::Fireball=>{
+				if self.get_bounce() >= 1 {
+					self.die();
+				}
+			}
+			_ =>{
+				if self.get_bounce() >= 4 {
+					self.die();
+				}
+			}
+		}	
 		if self.x() <= xbounds.0 && self.is_active() {
 			self.set_xvel( -self.xvel() );
 			self.inc_bounce();

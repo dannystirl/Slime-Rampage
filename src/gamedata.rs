@@ -1,3 +1,5 @@
+pub const DEVELOP: bool = false; 
+
 use rand::Rng;
 use sdl2::rect::Rect;
 
@@ -5,8 +7,6 @@ use crate::gold::*;
 use crate::projectile::*;
 use crate::room::*;
 use crate::crateobj::*;
-
-pub const DEVELOP: bool = false; 
 
 // window globals
 pub const TITLE: &str = "Roguelike";
