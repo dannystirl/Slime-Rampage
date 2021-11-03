@@ -61,5 +61,4 @@ pub fn create_new_map(xwalls: (i32,i32), ywalls: (i32,i32), tiles: &mut Vec<(boo
         }
     }
     return obs;
-    
 }
