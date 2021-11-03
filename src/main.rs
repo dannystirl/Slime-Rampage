@@ -203,7 +203,7 @@ impl Game for ROGUELIKE  {
 			}
 
 			// UPDATE PLAYER
-			player.update_player(&self.game_data, map);
+			player.update_player(&self.game_data, map, &mut self.core);
 			self.draw_player(&count, &f_display, &mut player, background.get_curr_background());
 			count = count + 1;
 			if count > f_display * 5 {
@@ -650,7 +650,6 @@ impl ROGUELIKE {
 
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as i32;
-		let gen_offset = 100;
 	
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -667,7 +666,7 @@ impl ROGUELIKE {
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 1 {
 					//let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 					self.core.wincan.copy(&floor, src, pos);
-				} else {
+				} else {// this is walls currently
 					//let texture = texture_creator.load_texture("images/background/tile.png")?;
 					self.core.wincan.copy(&tile, src, pos);
 				}
