@@ -119,10 +119,6 @@ impl<'a> Player<'a> {
 		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		
-		// Stay inside the viewing window
-		//self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
-		//self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-		
 		let mut xbounds: (i32,i32) = (0,0);
 		xbounds.0 = cmp::max(game_data.rooms[0].xbounds.0, 0);
 		xbounds.1 = cmp::min(game_data.rooms[0].xbounds.1, xwalls.1 * TILE_SIZE as i32);
@@ -143,7 +139,7 @@ impl<'a> Player<'a> {
                 // NW
                 if (p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom())
                     && (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
-                    println!("top left");
+                    //println!("top left");
 					ytest.1 = obj_pos.top() - TILE_SIZE as i32;
                     if self.x_vel() > 0{
                         self.set_x_vel(-self.x_vel());
@@ -155,7 +151,7 @@ impl<'a> Player<'a> {
                 //NE
                 else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom()
                     && (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
-                    println!("top right");
+                    //println!("top right");
                     if self.x_vel() < 0{
                         self.set_x_vel(-self.x_vel());
                     }
@@ -187,25 +183,24 @@ impl<'a> Player<'a> {
                 }
                 //N
                 else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom(){
-                    println!("top");
+                    //println!("top");
                     self.set_y_vel(-self.y_vel());
 
                 }
                 // E
                 else if (p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left()){
-                    println!("right");
+                   // println!("right");
                     self.set_x_vel(-self.x_vel());
 
                 }
                 // S
                 else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top(){
                     self.set_y_vel(-self.y_vel());
-                    println!("bottom");
+                    //println!("bottom");
                 }
                 // W
-                else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right())
-                {
-                    println!("left");
+                else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right()) {
+                   // println!("left");
                     self.set_x_vel(-self.x_vel());
                 }
             }   

@@ -447,7 +447,6 @@ impl ROGUELIKE {
 					recurse.push((y,x,(false,false,false,false), 4));
 					recurse.push((y,x,(false,false,false,false), 4)); // dupe prevents edge case
 					num_mazes += 1;
-					println!("{}", num_mazes);
 					new_map = ROGUELIKE::build_maze(new_map, &num_mazes, &mut recurse);
 				}
 			}
@@ -645,37 +644,39 @@ impl ROGUELIKE {
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as usize;
 		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as usize;
 	
-		for h in 0..(CAM_H / TILE_SIZE) + 1 {
-			for w in 0..(CAM_W / TILE_SIZE) + 1 {
-				let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-				let pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
-					TILE_SIZE, TILE_SIZE);
-				if h as usize + h_bounds_offset >= MAP_SIZE_H ||
-				   w as usize + w_bounds_offset >= MAP_SIZE_W ||
-				   map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 0 {
-					continue;
-				} else if map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 1 {
-					let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
-					self.core.wincan.copy(&texture, src, pos);
-				} else {
-					let texture = texture_creator.load_texture("images/background/tile.png")?;
-					self.core.wincan.copy(&texture, src, pos);
+		if DEVELOP {
+			for h in 0..(CAM_H / TILE_SIZE) + 1 {
+				for w in 0..(CAM_W / TILE_SIZE) + 1 {
+					let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+					let pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
+						(h as i32 + 0 as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
+						TILE_SIZE, TILE_SIZE);
+					if h as usize + h_bounds_offset >= MAP_SIZE_H ||
+					   w as usize + w_bounds_offset >= MAP_SIZE_W ||
+					   map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 0 {
+						continue;
+					} else if map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 1 {
+						let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+						self.core.wincan.copy(&texture, src, pos);
+					} else {
+						let texture = texture_creator.load_texture("images/background/tile.png")?;
+						self.core.wincan.copy(&texture, src, pos);
+					}
+				}
+			}
+		} else {
+			let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
+			let mut n = 0;
+			for i in 0..self.game_data.rooms[0].xwalls.1+1 {
+				for j in 0..self.game_data.rooms[0].ywalls.1+1 {
+					if tiles[n].0 {
+						let t = background.get_tile_info(tiles[n].1, i, j, player.x(), player.y());
+						self.core.wincan.copy(t.0, t.1, t.2)?;
+					}
+					n+=1;
 				}
 			}
 		}
-
-		/*let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
-		let mut n = 0;
-		for i in 0..self.game_data.rooms[0].xwalls.1+1 {
-			for j in 0..self.game_data.rooms[0].ywalls.1+1 {
-				if tiles[n].0 {
-					let t = background.get_tile_info(tiles[n].1, i, j, player.x(), player.y());
-					self.core.wincan.copy(t.0, t.1, t.2)?;
-				}
-				n+=1;
-			}
-		}*/
 		Ok(())
 	}
 	// update enemies

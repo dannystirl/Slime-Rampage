@@ -35,7 +35,7 @@ impl<'a> Background<'a> {
 	pub fn get_tile_info(&self, num: i32, i: i32, j: i32, x: f64, y: f64) -> (&Texture<'a>, Rect, Rect) {
 		let texture;
 		match num {
-			7 => { texture = &self.texture_3 } // pillar 
+			7 => { texture = &self.texture_2  } // pillar, should be 3
 			6 => { texture = &self.texture_2 } // border tiles
 			1 => { texture = &self.texture_1 } // slime on tile
 			_ => { texture = &self.texture_0 } // regular tile

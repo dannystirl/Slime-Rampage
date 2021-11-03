@@ -6,6 +6,8 @@ use crate::projectile::*;
 use crate::room::*;
 use crate::crateobj::*;
 
+pub const DEVELOP: bool = false; 
+
 // window globals
 pub const TITLE: &str = "Roguelike";
 pub const CAM_W: u32 = 1280;
