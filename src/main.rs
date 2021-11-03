@@ -143,6 +143,8 @@ impl Game for ROGUELIKE  {
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/skull.png")?,
+			texture_creator.load_texture("images/background/upstairs.png")?,
+			texture_creator.load_texture("images/background/downstairs.png")?,
 			self.game_data.rooms[self.game_data.current_room].xwalls,
 			self.game_data.rooms[self.game_data.current_room].ywalls,
 			Rect::new(
@@ -154,6 +156,16 @@ impl Game for ROGUELIKE  {
 		);
 
 		let mut map = ROGUELIKE::create_map();
+
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if map[h][w] == 3{
+					player.set_x((w * TILE_SIZE as usize - ((CAM_W - TILE_SIZE)/2)as usize)as f64);
+					player.set_y((h * TILE_SIZE as usize - ((CAM_H - TILE_SIZE)/2)as usize)as f64);
+					break;
+				}
+			}
+		}
 
 		let mut all_frames = 0;
 		let last_time = Instant::now();
@@ -437,7 +449,7 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H], [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
 		let mut y = 1;
 		let mut x = 1;
@@ -457,7 +469,18 @@ impl ROGUELIKE {
 			}
 		}
 
-		return (num_mazes, new_map);
+		let mut corridors = map;
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if new_map[h][w] > *num_rooms {
+					corridors[h][w] = 1;
+				} else {
+					corridors[h][w] = 0;
+				}
+			}
+		}
+
+		return (num_mazes, new_map, corridors);
 	}
 
 	pub fn get_connectors(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<(usize, usize, i32, i32)> {
@@ -608,6 +631,42 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
+	// STAIRS ARE INCLUDED :)
+	pub fn create_obstacles(mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rng = rand::thread_rng();
+
+		let mut new_map = map;
+		let mut stairs_added: i32 = 0;
+
+		let attempts = 100;
+		for i in 0..attempts {
+			let h = rng.gen_range(0..MAP_SIZE_H - 1);
+			let w = rng.gen_range(0..MAP_SIZE_W - 1);
+			if new_map[h][w] == 1 && corridors[h][w] != 1 && new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2
+				&& new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 && new_map[h - 1][w - 1] != 2
+				&& new_map[h - 1][w + 1] != 2 && new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2{
+
+				// Add upstairs (3)
+				if stairs_added == 0 {
+					new_map[h][w] = 3;
+					stairs_added += 1;
+
+				}
+				// Add downstairs (4)
+				else if stairs_added == 1 {
+					new_map[h][w] = 4;
+					stairs_added += 1;
+				}
+				// Add wall
+				else{
+					new_map[h][w] = 2;
+				}
+			}
+		}
+
+		return new_map;
+	}
+
 	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
 		let mut num_rooms = 0;
@@ -619,21 +678,34 @@ impl ROGUELIKE {
 		let maze_tuple = ROGUELIKE::create_maze(&num_rooms, map);
 		num_mazes = maze_tuple.0;
 		map = maze_tuple.1;
+		let corridors = maze_tuple.2;
 		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
 		map = ROGUELIKE::remove_dead_ends(map);
 		map = ROGUELIKE::create_walls(map);
+		map = ROGUELIKE::create_obstacles(corridors, map);
 
 		println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
+				// Blankspace
 				if map[h][w] == 0 {
 					print!("  ");
 				}
+				// Tiles
 				else if map[h][w] == 1 {
 					print!(". ");
 				}
-				else {
+				// Walls
+				else if map[h][w] == 2{
 					print!("+ ");
+				}
+				// Upstairs
+				else if map[h][w] == 3{
+					print!("U ");
+				}
+				// Downstairs
+				else if map[h][w] == 4{
+					print!("D ");
 				}
 			}
 			println!("");
@@ -645,6 +717,8 @@ impl ROGUELIKE {
 		let texture_creator = self.core.wincan.texture_creator();
 		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
+    let upstairs = texture_creator.load_texture("images/background/upstairs.png")?;
+    let downstairs = texture_creator.load_texture("images/background/downstairs.png")?;
 
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 
@@ -664,11 +738,13 @@ impl ROGUELIKE {
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 1 {
-					//let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 					self.core.wincan.copy(&floor, src, pos);
-				} else {// this is walls currently
-					//let texture = texture_creator.load_texture("images/background/tile.png")?;
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					self.core.wincan.copy(&tile, src, pos);
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 3 {
+					self.core.wincan.copy(&upstairs, src, pos);
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 4 {
+					self.core.wincan.copy(&downstairs, src, pos);
 				}
 			}
 		}
