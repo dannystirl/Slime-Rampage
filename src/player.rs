@@ -114,8 +114,8 @@ impl<'a> Player<'a> {
 		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 
 		// Stay inside the viewing window
-		self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
-		self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
+		self.set_x((self.x() + self.x_vel() as f64)/* .clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) */ as f64);
+		self.set_y((self.y() + self.y_vel() as f64)/* .clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) */ as f64);
 
 		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
 			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
@@ -140,7 +140,7 @@ impl<'a> Player<'a> {
 				}
 			}
 		}
-		self.update_pos(game_data.rooms[0].xbounds, game_data.rooms[0].ybounds);
+		self.update_pos(/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */(-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		if self.get_attack_timer() > ATTK_COOLDOWN {
@@ -204,8 +204,8 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel() as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
-		self.pos.1 = (self.y() + self.y_vel() as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
+		self.pos.0 = (self.x() + self.x_vel() as f64)/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		self.pos.1 = (self.y() + self.y_vel() as f64)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
