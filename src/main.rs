@@ -437,7 +437,7 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H], [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
 		let mut y = 1;
 		let mut x = 1;
@@ -457,7 +457,18 @@ impl ROGUELIKE {
 			}
 		}
 
-		return (num_mazes, new_map);
+		let mut corridors = map;
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if new_map[h][w] > *num_rooms {
+					corridors[h][w] = 1;
+				} else {
+					corridors[h][w] = 0;
+				}
+			}
+		}
+
+		return (num_mazes, new_map, corridors);
 	}
 
 	pub fn get_connectors(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<(usize, usize, i32, i32)> {
@@ -608,6 +619,23 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
+	pub fn create_obstacles(mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+		let mut rng = rand::thread_rng();
+
+		let mut new_map = map;
+
+		let attempts = 100;
+		for i in 0..attempts {
+			let h = rng.gen_range(0..MAP_SIZE_H - 1);
+			let w = rng.gen_range(0..MAP_SIZE_W - 1);
+			if new_map[h][w] == 1 && corridors[h][w] != 1 {
+				new_map[h][w] = 2;
+			}
+		}
+
+		return new_map;
+	}
+
 	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
 		let mut num_rooms = 0;
@@ -619,9 +647,11 @@ impl ROGUELIKE {
 		let maze_tuple = ROGUELIKE::create_maze(&num_rooms, map);
 		num_mazes = maze_tuple.0;
 		map = maze_tuple.1;
+		let corridors = maze_tuple.2;
 		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
 		map = ROGUELIKE::remove_dead_ends(map);
 		map = ROGUELIKE::create_walls(map);
+		map = ROGUELIKE::create_obstacles(corridors, map);
 
 		println!("");
 		for h in 0..MAP_SIZE_H {
