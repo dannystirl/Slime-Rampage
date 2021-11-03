@@ -9,7 +9,6 @@ use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
 use crate::crateobj::*;
-use std::cmp;
 use crate::SDLCore;
 
 pub enum Ability{
@@ -123,208 +122,191 @@ impl<'a> Player<'a> {
 		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		
-		let mut xbounds: (i32,i32) = (0,0);
-		xbounds.0 = cmp::max(game_data.rooms[0].xbounds.0, 0);
-		xbounds.1 = cmp::min(game_data.rooms[0].xbounds.1, xwalls.1 * TILE_SIZE as i32);
-
-		let mut ybounds: (i32,i32) = (0,0);
-		ybounds.0 = cmp::max(game_data.rooms[0].ybounds.0, 0);
-		ybounds.1 = cmp::min(game_data.rooms[0].ybounds.1, ywalls.1 * TILE_SIZE as i32);
-
+		// Stay inside the viewing window
+		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
+		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
 		let src = Rect::new(0, 0, TILE_SIZE/4, TILE_SIZE/4);
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
 
-		if DEVELOP {
-			for h in 0..(CAM_H / TILE_SIZE) + 1 {
-				for w in 0..(CAM_W / TILE_SIZE) + 1 {
-						let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
-						(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
-						TILE_SIZE, TILE_SIZE);
-
-						if h as i32 + h_bounds_offset < 0 ||
-					w as i32 + w_bounds_offset < 0 ||
-					h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-					w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-						continue;
-						} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-							let p_pos = self.get_cam_pos();
-
-							core.wincan.copy(&hitbox, src, p_pos);
-
-							if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
-								//println!("welcome to hell");
-								// NW
-								if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
-									&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-									// println!("top left");
-										self.set_x_vel(self.x_vel().clamp(-100,0));
-									
-										//self.set_y_vel(-self.y_vel()); 
-										self.set_y_vel(self.x_vel().clamp(-100,0));
-									
-								}
-								//NE
-								else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
-									&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-									// println!("top right");
-										self.set_x_vel(self.x_vel().clamp(0,100));
-
-									
-										self.set_y_vel(self.x_vel().clamp(-100,0));
-										//self.set_y_vel(-self.y_vel()); 
-									
+		for h in 0..(CAM_H / TILE_SIZE) + 1 {
+			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				
-								}
-								// SE
-								else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
-									&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-										self.set_x_vel(self.x_vel().clamp(0,100));
-										self.set_y_vel(self.x_vel().clamp(0,100));
 
-									
-									//self.set_y_vel(0);
-									// println!("bottom right");
-								}
-								// SW
-								else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
-									&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
+					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
+					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
+					TILE_SIZE, TILE_SIZE);
 
-										self.set_y_vel(self.x_vel().clamp(-100,0));
+					if h as i32 + h_bounds_offset < 0 ||
+				   w as i32 + w_bounds_offset < 0 ||
+				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					continue;
+					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+						let p_pos = self.get_cam_pos();
 
-									
-										self.set_y_vel(self.x_vel().clamp(0,100));
+						core.wincan.copy(&hitbox, src, p_pos);
 
-									
-									// println!("bottom left");
-									//self.set_x_vel(0);
-								}
-								//N
-								else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
-									// println!("top");
-									//self.set_y_vel(-self.y_vel());
-									self.y_vel().clamp(-100,0);
-								}
-								// E
-								else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
-									// println!("right");
-									self.x_vel().clamp(0,100);
-
-				
-								}
-								// S
-								else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
-									
-									self.y_vel().clamp(0,100);
-
-									// println!("bottom");
-								}
-								// W
-								else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
-								{
-									// println!("left");
-									//self.set_x_vel(-self.x_vel());
-
-									self.x_vel().clamp(-100,0);
-
-								}
+						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
+							//println!("welcome to hell");
+							// NW
+							if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
+								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
+								println!("top left");
+									self.set_x_vel(self.x_vel().clamp(-100,0));
+								
+									//self.set_y_vel(-self.y_vel()); 
+									self.set_y_vel(self.x_vel().clamp(-100,0));
+								
 							}
+							//NE
+							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
+								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
+								println!("top right");
+									self.set_x_vel(self.x_vel().clamp(0,100));
 
+								
+									self.set_y_vel(self.x_vel().clamp(-100,0));
+									//self.set_y_vel(-self.y_vel()); 
+								
+			
+							}
+							// SE
+							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
+								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
+									self.set_x_vel(self.x_vel().clamp(0,100));
+									self.set_y_vel(self.x_vel().clamp(0,100));
+
+								
+								//self.set_y_vel(0);
+								println!("bottom right");
+							}
+							// SW
+							else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
+								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
+
+									self.set_y_vel(self.x_vel().clamp(-100,0));
+
+								
+									self.set_y_vel(self.x_vel().clamp(0,100));
+
+								
+								println!("bottom left");
+								//self.set_x_vel(0);
+							}
+							//N
+							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
+								println!("top");
+								//self.set_y_vel(-self.y_vel());
+								self.y_vel().clamp(-100,0);
+							}
+							// E
+							else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
+								println!("right");
+								self.x_vel().clamp(0,100);
+
+			
+							}
+							// S
+							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
+								
+								self.y_vel().clamp(0,100);
+
+								println!("bottom");
+							}
+							// W
+							else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
+							{
+								println!("left");
+								//self.set_x_vel(-self.x_vel());
+
+								self.x_vel().clamp(-100,0);
+
+							}
 						}
-					
+
+					}
+				
+			}
+		}
+		 /*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
+			let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
+			let p_pos = self.pos();
+
+			if GameData::check_collision(&self.pos(), &obj_pos) {//I hate collisions
+				//println!("welcome to hell");
+				// NW
+				if (p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom())
+					&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
+					println!("top left");
+					if self.x_vel() > 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() > 0 {
+						self.set_y_vel(-self.y_vel()); }
+				}
+				//NE
+				else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom()
+					&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
+					println!("top right");
+					if self.x_vel() < 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() > 0 {
+						self.set_y_vel(-self.y_vel()); }
+
+				}
+				// SE
+				else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()
+					&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
+					if self.x_vel() < 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() < 0 {
+						self.set_y_vel(-self.y_vel()); }
+					//self.set_y_vel(0);
+					println!("bottom right");
+				}
+				// SW
+				else if (p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top())
+					&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
+					if self.x_vel() > 0{
+						self.set_x_vel(-self.x_vel());
+					}
+					if self.y_vel() < 0 {
+						self.set_y_vel(-self.y_vel()); }
+					println!("bottom left");
+					//self.set_x_vel(0);
+				}
+				//N
+				else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom(){
+					println!("top");
+					self.set_y_vel(-self.y_vel());
+
+				}
+				// E
+				else if (p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left()){
+					println!("right");
+					self.set_x_vel(-self.x_vel());
+
+				}
+				// S
+				else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top(){
+					self.set_y_vel(-self.y_vel());
+					println!("bottom");
+				}
+				// W
+				else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right())
+				{
+					println!("left");
+					self.set_x_vel(-self.x_vel());
 				}
 			}
-		}
-		
-		let mut xtest = (xbounds.0,xbounds.1);
-		let mut ytest = (ybounds.0,ybounds.1);
-
-		if !DEVELOP {
-			for ob in &game_data.rooms[game_data.current_room].room_obstacles {
-				let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
-				let p_pos =self.pos();
-
-				if GameData::check_collision(&self.pos(), &obj_pos) {//I hate collisions
-					//println!("welcome to hell");
-					// NW
-					if (p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom())
-						&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
-						//println!("top left");
-						ytest.1 = obj_pos.top() - TILE_SIZE as i32;
-						if self.x_vel() > 0{
-							self.set_x_vel(-self.x_vel());
-						}
-						if self.y_vel() > 0 {
-							self.set_y_vel(-self.y_vel());
-						}
-					}
-					//NE
-					else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom()
-						&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
-						//println!("top right");
-						if self.x_vel() < 0{
-							self.set_x_vel(-self.x_vel());
-						}
-						if self.y_vel() > 0 {
-							self.set_y_vel(-self.y_vel());
-						}
-					}
-					// SE
-					else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()
-						&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
-						if self.x_vel() < 0{
-							self.set_x_vel(-self.x_vel());
-						}
-						if self.y_vel() < 0 {
-							self.set_y_vel(-self.y_vel()); }
-						//self.set_y_vel(0);
-						println!("bottom right");
-					}
-					// SW
-					else if (p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top())
-						&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
-						if self.x_vel() > 0{
-							self.set_x_vel(-self.x_vel());
-						}
-						if self.y_vel() < 0 {
-							self.set_y_vel(-self.y_vel()); }
-						println!("bottom left");
-						//self.set_x_vel(0);
-					}
-					//N
-					else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom(){
-						//println!("top");
-						self.set_y_vel(-self.y_vel());
-
-					}
-					// E
-					else if (p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left()){
-					// println!("right");
-						self.set_x_vel(-self.x_vel());
-
-					}
-					// S
-					else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top(){
-						self.set_y_vel(-self.y_vel());
-						//println!("bottom");
-					}
-					// W
-					else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right()) {
-					// println!("left");
-						self.set_x_vel(-self.x_vel());
-					}
-				}   
-			}
-
-			xbounds.0 = cmp::max(xbounds.0, xtest.0);
-			xbounds.1 = cmp::min(xbounds.1, xtest.1);
-
-			ybounds.0 = cmp::max(ybounds.0, ytest.0);
-			ybounds.1 = cmp::min(ybounds.1, ytest.1);
-		}
-    
+			
+		} 
+    */
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
@@ -390,13 +372,8 @@ impl<'a> Player<'a> {
 					self.set_x_vel(-self.x_vel());
 				}
 			}
-		}
-
-		if !DEVELOP { self.update_pos(xbounds, ybounds); }
-		else { 
-			self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
-		}
-
+			}
+		self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		if self.get_attack_timer() > ATTK_COOLDOWN {
@@ -411,12 +388,6 @@ impl<'a> Player<'a> {
 
 		self.restore_mana();
 		Ok(())
-	}
-
-	// update position
-	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + (self.x_vel() * 2) as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
-		self.pos.1 = (self.y() + (self.y_vel() * 2) as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
 	}
 
 	// player x values
@@ -465,6 +436,12 @@ impl<'a> Player<'a> {
 		self.height
 	}
 
+	// update position
+	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+		self.pos.0 = (self.x() + self.x_vel() as f64 * 2.0 )/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		self.pos.1 = (self.y() + self.y_vel() as f64 * 2.0)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
+	}
+
 	pub fn set_src(&mut self, x: i32, y: i32) {
 		self.src = Rect::new(x as i32, y as i32, TILE_SIZE, TILE_SIZE);
 	}
@@ -474,41 +451,21 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn pos(&self) -> Rect {
-        if DEVELOP {
-			return Rect::new(
-				self.x() as i32,
-				self.y() as i32,
-				TILE_SIZE/2,
-				TILE_SIZE/2,
-			)
-		}
-		else {
-			return Rect::new(
-				self.x() as i32,
-				self.y() as i32,
-				TILE_SIZE,
-				TILE_SIZE,
-			)
-		}
+        return Rect::new(
+			self.x() as i32,
+			self.y() as i32,
+			TILE_SIZE/2,
+			TILE_SIZE/2,
+		)
     }
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
-		if DEVELOP {
-			self.cam_pos = Rect::new(
-				self.x() as i32 - x,
-				self.y() as i32 - y,
-				TILE_SIZE/2,
-				TILE_SIZE/2,
-			);
-		}
-		else {
-			self.cam_pos = Rect::new(
-				self.x() as i32 - x,
-				self.y() as i32 - y,
-				TILE_SIZE,
-				TILE_SIZE,
-			);
-		}
+		self.cam_pos = Rect::new(
+			self.x() as i32 - x,
+			self.y() as i32 - y,
+			TILE_SIZE/2,
+			TILE_SIZE/2,
+		);
 	}
 
 	pub fn get_cam_pos(&self) -> Rect {
