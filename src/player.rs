@@ -156,30 +156,39 @@ impl<'a> Player<'a> {
 								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
 								println!("top left");
 								if self.x_vel() > 0{
-									self.set_x_vel(-self.x_vel());
+									self.set_x_vel(self.x_vel().clamp(-100,0));
 								}
 								if self.y_vel() > 0 {
-									self.set_y_vel(-self.y_vel()); }
+									//self.set_y_vel(-self.y_vel()); 
+									self.set_y_vel(self.x_vel().clamp(-100,0));
+								}
 							}
 							//NE
 							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
 								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
 								println!("top right");
 								if self.x_vel() < 0{
-									self.set_x_vel(-self.x_vel());
+									self.set_x_vel(self.x_vel().clamp(0,100));
+
 								}
 								if self.y_vel() > 0 {
-									self.set_y_vel(-self.y_vel()); }
+									self.set_y_vel(self.x_vel().clamp(-100,0));
+
+									//self.set_y_vel(-self.y_vel()); 
+								}
 			
 							}
 							// SE
 							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
 								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
 								if self.x_vel() < 0{
-									self.set_x_vel(-self.x_vel());
+									self.set_x_vel(self.x_vel().clamp(0,100));
+
 								}
 								if self.y_vel() < 0 {
-									self.set_y_vel(-self.y_vel()); }
+									self.set_y_vel(self.x_vel().clamp(0,100));
+
+								}
 								//self.set_y_vel(0);
 								println!("bottom right");
 							}
@@ -187,35 +196,45 @@ impl<'a> Player<'a> {
 							else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
 								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
 								if self.x_vel() > 0{
-									self.set_x_vel(-self.x_vel());
+
+									self.set_y_vel(self.x_vel().clamp(-100,0));
+
 								}
 								if self.y_vel() < 0 {
-									self.set_y_vel(-self.y_vel()); }
+									self.set_y_vel(self.x_vel().clamp(0,100));
+
+								}
 								println!("bottom left");
 								//self.set_x_vel(0);
 							}
 							//N
 							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
 								println!("top");
-								self.set_y_vel(-self.y_vel());
-			
+								//self.set_y_vel(-self.y_vel());
+								self.y_vel().clamp(-100,0);
 							}
 							// E
 							else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
 								println!("right");
-								self.set_x_vel(-self.x_vel());
+								self.x_vel().clamp(0,100);
+
 			
 							}
 							// S
 							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
-								self.set_y_vel(-self.y_vel());
+								
+								self.y_vel().clamp(0,100);
+
 								println!("bottom");
 							}
 							// W
 							else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
 							{
 								println!("left");
-								self.set_x_vel(-self.x_vel());
+								//self.set_x_vel(-self.x_vel());
+
+								self.x_vel().clamp(-100,0);
+
 							}
 						}
 
@@ -365,7 +384,7 @@ impl<'a> Player<'a> {
 				}
 			}
 			}
-		self.update_pos(/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */(-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));
+		self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		if self.get_attack_timer() > ATTK_COOLDOWN {
@@ -430,8 +449,8 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel() as f64*2.0 )/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
-		self.pos.1 = (self.y() + self.y_vel() as f64 *2.0)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
+		self.pos.0 = (self.x() + self.x_vel() as f64 * 2.0 )/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		self.pos.1 = (self.y() + self.y_vel() as f64 * 2.0)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -446,8 +465,8 @@ impl<'a> Player<'a> {
         return Rect::new(
 			self.x() as i32,
 			self.y() as i32,
-			TILE_SIZE,
-			TILE_SIZE,
+			TILE_SIZE/2,
+			TILE_SIZE/2,
 		)
     }
 
