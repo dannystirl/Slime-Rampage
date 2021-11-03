@@ -131,29 +131,91 @@ impl<'a> Player<'a> {
 		ybounds.0 = cmp::max(game_data.rooms[0].ybounds.0, 0);
 		ybounds.1 = cmp::min(game_data.rooms[0].ybounds.1, ywalls.1 * TILE_SIZE as i32);		
 
-		/* for ob in &game_data.rooms[game_data.current_room].room_obstacles {
-			let obs = Rect::new(ob.0 * TILE_SIZE as i32, ob.1 * TILE_SIZE as i32, TILE_SIZE*2, TILE_SIZE*2);
-			if GameData::check_collision(&self.pos(), &obs) {
-				// collision on object top
-				if (self.pos().bottom() >= obs.top()) && (self.pos().bottom() < obs.bottom()) 		// check y bounds
-				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
-					self.set_y((self.y() + self.y_vel() as f64).clamp(0.0, ((ob.1 - 1) * TILE_SIZE as i32) as f64));
-				// collision on object bottom
-				} else if (self.pos().top() < obs.bottom()) && (self.pos().top() > obs.top()) 		// check y bounds
-				&& (self.pos().left() > obs.left()) && (self.pos().right() < obs.right()) {			// prevent x moves
-					self.set_y((self.y() + self.y_vel() as f64).clamp(((ob.1 + 2) * TILE_SIZE as i32) as f64, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-				// collision on object left
-				} else if (self.pos().right() > obs.left()) && (self.pos().right() < obs.right())	// check x bounds
-						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
-					self.set_x((self.x() + self.x_vel() as f64).clamp(0.0, ((ob.0-1) * TILE_SIZE as i32) as f64));
-					// collision on object right
-				} else if (self.pos().left() < obs.right()) && (self.pos().left() > obs.left()) 	// check x bounds
-						&& (self.pos().top() > obs.top()) && (self.pos().bottom() < obs.bottom()) {	// prevent y moves
-					self.set_x((self.x() + self.x_vel() as f64).clamp(((ob.0 + 2) * TILE_SIZE as i32) as f64,
-					(xwalls.1 * TILE_SIZE as i32) as f64));
-				}
-			}
-		} */
+		let mut xtest = (xbounds.0,xbounds.1);
+		let mut ytest = (ybounds.0,ybounds.1);
+
+		for ob in &game_data.rooms[game_data.current_room].room_obstacles {
+            let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
+            let p_pos =self.pos();
+
+            if GameData::check_collision(&self.pos(), &obj_pos) {//I hate collisions
+                //println!("welcome to hell");
+                // NW
+                if (p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom())
+                    && (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
+                    println!("top left");
+					ytest.1 = obj_pos.top() - TILE_SIZE as i32;
+                    if self.x_vel() > 0{
+                        self.set_x_vel(-self.x_vel());
+                    }
+                    if self.y_vel() > 0 {
+                        self.set_y_vel(-self.y_vel());
+					}
+                }
+                //NE
+                else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom()
+                    && (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
+                    println!("top right");
+                    if self.x_vel() < 0{
+                        self.set_x_vel(-self.x_vel());
+                    }
+                    if self.y_vel() > 0 {
+                        self.set_y_vel(-self.y_vel());
+					}
+                }
+                // SE
+                else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()
+                    && (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
+                    if self.x_vel() < 0{
+                        self.set_x_vel(-self.x_vel());
+                    }
+                    if self.y_vel() < 0 {
+                        self.set_y_vel(-self.y_vel()); }
+                    //self.set_y_vel(0);
+                    println!("bottom right");
+                }
+                // SW
+                else if (p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top())
+                    && (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
+                    if self.x_vel() > 0{
+                        self.set_x_vel(-self.x_vel());
+                    }
+                    if self.y_vel() < 0 {
+                        self.set_y_vel(-self.y_vel()); }
+                    println!("bottom left");
+                    //self.set_x_vel(0);
+                }
+                //N
+                else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom(){
+                    println!("top");
+                    self.set_y_vel(-self.y_vel());
+
+                }
+                // E
+                else if (p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left()){
+                    println!("right");
+                    self.set_x_vel(-self.x_vel());
+
+                }
+                // S
+                else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top(){
+                    self.set_y_vel(-self.y_vel());
+                    println!("bottom");
+                }
+                // W
+                else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right())
+                {
+                    println!("left");
+                    self.set_x_vel(-self.x_vel());
+                }
+            }   
+        }
+
+		xbounds.0 = cmp::max(xbounds.0, xtest.0);
+		xbounds.1 = cmp::min(xbounds.1, xtest.1);
+
+		ybounds.0 = cmp::max(ybounds.0, ytest.0);
+		ybounds.1 = cmp::min(ybounds.1, ytest.1);
     
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
@@ -247,6 +309,12 @@ impl<'a> Player<'a> {
 		self.restore_mana();
 	}
 
+	// update position
+	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+		self.pos.0 = (self.x() + (self.x_vel() * 2) as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
+		self.pos.1 = (self.y() + (self.y_vel() * 2) as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
+	}
+
 	// player x values
 	pub fn set_x(&mut self, x: f64){
 		self.pos.0 = x;
@@ -291,12 +359,6 @@ impl<'a> Player<'a> {
 	}
 	pub fn height(&self) -> u32 {
 		self.height
-	}
-
-	// update position
-	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + (self.x_vel() * 2) as f64).clamp(x_bounds.0 as f64, x_bounds.1 as f64);
-		self.pos.1 = (self.y() + (self.y_vel() * 2) as f64).clamp(y_bounds.0 as f64, y_bounds.1 as f64);
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
