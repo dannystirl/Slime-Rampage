@@ -78,9 +78,10 @@ impl Crate {
 	}
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
-			c.set_x((c.x() as i32 + c.velocity[0] as i32).clamp(game_data.rooms[0].xbounds.0, game_data.rooms[0].xbounds.1));
-			c.set_y((c.y() as i32 + c.velocity[1] as i32).clamp(game_data.rooms[0].ybounds.0, game_data.rooms[0].ybounds.1));
-			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
+			// println!("{}, {}", c.velocity[0], c.velocity[1]);
+			c.set_x((c.x() as i32 + c.velocity[0] as i32)/* .clamp(game_data.rooms[0].xbounds.0, game_data.rooms[0].xbounds.1) */);
+			c.set_y((c.y() as i32 + c.velocity[1] as i32)/* .clamp(game_data.rooms[0].ybounds.0, game_data.rooms[0].ybounds.1) */);
+			// core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
 		}
 	}
 	pub fn offset_pos(&self, player:&Player)-> Rect{

@@ -197,6 +197,11 @@ impl Game for ROGUELIKE  {
 			// UPDATE BACKGROUND
 			ROGUELIKE::update_background(self, &player, &mut background, map)?;
 
+			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures, &player);
+			for c in self.game_data.crates.iter_mut() {
+				self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player));
+			}
+
 			// UPDATE PLAYER
 			player.update_player(&self.game_data);
 			self.draw_player(&count, &f_display, &mut player, background.get_curr_background());
@@ -216,7 +221,6 @@ impl Game for ROGUELIKE  {
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures,&player);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
 			ROGUELIKE::draw_player_projectile(self, &bullet, &player);	
 
