@@ -29,7 +29,7 @@ pub const MAP_SIZE_H: usize = 101;
 
 // game globals
 pub const SPEED_LIMIT: f64 = 200.0;
-pub const ACCEL_RATE: f64 = 200.0;
+pub const ACCEL_RATE: f64 = 100.0;
 pub const STARTING_TIMER: u128 = 1000;
 
 // player globals

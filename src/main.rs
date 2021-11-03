@@ -648,8 +648,8 @@ impl ROGUELIKE {
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				let src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-				let pos = Rect::new( (w as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32,
-					(h as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32,
+				let pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
+					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
 					TILE_SIZE, TILE_SIZE);
 				if h as usize + h_bounds_offset >= MAP_SIZE_H ||
 				   w as usize + w_bounds_offset >= MAP_SIZE_W ||
