@@ -148,6 +148,8 @@ impl<'a> Player<'a> {
 						let p_pos = self.get_cam_pos();
 
 						core.wincan.copy(&hitbox, src, p_pos);
+						core.wincan.copy(&hitbox, src, w_pos);
+
 
 						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
 							//println!("welcome to hell");
