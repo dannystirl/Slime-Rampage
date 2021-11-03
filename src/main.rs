@@ -632,7 +632,7 @@ impl ROGUELIKE {
 	}
 
 	// STAIRS ARE INCLUDED :)
-	pub fn create_obstacles(mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	/* pub fn create_obstacles(mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut rng = rand::thread_rng();
 
 		let mut new_map = map;
@@ -665,7 +665,7 @@ impl ROGUELIKE {
 		}
 
 		return new_map;
-	}
+	} */
 
 	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
@@ -682,7 +682,7 @@ impl ROGUELIKE {
 		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
 		map = ROGUELIKE::remove_dead_ends(map);
 		map = ROGUELIKE::create_walls(map);
-		map = ROGUELIKE::create_obstacles(corridors, map);
+		//map = ROGUELIKE::create_obstacles(corridors, map);
 
 		println!("");
 		for h in 0..MAP_SIZE_H {
