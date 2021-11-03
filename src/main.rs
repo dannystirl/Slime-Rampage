@@ -143,6 +143,8 @@ impl Game for ROGUELIKE  {
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
 			texture_creator.load_texture("images/background/tile.png")?,
 			texture_creator.load_texture("images/background/skull.png")?,
+			texture_creator.load_texture("images/background/upstairs.png")?,
+			texture_creator.load_texture("images/background/downstairs.png")?,
 			self.game_data.rooms[self.game_data.current_room].xwalls,
 			self.game_data.rooms[self.game_data.current_room].ywalls,
 			Rect::new(
@@ -619,10 +621,12 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
+	// STAIRS ARE INCLUDED :)
 	pub fn create_obstacles(mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut rng = rand::thread_rng();
 
 		let mut new_map = map;
+		let mut stairs_added: i32 = 0;
 
 		let attempts = 100;
 		for i in 0..attempts {
@@ -631,7 +635,21 @@ impl ROGUELIKE {
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2
 				&& new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 && new_map[h - 1][w - 1] != 2
 				&& new_map[h - 1][w + 1] != 2 && new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2{
-				new_map[h][w] = 2;
+
+				// Add upstairs (3)
+				if stairs_added == 0 {
+					new_map[h][w] = 3;
+					stairs_added += 1;
+				}
+				// Add downstairs (4)
+				else if stairs_added == 1 {
+					new_map[h][w] = 4;
+					stairs_added += 1;
+				}
+				// Add wall
+				else{
+					new_map[h][w] = 2;
+				}
 			}
 		}
 
@@ -658,14 +676,25 @@ impl ROGUELIKE {
 		println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
+				// Blankspace
 				if map[h][w] == 0 {
 					print!("  ");
 				}
+				// Tiles
 				else if map[h][w] == 1 {
 					print!(". ");
 				}
-				else {
+				// Walls
+				else if map[h][w] == 2{
 					print!("+ ");
+				}
+				// Upstairs
+				else if map[h][w] == 3{
+					print!("U ");
+				}
+				// Downstairs
+				else if map[h][w] == 4{
+					print!("D ");
 				}
 			}
 			println!("");
@@ -697,8 +726,14 @@ impl ROGUELIKE {
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 1 {
 					let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 					self.core.wincan.copy(&texture, src, pos);
-				} else {
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let texture = texture_creator.load_texture("images/background/tile.png")?;
+					self.core.wincan.copy(&texture, src, pos);
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 3 {
+					let texture = texture_creator.load_texture("images/background/upstairs.png")?;
+					self.core.wincan.copy(&texture, src, pos);
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 4 {
+					let texture = texture_creator.load_texture("images/background/downstairs.png")?;
 					self.core.wincan.copy(&texture, src, pos);
 				}
 			}
