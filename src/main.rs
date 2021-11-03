@@ -643,8 +643,8 @@ impl ROGUELIKE {
 		let mut new_map = map;
 		let mut stairs_added: i32 = 0;
 
-		/* let attempts = 100;
-		for i in 0..attempts {
+		let attempts = 100;
+		while stairs_added == 0 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2
@@ -655,7 +655,6 @@ impl ROGUELIKE {
 				if stairs_added == 0 {
 					new_map[h][w] = 3;
 					stairs_added += 1;
-
 				}
 				// Add downstairs (4)
 				else if stairs_added == 1 {
@@ -667,7 +666,7 @@ impl ROGUELIKE {
 					new_map[h][w] = 2;
 				}
 			}
-		} */
+		}
 
 		let h = rng.gen_range(0..MAP_SIZE_H - 1);
 		let w = rng.gen_range(0..MAP_SIZE_W - 1);
