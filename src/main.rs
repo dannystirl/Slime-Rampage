@@ -644,20 +644,22 @@ impl ROGUELIKE {
 		let mut stairs_added: i32 = 0;
 
 		let attempts = 100;
-		while stairs_added == 0 {
+		while stairs_added < 2 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2
 				&& new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 && new_map[h - 1][w - 1] != 2
-				&& new_map[h - 1][w + 1] != 2 && new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2{
+				&& new_map[h - 1][w + 1] != 2 && new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
 
 				// Add upstairs (3)
 				if stairs_added == 0 {
+					println!("HEY");
 					new_map[h][w] = 3;
 					stairs_added += 1;
 				}
 				// Add downstairs (4)
 				else if stairs_added == 1 {
+					println!("YO");
 					new_map[h][w] = 4;
 					stairs_added += 1;
 				}
@@ -668,14 +670,15 @@ impl ROGUELIKE {
 			}
 		}
 
-		let h = rng.gen_range(0..MAP_SIZE_H - 1);
+		/* let h = rng.gen_range(0..MAP_SIZE_H - 1);
 		let w = rng.gen_range(0..MAP_SIZE_W - 1);
 
 		// Add upstairs (3)
 		if stairs_added == 0 {
-			new_map[h][w] = 3;
+			println!("HOMIE");
+			new_map[h][w] = 4;
 			stairs_added += 1;
-		}
+		} */
 
 		return new_map;
 	}
