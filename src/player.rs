@@ -336,8 +336,9 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel() * 2as f64)/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
-		self.pos.1 = (self.y() + self.y_vel() * 2as f64)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
+		println!("{}, {}", self.x(), self.y());
+		self.pos.0 = (self.x() + self.x_vel() as f64 * 2.0)/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		self.pos.1 = (self.y() + self.y_vel() as f64 * 2.0)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {

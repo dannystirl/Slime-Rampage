@@ -536,7 +536,7 @@ impl ROGUELIKE {
 
 		while connectors.len() > 0 {
 			let rand_connection = rng.gen_range(0..connectors.len());
-			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 2;
+			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 1;
 			new_map = ROGUELIKE::coalesce(connectors[rand_connection].2, connectors[rand_connection].3, new_map);
 			connectors = ROGUELIKE::get_connectors(new_map);
 		}
@@ -642,8 +642,9 @@ impl ROGUELIKE {
 		
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 
-		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as usize;
-		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as usize;
+		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
+		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as i32;
+		let gen_offset = 100;
 	
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -651,11 +652,13 @@ impl ROGUELIKE {
 				let pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
 					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
 					TILE_SIZE, TILE_SIZE);
-				if h as usize + h_bounds_offset >= MAP_SIZE_H ||
-				   w as usize + w_bounds_offset >= MAP_SIZE_W ||
-				   map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 0 {
+				if h as i32 + h_bounds_offset < 0 ||
+				   w as i32 + w_bounds_offset < 0 ||
+				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[h as usize + h_bounds_offset][w as usize + w_bounds_offset] == 1 {
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 1 {
 					let texture = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 					self.core.wincan.copy(&texture, src, pos);
 				} else {
