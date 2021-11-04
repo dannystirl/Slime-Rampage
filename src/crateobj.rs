@@ -1,13 +1,13 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
 use sdl2::rect::Rect;
-use sdl2::image::LoadTexture;
+//use sdl2::image::LoadTexture;
 use sdl2::render::{Texture, TextureCreator};
 use crate::player::*;
 use crate::rigidbody::*;
 //use crate::rigidbody::*;
 
-use sdl2::pixels;
+//use sdl2::pixels;
 use crate::SDLCore;
 
 pub struct Crate{

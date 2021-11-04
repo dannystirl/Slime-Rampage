@@ -2,13 +2,12 @@ extern crate rogue_sdl;
 
 use std::time::Instant;
 use sdl2::rect::Rect;
-use sdl2::render::{Texture,TextureCreator};
+use sdl2::render::{Texture};
 use sdl2::image::LoadTexture;
 use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
-use crate::crateobj::*;
 use crate::SDLCore;
 
 pub enum Ability{
@@ -154,86 +153,11 @@ impl<'a> Player<'a> {
 
 
 						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
-													core.wincan.copy(&hitbox, src, debug_pos);
-
+							core.wincan.copy(&hitbox, src, debug_pos);
+							self.resolve_col(p_pos, w_pos);
 							//println!("welcome to hell");
 							// NW
-							if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
-								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-								println!("top left");
-									self.set_x_vel(self.x_vel().clamp(-100,0));
-								
-									//self.set_y_vel(-self.y_vel()); 
-									self.set_y_vel(self.y_vel().clamp(-100,0));
-								
-							}
-							//NE
-							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
-								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-								println!("top right");
-									self.set_x_vel(self.x_vel().clamp(0,100));
-
-								
-									self.set_y_vel(self.y_vel().clamp(-100,0));
-									//self.set_y_vel(-self.y_vel()); 
-								
-			
-							}
-							// SE
-							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
-								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-									
-									self.set_x_vel(self.x_vel().clamp(0,100));
-									
-									self.set_y_vel(self.y_vel().clamp(0,100));
-
-								
-								//self.set_y_vel(0);
-								println!("bottom right");
-							}
-							// SW
-							else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
-								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-
-									self.set_x_vel(self.x_vel().clamp(-100,0));
-
-								
-									self.set_y_vel(self.y_vel().clamp(0,100));
-
-								
-								println!("bottom left");
-								//self.set_x_vel(0);
-							}
-							//N
-							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
-								println!("top");
-								//self.set_y_vel(-self.y_vel());
-								self.set_y_vel(self.y_vel().clamp(-100,0));
-							}
-							// E
-							else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
-								println!("right");
-								self.set_x_vel(self.x_vel().clamp(0,100));
-
-			
-							}
-							// S
-							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
-								
-								self.set_y_vel(self.y_vel().clamp(0,100));
-
-								println!("bottom");
-							}
-							// W
-							else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
-							{
-								println!("left");
-								//self.set_x_vel(-self.x_vel());
-
-								self.set_x_vel(self.x_vel().clamp(-100,0));
-								//self.x_vel().clamp(-100,0);
-
-							}
+							
 						}
 
 					}
@@ -627,6 +551,86 @@ impl<'a> Player<'a> {
 	pub fn sub_coins(&mut self, coins_to_add: u32)  {
 		self.coins -= coins_to_add;
 	}
+
+	pub fn resolve_col(&mut self, p_pos: Rect, w_pos :Rect){
+		if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
+									&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
+									println!("top left");
+										self.set_x_vel(self.x_vel().clamp(-100,0));
+									
+										//self.set_y_vel(-self.y_vel()); 
+										self.set_y_vel(self.y_vel().clamp(-100,0));
+									
+								}
+								//NE
+								else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
+									&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
+									println!("top right");
+										self.set_x_vel(self.x_vel().clamp(0,100));
+	
+									
+										self.set_y_vel(self.y_vel().clamp(-100,0));
+										//self.set_y_vel(-self.y_vel()); 
+									
+				
+								}
+								// SE
+								else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
+									&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
+										
+										self.set_x_vel(self.x_vel().clamp(0,100));
+										
+										self.set_y_vel(self.y_vel().clamp(0,100));
+	
+									
+									//self.set_y_vel(0);
+									println!("bottom right");
+								}
+								// SW
+								else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
+									&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
+	
+										self.set_x_vel(self.x_vel().clamp(-100,0));
+	
+									
+										self.set_y_vel(self.y_vel().clamp(0,100));
+	
+									
+									println!("bottom left");
+									//self.set_x_vel(0);
+								}
+								//N
+								else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
+									println!("top");
+									//self.set_y_vel(-self.y_vel());
+									self.set_y_vel(self.y_vel().clamp(-100,0));
+								}
+								// E
+								else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
+									println!("right");
+									self.set_x_vel(self.x_vel().clamp(0,100));
+	
+				
+								}
+								// S
+								else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
+									
+									self.set_y_vel(self.y_vel().clamp(0,100));
+	
+									println!("bottom");
+								}
+								// W
+								else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
+								{
+									println!("left");
+									//self.set_x_vel(-self.x_vel());
+	
+									self.set_x_vel(self.x_vel().clamp(-100,0));
+									//self.x_vel().clamp(-100,0);
+	
+								}
+	}
+
 }
 
 // calculate velocity resistance
@@ -637,3 +641,6 @@ pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 		else {delta}
 	} else {delta}
 }
+
+
+
