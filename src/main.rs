@@ -869,7 +869,7 @@ impl ROGUELIKE {
 			
 			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
-			//println!("{} {}", player.x(), player.y());
+			println!("{} {}", player.x(), player.y());
 			
 		}
 		Ok(())	

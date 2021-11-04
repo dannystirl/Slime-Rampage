@@ -161,7 +161,6 @@ impl<'a> Player<'a> {
 						}
 
 					}
-				
 			}
 		}
 		 /*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
@@ -246,66 +245,9 @@ impl<'a> Player<'a> {
 		
 			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
 				//println!("welcome to hell");
-				// NW
-				if (p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom())
-					&& (p_pos.right() >= crate_pos.left()) && (p_pos.right() < crate_pos.right()) {
-					if self.x_vel() > 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() > 0 {
-						self.set_y_vel(-self.y_vel()); }
-				}
-				//NE
-				else if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom()
-					&& (p_pos.left() <= crate_pos.right()) && (p_pos.left() > crate_pos.left()) {
-					if self.x_vel() < 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() > 0 {
-						self.set_y_vel(-self.y_vel()); }
-
-				}
-				// SE
-				else if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top()
-					&& (p_pos.left() <= crate_pos.right()) && (p_pos.left() > crate_pos.left()) {
-					if self.x_vel() < 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() < 0 {
-						self.set_y_vel(-self.y_vel()); }
-					//self.set_y_vel(0);
-				}
-				// SW
-				else if (p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top())
-					&& (p_pos.right() >= crate_pos.left()) && (p_pos.right() < crate_pos.right()) {
-					if self.x_vel() > 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() < 0 {
-						self.set_y_vel(-self.y_vel()); }
-					//self.set_x_vel(0);
-				}
-				//N
-				else if p_pos.bottom() >= crate_pos.top() && p_pos.bottom() < crate_pos.bottom(){
-					self.set_y_vel(-self.y_vel());
-
-				}
-				// E
-				else if (p_pos.left() <= crate_pos.right() && p_pos.left() > crate_pos.left()){
-					self.set_x_vel(-self.x_vel());
-
-				}
-				// S
-				else if p_pos.top() <= crate_pos.bottom() && p_pos.top() > crate_pos.top(){
-					self.set_y_vel(-self.y_vel());
-				}
-				// W
-				else if (p_pos.right() >= crate_pos.left() && p_pos.right() < crate_pos.right())
-				{
-					self.set_x_vel(-self.x_vel());
-				}
+				self.resolve_col(self.pos(), c.pos());
 			}
-			}
+		}
 		self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
@@ -552,83 +494,65 @@ impl<'a> Player<'a> {
 		self.coins -= coins_to_add;
 	}
 
-	pub fn resolve_col(&mut self, p_pos: Rect, w_pos :Rect){
-		if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
-									&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-									println!("top left");
-										self.set_x_vel(self.x_vel().clamp(-100,0));
-									
-										//self.set_y_vel(-self.y_vel()); 
-										self.set_y_vel(self.y_vel().clamp(-100,0));
-									
-								}
-								//NE
-								else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom()
-									&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-									println!("top right");
-										self.set_x_vel(self.x_vel().clamp(0,100));
-	
-									
-										self.set_y_vel(self.y_vel().clamp(-100,0));
-										//self.set_y_vel(-self.y_vel()); 
-									
-				
-								}
-								// SE
-								else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
-									&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
-										
-										self.set_x_vel(self.x_vel().clamp(0,100));
-										
-										self.set_y_vel(self.y_vel().clamp(0,100));
-	
-									
-									//self.set_y_vel(0);
-									println!("bottom right");
-								}
-								// SW
-								else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
-									&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
-	
-										self.set_x_vel(self.x_vel().clamp(-100,0));
-	
-									
-										self.set_y_vel(self.y_vel().clamp(0,100));
-	
-									
-									println!("bottom left");
-									//self.set_x_vel(0);
-								}
-								//N
-								else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
-									println!("top");
-									//self.set_y_vel(-self.y_vel());
-									self.set_y_vel(self.y_vel().clamp(-100,0));
-								}
-								// E
-								else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
-									println!("right");
-									self.set_x_vel(self.x_vel().clamp(0,100));
-	
-				
-								}
-								// S
-								else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
-									
-									self.set_y_vel(self.y_vel().clamp(0,100));
-	
-									println!("bottom");
-								}
-								// W
-								else if (p_pos.right() >= w_pos.left() && p_pos.right() < w_pos.right())
-								{
-									println!("left");
-									//self.set_x_vel(-self.x_vel());
-	
-									self.set_x_vel(self.x_vel().clamp(-100,0));
-									//self.x_vel().clamp(-100,0);
-	
-								}
+	pub fn resolve_col(&mut self, p_pos: Rect, other_pos :Rect){
+		// NW
+		if (p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom())
+			&& (p_pos.right() >= other_pos.left()) && (p_pos.right() < other_pos.right()) {
+			if self.x_vel() > 0{
+				self.set_x_vel(-self.x_vel());
+			}
+			if self.y_vel() > 0 {
+				self.set_y_vel(-self.y_vel()); }
+		}
+		//NE
+		else if p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom()
+			&& (p_pos.left() <= other_pos.right()) && (p_pos.left() > other_pos.left()) {
+			if self.x_vel() < 0{
+				self.set_x_vel(-self.x_vel());
+			}
+			if self.y_vel() > 0 {
+				self.set_y_vel(-self.y_vel()); }
+
+		}
+		// SE
+		else if p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top()
+			&& (p_pos.left() <= other_pos.right()) && (p_pos.left() > other_pos.left()) {
+			if self.x_vel() < 0{
+				self.set_x_vel(-self.x_vel());
+			}
+			if self.y_vel() < 0 {
+				self.set_y_vel(-self.y_vel()); }
+			//self.set_y_vel(0);
+		}
+		// SW
+		else if (p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top())
+			&& (p_pos.right() >= other_pos.left()) && (p_pos.right() < other_pos.right()) {
+			if self.x_vel() > 0{
+				self.set_x_vel(-self.x_vel());
+			}
+			if self.y_vel() < 0 {
+				self.set_y_vel(-self.y_vel()); }
+			//self.set_x_vel(0);
+		}
+		//N
+		else if p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom(){
+			self.set_y_vel(-self.y_vel());
+
+		}
+		// E
+		else if (p_pos.left() <= other_pos.right() && p_pos.left() > other_pos.left()){
+			self.set_x_vel(-self.x_vel());
+
+		}
+		// S
+		else if p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top(){
+			self.set_y_vel(-self.y_vel());
+		}
+		// W
+		else if (p_pos.right() >= other_pos.left() && p_pos.right() < other_pos.right())
+		{
+			self.set_x_vel(-self.x_vel());
+		}
 	}
 
 }
