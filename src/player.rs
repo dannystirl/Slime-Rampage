@@ -1,7 +1,7 @@
 extern crate rogue_sdl;
 
 use std::time::Instant;
-use sdl2::rect::Rect;
+use sdl2::rect::{Rect, Point};
 use sdl2::render::{Texture};
 use sdl2::image::LoadTexture;
 use crate::projectile;
@@ -154,7 +154,7 @@ impl<'a> Player<'a> {
 							core.wincan.copy(&hitbox, src, self.cam_pos);
 
 							core.wincan.copy(&hitbox, src, debug_pos);
-							self.resolve_col(p_pos, w_pos);
+							self.resolve_col(p_pos, self.pos().center(), w_pos);
 							//println!("welcome to hell");
 							// NW
 							
@@ -245,7 +245,7 @@ impl<'a> Player<'a> {
 		
 			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
 				//println!("welcome to hell");
-				self.resolve_col(self.pos(), c.pos());
+				self.resolve_col(self.pos(), self.pos().center(), c.pos());
 			}
 		}
 		self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
@@ -494,33 +494,34 @@ impl<'a> Player<'a> {
 		self.coins -= coins_to_add;
 	}
 
-	pub fn resolve_col(&mut self, p_pos: Rect, other_pos :Rect){
-	 
-		//player above
-		if p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom() && p_pos.left()<other_pos.left() && p_pos.right()>other_pos.right(){
-		 println!("bottom of player");
-			self.set_y_vel(self.y_vel().clamp(-100,0));
-
+	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) {
+		// player above other
+		if p_pos.bottom() >= other_pos.top(){
+			if p_center.y() < other_pos.top(){
+				println!("bottom of player");
+				self.set_y_vel(self.y_vel().clamp(-100,0));
+			}
 		}
-		//player on right
-	if (p_pos.left() <= other_pos.right() && p_pos.left() > other_pos.left()){
-			println!("left of player");
-
-			self.set_x_vel(self.x_vel().clamp(0,100));
-
+		// player right of other
+		if p_pos.left() <= other_pos.right() {
+			if p_center.x() > other_pos.right(){
+				println!("left of player");
+				self.set_x_vel(self.x_vel().clamp(0,100));
+			}
 		}
-		//player under
-	 if p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top(){
-		println!("top of player");
-
-			self.set_y_vel(self.y_vel().clamp(0,100));
+		// player below object
+	 	if p_pos.top() <= other_pos.bottom() {
+			if p_center.y() > other_pos.bottom(){
+			 	println!("top of player");
+			 	self.set_y_vel(self.y_vel().clamp(0,100));
+			}
 		}
-		//player on left
-	 if (p_pos.right() >= other_pos.left() && p_pos.right() < other_pos.right())
-		{
-			println!("right of player");
-
-			self.set_x_vel(self.x_vel().clamp(-100,0));
+		// player left of other
+	 	if p_pos.right() >= other_pos.left() {
+		 	if p_center.x() < other_pos.left() {
+			 println!("right of player");
+			 self.set_x_vel(self.x_vel().clamp(-100,0));
+		 	}
 		}
 	}
 
