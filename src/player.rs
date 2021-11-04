@@ -150,8 +150,6 @@ impl<'a> Player<'a> {
 						let p_pos = self.pos();
 
 						core.wincan.copy(&hitbox, src, w_pos);
-
-
 						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
 							core.wincan.copy(&hitbox, src, debug_pos);
 							self.resolve_col(p_pos, w_pos);
