@@ -133,11 +133,14 @@ impl<'a> Player<'a> {
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				
-
-					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 /* + (CENTER_W - player.x() as i32) */,
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 /* + (CENTER_H - player.y() as i32) */,
+					
+					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
+					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
 					TILE_SIZE, TILE_SIZE);
-
+	
+					let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
+					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
+					TILE_SIZE, TILE_SIZE);
 					if h as i32 + h_bounds_offset < 0 ||
 				   w as i32 + w_bounds_offset < 0 ||
 				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
@@ -145,13 +148,14 @@ impl<'a> Player<'a> {
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						let p_pos = self.get_cam_pos();
+						let p_pos = self.pos();
 
-						core.wincan.copy(&hitbox, src, p_pos);
 						core.wincan.copy(&hitbox, src, w_pos);
 
 
 						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
+													core.wincan.copy(&hitbox, src, debug_pos);
+
 							//println!("welcome to hell");
 							// NW
 							if (p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom())
@@ -160,7 +164,7 @@ impl<'a> Player<'a> {
 									self.set_x_vel(self.x_vel().clamp(-100,0));
 								
 									//self.set_y_vel(-self.y_vel()); 
-									self.set_y_vel(self.x_vel().clamp(-100,0));
+									self.set_y_vel(self.y_vel().clamp(-100,0));
 								
 							}
 							//NE
@@ -170,7 +174,7 @@ impl<'a> Player<'a> {
 									self.set_x_vel(self.x_vel().clamp(0,100));
 
 								
-									self.set_y_vel(self.x_vel().clamp(-100,0));
+									self.set_y_vel(self.y_vel().clamp(-100,0));
 									//self.set_y_vel(-self.y_vel()); 
 								
 			
@@ -178,8 +182,10 @@ impl<'a> Player<'a> {
 							// SE
 							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top()
 								&& (p_pos.left() <= w_pos.right()) && (p_pos.left() > w_pos.left()) {
+									
 									self.set_x_vel(self.x_vel().clamp(0,100));
-									self.set_y_vel(self.x_vel().clamp(0,100));
+									
+									self.set_y_vel(self.y_vel().clamp(0,100));
 
 								
 								//self.set_y_vel(0);
@@ -189,10 +195,10 @@ impl<'a> Player<'a> {
 							else if (p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top())
 								&& (p_pos.right() >= w_pos.left()) && (p_pos.right() < w_pos.right()) {
 
-									self.set_y_vel(self.x_vel().clamp(-100,0));
+									self.set_x_vel(self.x_vel().clamp(-100,0));
 
 								
-									self.set_y_vel(self.x_vel().clamp(0,100));
+									self.set_y_vel(self.y_vel().clamp(0,100));
 
 								
 								println!("bottom left");
@@ -202,19 +208,19 @@ impl<'a> Player<'a> {
 							else if p_pos.bottom() >= w_pos.top() && p_pos.bottom() < w_pos.bottom(){
 								println!("top");
 								//self.set_y_vel(-self.y_vel());
-								self.y_vel().clamp(-100,0);
+								self.set_y_vel(self.y_vel().clamp(-100,0));
 							}
 							// E
 							else if (p_pos.left() <= w_pos.right() && p_pos.left() >w_pos.left()){
 								println!("right");
-								self.x_vel().clamp(0,100);
+								self.set_x_vel(self.x_vel().clamp(0,100));
 
 			
 							}
 							// S
 							else if p_pos.top() <= w_pos.bottom() && p_pos.top() > w_pos.top(){
 								
-								self.y_vel().clamp(0,100);
+								self.set_y_vel(self.y_vel().clamp(0,100));
 
 								println!("bottom");
 							}
@@ -224,7 +230,8 @@ impl<'a> Player<'a> {
 								println!("left");
 								//self.set_x_vel(-self.x_vel());
 
-								self.x_vel().clamp(-100,0);
+								self.set_x_vel(self.x_vel().clamp(-100,0));
+								//self.x_vel().clamp(-100,0);
 
 							}
 						}

@@ -9,6 +9,7 @@ mod projectile;
 mod room;
 mod ui;
 mod crateobj;
+mod rigidbody;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
