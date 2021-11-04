@@ -151,6 +151,8 @@ impl<'a> Player<'a> {
 
 						core.wincan.copy(&hitbox, src, w_pos);
 						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
+							core.wincan.copy(&hitbox, src, self.cam_pos);
+
 							core.wincan.copy(&hitbox, src, debug_pos);
 							self.resolve_col(p_pos, w_pos);
 							//println!("welcome to hell");
@@ -493,63 +495,32 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn resolve_col(&mut self, p_pos: Rect, other_pos :Rect){
-		// NW
-		if (p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom())
-			&& (p_pos.right() >= other_pos.left()) && (p_pos.right() < other_pos.right()) {
-			if self.x_vel() > 0{
-				self.set_x_vel(-self.x_vel());
-			}
-			if self.y_vel() > 0 {
-				self.set_y_vel(-self.y_vel()); }
-		}
-		//NE
-		else if p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom()
-			&& (p_pos.left() <= other_pos.right()) && (p_pos.left() > other_pos.left()) {
-			if self.x_vel() < 0{
-				self.set_x_vel(-self.x_vel());
-			}
-			if self.y_vel() > 0 {
-				self.set_y_vel(-self.y_vel()); }
+	 
+		//player above
+		if p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom() && p_pos.left()<other_pos.left() && p_pos.right()>other_pos.right(){
+		 println!("bottom of player");
+			self.set_y_vel(self.y_vel().clamp(-100,0));
 
 		}
-		// SE
-		else if p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top()
-			&& (p_pos.left() <= other_pos.right()) && (p_pos.left() > other_pos.left()) {
-			if self.x_vel() < 0{
-				self.set_x_vel(-self.x_vel());
-			}
-			if self.y_vel() < 0 {
-				self.set_y_vel(-self.y_vel()); }
-			//self.set_y_vel(0);
-		}
-		// SW
-		else if (p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top())
-			&& (p_pos.right() >= other_pos.left()) && (p_pos.right() < other_pos.right()) {
-			if self.x_vel() > 0{
-				self.set_x_vel(-self.x_vel());
-			}
-			if self.y_vel() < 0 {
-				self.set_y_vel(-self.y_vel()); }
-			//self.set_x_vel(0);
-		}
-		//N
-		else if p_pos.bottom() >= other_pos.top() && p_pos.bottom() < other_pos.bottom(){
-			self.set_y_vel(-self.y_vel());
+		//player on right
+	if (p_pos.left() <= other_pos.right() && p_pos.left() > other_pos.left()){
+			println!("left of player");
+
+			self.set_x_vel(self.x_vel().clamp(0,100));
 
 		}
-		// E
-		else if (p_pos.left() <= other_pos.right() && p_pos.left() > other_pos.left()){
-			self.set_x_vel(-self.x_vel());
+		//player under
+	 if p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top(){
+		println!("top of player");
 
+			self.set_y_vel(self.y_vel().clamp(0,100));
 		}
-		// S
-		else if p_pos.top() <= other_pos.bottom() && p_pos.top() > other_pos.top(){
-			self.set_y_vel(-self.y_vel());
-		}
-		// W
-		else if (p_pos.right() >= other_pos.left() && p_pos.right() < other_pos.right())
+		//player on left
+	 if (p_pos.right() >= other_pos.left() && p_pos.right() < other_pos.right())
 		{
-			self.set_x_vel(-self.x_vel());
+			println!("right of player");
+
+			self.set_x_vel(self.x_vel().clamp(-100,0));
 		}
 	}
 
