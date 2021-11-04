@@ -10,6 +10,8 @@ pub struct Background<'a> {
 	pub texture_1: Texture<'a>,
 	pub texture_2: Texture<'a>,
 	pub texture_3: Texture<'a>,
+	pub upstairs: Texture<'a>,
+	pub downstairs: Texture<'a>,
 	pub x_tiles: (i32,i32),
 	pub y_tiles: (i32,i32),
 	pub tiles: Vec<(bool,i32)>,
@@ -17,14 +19,16 @@ pub struct Background<'a> {
 }
 
 impl<'a> Background<'a> {
-	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
+	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, upstairs: Texture<'a>, downstairs: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
 		let tiles: Vec<(bool,i32)> = vec![(true,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize]; // (draw?, texture)
 		Background {
 			black,
 			texture_0, 
 			texture_1, 
 			texture_2, 
-			texture_3, 
+			texture_3,
+			upstairs,
+			downstairs,
 			x_tiles,
 			y_tiles,
 			tiles,
@@ -35,7 +39,7 @@ impl<'a> Background<'a> {
 	pub fn get_tile_info(&self, num: i32, i: i32, j: i32, x: f64, y: f64) -> (&Texture<'a>, Rect, Rect) {
 		let texture;
 		match num {
-			7 => { texture = &self.texture_3 } // pillar 
+			7 => { texture = &self.texture_2  } // pillar, should be 3
 			6 => { texture = &self.texture_2 } // border tiles
 			1 => { texture = &self.texture_1 } // slime on tile
 			_ => { texture = &self.texture_0 } // regular tile
