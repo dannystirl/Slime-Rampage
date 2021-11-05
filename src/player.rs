@@ -170,197 +170,9 @@ impl<'a> Player<'a> {
 					}
 			}
 		}
-		if(collisions.len() > 0){
-		match collisions[0]{
-			Direction::Up=>{
-				self.set_y_vel(self.y_vel().clamp(0,100));
-				if collisions.len() > 2 {
-					match collisions[2]{
-						Direction::Up=>{
-							self.set_y_vel(self.y_vel().clamp(0,100));
-		
-						}
-						Direction::Down=>{
 
-						}
-						Direction::Left=>{
-							self.set_x_vel(self.x_vel().clamp(0,100));
-
-						}
-						Direction::Right=>{
-							self.set_x_vel(self.x_vel().clamp(-100,0));
-
-						}
-						Direction::None=>{
-							println!("I have no clue how this happened");
-						}
-					}
-				}
-			}
-			Direction::Down=>{
-				self.set_y_vel(self.y_vel().clamp(-100,0));
-			
-				if collisions.len() > 2 {
-					match collisions[2]{
-						Direction::Up=>{
-
-						}
-						Direction::Down=>{
-							self.set_y_vel(self.y_vel().clamp(-100,0));
-
-						}
-						Direction::Left=>{
-							self.set_x_vel(self.x_vel().clamp(0,100));
-
-						}
-						Direction::Right=>{
-							self.set_x_vel(self.x_vel().clamp(-100,0));
-
-						}
-						Direction::None=>{
-							println!("I have no clue how this happened");
-						}
-					}
-				}
-			}
-			Direction::Right=>{
-				self.set_x_vel(self.x_vel().clamp(-100,0));
-
-				if collisions.len() > 2 {
-					match collisions[2]{
-						Direction::Up=>{
-							self.set_y_vel(self.y_vel().clamp(0,100));
-
-						}
-						Direction::Down=>{
-							self.set_y_vel(self.y_vel().clamp(-100,0));
-
-						}
-						Direction::Left=>{
-							//self.set_x_vel(self.x_vel().clamp(0,100));
-
-						}
-						Direction::Right=>{
-							self.set_x_vel(self.x_vel().clamp(-100,0));
-
-						}
-						Direction::None=>{
-							println!("I have no clue how this happened");
-						}
-					}
-				}
-			}
-			Direction::Left=>{
-				self.set_x_vel(self.x_vel().clamp(0,100));
-				
-				if collisions.len() > 2 {
-					match collisions[2]{
-						Direction::Up=>{
-							self.set_y_vel(self.y_vel().clamp(0,100));
-
-						}
-						Direction::Down=>{
-							self.set_y_vel(self.y_vel().clamp(-100,0));
-
-						}
-						Direction::Left=>{
-							self.set_x_vel(self.x_vel().clamp(0,100));
-
-						}
-						Direction::Right=>{
-
-						}
-						Direction::None=>{
-							println!("I have no clue how this happened");
-						}
-					}
-				}
-			}
-			
-			Direction::None=>{
-				println!("I have no clue how this happened");
-			}
-		}
 		
 
-	}
-
-		 /*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
-			let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
-			let p_pos = self.pos();
-
-			if GameData::check_collision(&self.pos(), &obj_pos) {//I hate collisions
-				//println!("welcome to hell");
-				// NW
-				if (p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom())
-					&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
-					println!("top left");
-					if self.x_vel() > 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() > 0 {
-						self.set_y_vel(-self.y_vel()); }
-				}
-				//NE
-				else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom()
-					&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
-					println!("top right");
-					if self.x_vel() < 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() > 0 {
-						self.set_y_vel(-self.y_vel()); }
-
-				}
-				// SE
-				else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top()
-					&& (p_pos.left() <= obj_pos.right()) && (p_pos.left() > obj_pos.left()) {
-					if self.x_vel() < 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() < 0 {
-						self.set_y_vel(-self.y_vel()); }
-					//self.set_y_vel(0);
-					println!("bottom right");
-				}
-				// SW
-				else if (p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top())
-					&& (p_pos.right() >= obj_pos.left()) && (p_pos.right() < obj_pos.right()) {
-					if self.x_vel() > 0{
-						self.set_x_vel(-self.x_vel());
-					}
-					if self.y_vel() < 0 {
-						self.set_y_vel(-self.y_vel()); }
-					println!("bottom left");
-					//self.set_x_vel(0);
-				}
-				//N
-				else if p_pos.bottom() >= obj_pos.top() && p_pos.bottom() < obj_pos.bottom(){
-					println!("top");
-					self.set_y_vel(-self.y_vel());
-
-				}
-				// E
-				else if (p_pos.left() <= obj_pos.right() && p_pos.left() > obj_pos.left()){
-					println!("right");
-					self.set_x_vel(-self.x_vel());
-
-				}
-				// S
-				else if p_pos.top() <= obj_pos.bottom() && p_pos.top() > obj_pos.top(){
-					self.set_y_vel(-self.y_vel());
-					println!("bottom");
-				}
-				// W
-				else if (p_pos.right() >= obj_pos.left() && p_pos.right() < obj_pos.right())
-				{
-					println!("left");
-					self.set_x_vel(-self.x_vel());
-				}
-			}
-			
-		} 
-    */
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
@@ -619,33 +431,160 @@ impl<'a> Player<'a> {
 	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> Direction {
 		// player above other
 
-
+		let mut dir = Direction::None;
 		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
-				println!("bottom of player");
-				return Direction::Down
-			
+			println!("bottom of player");
+			dir =  Direction::Down
 		}	
-		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left() {
+		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left(){
 			println!("right of player");
-			return Direction::Right
-			
+			dir =  Direction::Right
 	   }
 		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
 			println!("top of player");
-			return Direction::Up
-			
+			dir = Direction::Up
 		}
 		// player right of other
 		 if p_pos.left() <= other_pos.right() && p_center.x() > other_pos.right(){
-				println!("left of player");
-				return Direction::Left
-			
+			println!("left of player");
+			dir =  Direction::Left
 		}
 		// player below object
 		// player left of other
-	 	Direction::None
+	 	dir
 	}
-
+	pub fn resolve_col_further(&mut self, collisions : Vec<Direction>){
+		if(collisions.len() > 0){
+			match collisions[0]{
+				Direction::Up=>{
+					self.set_y_vel(self.y_vel().clamp(0,100));
+					if collisions.len() > 2 {
+						match collisions[2]{
+							Direction::Up=>{
+								self.set_y_vel(self.y_vel().clamp(0,100));
+			
+							}
+							Direction::Down=>{
+	
+							}
+							Direction::Left=>{
+								self.set_x_vel(self.x_vel().clamp(0,100));
+	
+							}
+							Direction::Right=>{
+								self.set_x_vel(self.x_vel().clamp(-100,0));
+	
+							}
+							Direction::None=>{
+								println!("I have no clue how this happened");
+							}
+						}
+					}
+				}
+				Direction::Down=>{
+					self.set_y_vel(self.y_vel().clamp(-100,0));
+				
+					if collisions.len() > 2 {
+						match collisions[2]{
+							Direction::Up=>{
+	
+							}
+							Direction::Down=>{
+								self.set_y_vel(self.y_vel().clamp(-100,0));
+	
+							}
+							Direction::Left=>{
+								self.set_x_vel(self.x_vel().clamp(0,100));
+	
+							}
+							Direction::Right=>{
+								self.set_x_vel(self.x_vel().clamp(-100,0));
+	
+							}
+							Direction::None=>{
+								println!("I have no clue how this happened");
+							}
+						}
+					}
+				}
+				Direction::Right=>{
+					self.set_x_vel(self.x_vel().clamp(-100,0));
+	
+					if collisions.len() > 2 {
+						match collisions[2]{
+							Direction::Up=>{
+								self.set_y_vel(self.y_vel().clamp(0,100));
+	
+							}
+							Direction::Down=>{
+								self.set_y_vel(self.y_vel().clamp(-100,0));
+	
+							}
+							Direction::Left=>{
+								//self.set_x_vel(self.x_vel().clamp(0,100));
+	
+							}
+							Direction::Right=>{
+								self.set_x_vel(self.x_vel().clamp(-100,0));
+	
+							}
+							Direction::None=>{
+								println!("I have no clue how this happened");
+							}
+						}
+					}
+				}
+				Direction::Left=>{
+					self.set_x_vel(self.x_vel().clamp(0,100));
+					if collisions.len() > 2 {
+						match collisions[1]{
+							Direction::Up=>{
+	
+							}
+							Direction::Down=>{
+								
+							}
+							Direction::Left=>{
+								self.set_x_vel(self.x_vel().clamp(0,100));
+	
+							}
+							Direction::Right=>{
+	
+							}
+							Direction::None=>{
+								println!("I have no clue how this happened");
+							}
+						}
+						match collisions[2]{
+							Direction::Up=>{
+								self.set_y_vel(self.y_vel().clamp(0,100));
+	
+							}
+							Direction::Down=>{
+								self.set_y_vel(self.y_vel().clamp(-100,0));
+	
+							}
+							Direction::Left=>{
+								self.set_x_vel(self.x_vel().clamp(0,100));
+	
+							}
+							Direction::Right=>{
+								self.set_x_vel(self.x_vel().clamp(0,100));
+	
+							}
+							Direction::None=>{
+								println!("I have no clue how this happened");
+							}
+						}
+					}
+				}
+				
+				Direction::None=>{
+					println!("I have no clue how this happened");
+				}
+			}
+		}
+	}
 }
 
 // calculate velocity resistance
