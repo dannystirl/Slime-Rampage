@@ -9,6 +9,8 @@ use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
 use crate::SDLCore;
+use crate::player::Direction::{Down, Up, Left, Right};
+
 pub enum Direction{
 	Up,
 	Down,
@@ -18,7 +20,19 @@ pub enum Direction{
 }
 pub struct CollisionDecider{
 	pub dir : Direction,
-	pub dist : f64,
+	pub dist : i32,
+}
+
+impl CollisionDecider{
+	pub fn new(dir: Direction, dist: i32) -> CollisionDecider{
+		let dir = dir;
+		let dist = dist;
+	CollisionDecider {
+		dir,
+		dist,
+	}
+
+	}
 }
 
 pub enum Ability{
@@ -139,44 +153,42 @@ impl<'a> Player<'a> {
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
-		let mut collisions: Vec<Direction> = Vec::with_capacity(5);
+		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
-				
-					
-					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);
-	
-					let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);
-					if h as i32 + h_bounds_offset < 0 ||
-				   w as i32 + w_bounds_offset < 0 ||
-				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-					continue;
-					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						let p_pos = self.pos();
 
-						core.wincan.copy(&hitbox, src, w_pos);
-						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
-							core.wincan.copy(&hitbox, src, self.cam_pos);
+			let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
+			(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
+			TILE_SIZE, TILE_SIZE);
 
-							core.wincan.copy(&hitbox, src, debug_pos);
-							collisions.push(self.resolve_col(p_pos, self.pos().center(), w_pos));
-							
-							//println!("welcome to hell");
-							// NW
-						}
+			let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
+			(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
+			TILE_SIZE, TILE_SIZE);
+			if h as i32 + h_bounds_offset < 0 ||
+		  	 w as i32 + w_bounds_offset < 0 ||
+		  	 h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+		  	 w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+		   	map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+			continue;
+			} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+				let p_pos = self.pos();
 
-					}
+				core.wincan.copy(&hitbox, src, w_pos);
+				if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
+					core.wincan.copy(&hitbox, src, self.cam_pos);
+
+					core.wincan.copy(&hitbox, src, debug_pos);
+					collisions.push(self.resolve_col(p_pos, self.pos().center(), w_pos));
+
+					//println!("welcome to hell");
+					// NW
+				}
+			}
 			}
 		}
 		
-		self.resolve_col_further(collisions);
+		self.resolve_col_further(&collisions);
 
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
@@ -435,35 +447,43 @@ impl<'a> Player<'a> {
 
 	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
 		// player above other
-
 		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
 			println!("bottom of player");
-			return CollisionDecider{Direction::Down, p_center.y()-other_pos.top()}
-		}	
-		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left(){
-			println!("right of player");
-			return Direction::Right
-	   }
-		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
-			println!("top of player");
-			return Direction::Up
+			let resolution = CollisionDecider::new(Down, other_pos.top() - p_center.y());
+			return resolution;
+		}
+		// player left of other
+		else if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left() {
+			let resolution = CollisionDecider::new(Right, other_pos.left() - p_center.x());
+			return resolution;
+		}
+		// player below other
+		else if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
+			let resolution = CollisionDecider::new(Up, p_center.y() - other_pos.bottom());
+			return resolution;
 		}
 		// player right of other
-		 if p_pos.left() <= other_pos.right() && p_center.x() > other_pos.right(){
-			println!("left of player");
-			return  Direction::Left
+		 else {
+			 let resolution = CollisionDecider::new(Left, p_center.x() - other_pos.right());
+			 return resolution;
 		}
-		// player below object
-		// player left of other
-	 	return Direction::None;
 	}
-	pub fn resolve_col_further(&mut self, collisions : Vec<Direction>){
-		if(collisions.len() > 0){
-			match collisions[0]{
+	pub fn resolve_col_further(&mut self, collisions : &Vec<CollisionDecider>){
+		// Sort vect of collisions by distance
+		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();
+		for c in collisions{
+			sorted_collisions.push(CollisionDecider{dir: c.dir, dist: c.dist});
+		}
+		sorted_collisions.sort_by_key(|x| x.dist);
+		for c in sorted_collisions{
+			println!("{}", c.dist);
+		}
+		if collisions.len() > 0 {
+			match collisions[0].dir{
 				Direction::Up=>{
 					self.set_y_vel(self.y_vel().clamp(0,100));
 					if collisions.len() > 2 {
-						match collisions[2]{
+						match collisions[2].dir{
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0,100));
 			
@@ -489,7 +509,7 @@ impl<'a> Player<'a> {
 					self.set_y_vel(self.y_vel().clamp(-100,0));
 				
 					if collisions.len() > 2 {
-						match collisions[2]{
+						match collisions[2].dir{
 							Direction::Up=>{
 	
 							}
@@ -515,7 +535,7 @@ impl<'a> Player<'a> {
 					self.set_x_vel(self.x_vel().clamp(-100,0));
 	
 					if collisions.len() > 2 {
-						match collisions[2]{
+						match collisions[2].dir{
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0,100));
 	
@@ -541,7 +561,7 @@ impl<'a> Player<'a> {
 				Direction::Left=>{
 					self.set_x_vel(self.x_vel().clamp(0,100));
 					if collisions.len() > 2 {
-						match collisions[1]{
+						match collisions[1].dir{
 							Direction::Up=>{
 	
 							}
@@ -559,7 +579,7 @@ impl<'a> Player<'a> {
 								println!("I have no clue how this happened");
 							}
 						}
-						match collisions[2]{
+						match collisions[2].dir{
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0,100));
 	
