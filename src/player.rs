@@ -11,6 +11,7 @@ use crate::gamedata::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
 
+#[derive( Copy, Clone)]
 pub enum Direction{
 	Up,
 	Down,
@@ -18,6 +19,7 @@ pub enum Direction{
 	Right,
 	None,
 }
+#[derive( Copy, Clone)]
 pub struct CollisionDecider{
 	pub dir : Direction,
 	pub dist : i32,
@@ -473,7 +475,7 @@ impl<'a> Player<'a> {
 		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();
 		for c in collisions{
 			
-			sorted_collisions.push( CollisionDecider::new(&c.dir,c.dist) );
+			sorted_collisions.push( CollisionDecider::new(c.dir,c.dist) );
 		}
 		sorted_collisions.sort_by_key(|x| x.dist);
 		for c in sorted_collisions{
