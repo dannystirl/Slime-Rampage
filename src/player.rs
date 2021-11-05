@@ -16,6 +16,11 @@ pub enum Direction{
 	Right,
 	None,
 }
+pub struct CollisionDecider{
+	pub dir : Direction,
+	pub dist : f64,
+}
+
 pub enum Ability{
 	Bullet,
 }
@@ -170,7 +175,7 @@ impl<'a> Player<'a> {
 					}
 			}
 		}
-
+		
 		self.resolve_col_further(collisions);
 
 		for c in &game_data.crates{
@@ -428,12 +433,12 @@ impl<'a> Player<'a> {
 		self.coins -= coins_to_add;
 	}
 
-	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> Direction {
+	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
 		// player above other
 
 		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
 			println!("bottom of player");
-			return Direction::Down
+			return CollisionDecider{Direction::Down, p_center.y()-other_pos.top()}
 		}	
 		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left(){
 			println!("right of player");
