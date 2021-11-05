@@ -171,7 +171,7 @@ impl<'a> Player<'a> {
 			}
 		}
 
-		
+		self.resolve_col_further(collisions);
 
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
@@ -431,27 +431,26 @@ impl<'a> Player<'a> {
 	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> Direction {
 		// player above other
 
-		let mut dir = Direction::None;
 		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
 			println!("bottom of player");
-			dir =  Direction::Down
+			return Direction::Down
 		}	
 		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left(){
 			println!("right of player");
-			dir =  Direction::Right
+			return Direction::Right
 	   }
 		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
 			println!("top of player");
-			dir = Direction::Up
+			return Direction::Up
 		}
 		// player right of other
 		 if p_pos.left() <= other_pos.right() && p_center.x() > other_pos.right(){
 			println!("left of player");
-			dir =  Direction::Left
+			return  Direction::Left
 		}
 		// player below object
 		// player left of other
-	 	dir
+	 	return Direction::None;
 	}
 	pub fn resolve_col_further(&mut self, collisions : Vec<Direction>){
 		if(collisions.len() > 0){
