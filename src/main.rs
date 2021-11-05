@@ -9,6 +9,7 @@ mod projectile;
 mod room;
 mod ui;
 mod crateobj;
+mod rigidbody;
 use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
@@ -64,14 +65,14 @@ impl Game for ROGUELIKE  {
 				(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
 				(TILE_SIZE as f64 *1.2) as u32,
 				(TILE_SIZE as f64 *1.2) as u32,
-			),
+			), 
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
 		let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
-		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?;
-		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?;
+		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
+		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		crate_textures.push(crate_texture);
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
@@ -86,7 +87,7 @@ impl Game for ROGUELIKE  {
 		(CAM_H/2 - TILE_SIZE/2) as i32 -200 + rng.gen_range(0..10),
 		TILE_SIZE,
 		TILE_SIZE,);
-
+		
 		if !DEVELOP {
 			self.game_data.crates.push(crateobj::Crate::new(pos));
 		}
@@ -100,11 +101,11 @@ impl Game for ROGUELIKE  {
 		let mut i=1;
 		for _ in 0..enemies.capacity(){
 			let num = rng.gen_range(1..5);
-			let enemy_type: EnemyType;
+			let enemy_type: EnemyType; 
 			match num {
-				5 => { enemy_type = EnemyType::Ranged }
-				4 => { enemy_type=  EnemyType::Ranged }
-				_ => { enemy_type = EnemyType::Melee }
+				5 => { enemy_type = EnemyType::Ranged } 
+				4 => { enemy_type=  EnemyType::Ranged } 
+				_ => { enemy_type = EnemyType::Melee } 
 			}
 
 			match enemy_type{
@@ -235,15 +236,15 @@ impl Game for ROGUELIKE  {
 
 			//UPDATE INTERACTABLES (GOLD FOR NOW)
 			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture)?;
-
+		
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);
-			ROGUELIKE::draw_player_projectile(self, &bullet, &player);
+			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
+			ROGUELIKE::draw_player_projectile(self, &bullet, &player);	
 
 			ROGUELIKE::draw_weapon(self, &player,&sword);
-
+			
 			// UPDATE OBSTACLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
 
@@ -254,7 +255,7 @@ impl Game for ROGUELIKE  {
 
 			// UPDATE UI
 			ui.update_ui( &player, &mut self.core)?;
-
+			
 			// UPDATE FRAME
 			self.core.wincan.present();
 		}
@@ -345,7 +346,7 @@ impl ROGUELIKE {
 		let mut x = recurse[rec_length].1;
 		let mut new_map = map;
 		new_map[y][x] = *num_maze;
-
+		
 		while rec_length >= 1 {
 			let mut update = false;
 
@@ -362,7 +363,7 @@ impl ROGUELIKE {
 									true,
 									recurse[rec_length].2.1,
 									recurse[rec_length].2.2,
-									recurse[rec_length].2.3),
+									recurse[rec_length].2.3), 
 									recurse[rec_length].3 - 1);
 								if y > 2 && new_map[y-2][x] == 0 { 	// can move direction
 									//println!("North");
@@ -384,7 +385,7 @@ impl ROGUELIKE {
 									recurse[rec_length].2.0,
 									true,
 									recurse[rec_length].2.2,
-									recurse[rec_length].2.3),
+									recurse[rec_length].2.3), 
 									recurse[rec_length].3 - 1);
 								if x < MAP_SIZE_W - 2 && new_map[y][x+2] == 0 {
 									//println!("East");
@@ -406,7 +407,7 @@ impl ROGUELIKE {
 									recurse[rec_length].2.0,
 									recurse[rec_length].2.1,
 									true,
-									recurse[rec_length].2.3),
+									recurse[rec_length].2.3), 
 									recurse[rec_length].3 - 1);
 								if y < MAP_SIZE_H - 2 && new_map[y+2][x] == 0 {
 									//println!("South");
@@ -428,7 +429,7 @@ impl ROGUELIKE {
 									recurse[rec_length].2.0,
 									recurse[rec_length].2.1,
 									recurse[rec_length].2.2,
-									true),
+									true), 
 									recurse[rec_length].3 - 1);
 								if x > 2 && new_map[y][x-2] == 0{
 									//println!("West");
@@ -502,7 +503,7 @@ impl ROGUELIKE {
 							   w + 2 * l - 2 >= MAP_SIZE_W as i32 {
 								   continue;
 							}
-							if map[h as usize + k as usize - 1][w as usize] == 0 &&
+							if map[h as usize + k as usize - 1][w as usize] == 0 && 
 							   map[h as usize + 2 * (k as usize) - 2][w as usize] != 0 {
 								let r1 = map[h as usize + 2 * (k as usize) - 2][w as usize];
 								let mut r2 = 0;
@@ -518,7 +519,7 @@ impl ROGUELIKE {
 									connectors.push((h as usize + k as usize - 1, w as usize, r1, r2));
 								}
 							}
-							else if map[h as usize][w as usize + l as usize - 1] == 0 &&
+							else if map[h as usize][w as usize + l as usize - 1] == 0 && 
 									map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
 								let r1 = map[h as usize][w as usize + 2 * (l as usize) - 2];
 								let mut r2 = 0;
@@ -538,7 +539,7 @@ impl ROGUELIKE {
 					}
 				}
 			}
-		}
+		}	
 
 		return connectors;
 	}
@@ -547,7 +548,7 @@ impl ROGUELIKE {
 		let mut new_map = map;
 
 		let region = cmp::min(r1, r2);
-
+		
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
 				if new_map[h][w] == r1 || new_map[h][w] == r2 {
@@ -579,7 +580,7 @@ impl ROGUELIKE {
 	pub fn remove_dead_ends(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
 		let mut still_removing = true;
-
+		
 		while still_removing {
 			still_removing = false;
 			for h in 0..MAP_SIZE_H {
@@ -670,7 +671,6 @@ impl ROGUELIKE {
 
 		/* let h = rng.gen_range(0..MAP_SIZE_H - 1);
 		let w = rng.gen_range(0..MAP_SIZE_W - 1);
-
 		// Add upstairs (3)
 		if stairs_added == 0 {
 			new_map[h][w] = 4;
@@ -740,7 +740,7 @@ impl ROGUELIKE {
 
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as i32;
-
+	
 		if DEVELOP {
 			for h in 0..(CAM_H / TILE_SIZE) + 1 {
 				for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -849,7 +849,7 @@ impl ROGUELIKE {
 		if mousestate.left(){
 			if !player.is_firing && player.get_mana() > 0 {
 				let p_type = ProjectileType::Bullet;
-
+				
 				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type);
 				self.game_data.player_projectiles.push(b);
 			}
@@ -865,13 +865,13 @@ impl ROGUELIKE {
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
-
+			
 			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
-			//println!("{} {}", player.x(), player.y());
-
+			println!("{} {}", player.x(), player.y());
+			
 		}
-		Ok(())
+		Ok(())	
 	}
 
 	// update projectiles
@@ -888,7 +888,7 @@ impl ROGUELIKE {
 			}
 		}
 	}
-
+	
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>) {
 		let xbounds = self.game_data.rooms[0].xbounds;
@@ -913,9 +913,8 @@ impl ROGUELIKE {
 					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
 					enemy.minus_hp(5);
 					projectile.die();
-
 				}
-
+				
 			}
 
 			// player melee collisions
@@ -925,7 +924,7 @@ impl ROGUELIKE {
 					enemy.minus_hp(1);
 				}
 			}
-
+		
 			// enemy projectile collisions
 			for projectile in self.game_data.enemy_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
@@ -981,7 +980,7 @@ impl ROGUELIKE {
 		}
 
 		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
-
+	
 	}
 
 	// draw player
@@ -1004,7 +1003,7 @@ impl ROGUELIKE {
 					ProjectileType::Fireball=>{
 						 p = texture_creator.load_texture("images/abilities/beng.png")?;
 					}
-				}
+				}	
 				self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player));
 			}
 		}
