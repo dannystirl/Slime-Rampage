@@ -143,25 +143,21 @@ impl<'a> Player<'a> {
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
-				
-					
-					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);
-	
-					let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);
-					if h as i32 + h_bounds_offset < 0 ||
+				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);
+				let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);
+				if h as i32 + h_bounds_offset < 0 ||
 				   w as i32 + w_bounds_offset < 0 ||
 				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
 				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-					continue;
-					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						let p_pos = self.pos();
-
-						core.wincan.copy(&hitbox, src, w_pos);
+					   continue;
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+					let p_pos = self.pos();
+					core.wincan.copy(&hitbox, src, w_pos);
 						if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
 							core.wincan.copy(&hitbox, src, self.cam_pos);
 
