@@ -503,7 +503,7 @@ impl<'a> Player<'a> {
 			}
 		}
 		// player right of other
-		if p_pos.left() <= other_pos.right() {
+		else if p_pos.left() <= other_pos.right() {
 			if p_center.x() > other_pos.right(){
 				println!("left of player");
 				self.set_x_vel(self.x_vel().clamp(0,100));
@@ -517,7 +517,7 @@ impl<'a> Player<'a> {
 			}
 		}
 		// player left of other
-	 	if p_pos.right() >= other_pos.left() {
+	 	else if p_pos.right() >= other_pos.left() {
 		 	if p_center.x() < other_pos.left() {
 			 println!("right of player");
 			 self.set_x_vel(self.x_vel().clamp(-100,0));
