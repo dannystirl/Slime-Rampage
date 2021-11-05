@@ -176,23 +176,114 @@ impl<'a> Player<'a> {
 		match collisions[0]{
 			Direction::Up=>{
 				self.set_y_vel(self.y_vel().clamp(0,100));
+				if collisions.len() > 2 {
+					match collisions[2]{
+						Direction::Up=>{
+							self.set_y_vel(self.y_vel().clamp(0,100));
+		
+						}
+						Direction::Down=>{
 
+						}
+						Direction::Left=>{
+							self.set_x_vel(self.x_vel().clamp(0,100));
+
+						}
+						Direction::Right=>{
+							self.set_x_vel(self.x_vel().clamp(-100,0));
+
+						}
+						Direction::None=>{
+							println!("I have no clue how this happened");
+						}
+					}
+				}
 			}
 			Direction::Down=>{
 				self.set_y_vel(self.y_vel().clamp(-100,0));
+			
+				if collisions.len() > 2 {
+					match collisions[2]{
+						Direction::Up=>{
+
+						}
+						Direction::Down=>{
+							self.set_y_vel(self.y_vel().clamp(-100,0));
+
+						}
+						Direction::Left=>{
+							self.set_x_vel(self.x_vel().clamp(0,100));
+
+						}
+						Direction::Right=>{
+							self.set_x_vel(self.x_vel().clamp(-100,0));
+
+						}
+						Direction::None=>{
+							println!("I have no clue how this happened");
+						}
+					}
+				}
 			}
 			Direction::Left=>{
 				self.set_x_vel(self.x_vel().clamp(0,100));
+				
+				if collisions.len() > 2 {
+					match collisions[2]{
+						Direction::Up=>{
+							self.set_y_vel(self.y_vel().clamp(0,100));
 
+						}
+						Direction::Down=>{
+							self.set_y_vel(self.y_vel().clamp(-100,0));
+
+						}
+						Direction::Left=>{
+							self.set_x_vel(self.x_vel().clamp(0,100));
+
+						}
+						Direction::Right=>{
+
+						}
+						Direction::None=>{
+							println!("I have no clue how this happened");
+						}
+					}
+				}
 			}
 			Direction::Right=>{
 				self.set_x_vel(self.x_vel().clamp(-100,0));
 
+				if collisions.len() > 2 {
+					match collisions[2]{
+						Direction::Up=>{
+							self.set_y_vel(self.y_vel().clamp(0,100));
+
+						}
+						Direction::Down=>{
+							self.set_y_vel(self.y_vel().clamp(-100,0));
+
+						}
+						Direction::Left=>{
+							//self.set_x_vel(self.x_vel().clamp(0,100));
+
+						}
+						Direction::Right=>{
+							self.set_x_vel(self.x_vel().clamp(-100,0));
+
+						}
+						Direction::None=>{
+							println!("I have no clue how this happened");
+						}
+					}
+				}
 			}
 			Direction::None=>{
 				println!("I have no clue how this happened");
 			}
 		}
+		
+
 	}
 
 		 /*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
