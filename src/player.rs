@@ -11,6 +11,7 @@ use crate::gamedata::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
 
+#[derive(Copy, Clone)]
 pub enum Direction{
 	Up,
 	Down,
@@ -18,6 +19,7 @@ pub enum Direction{
 	Right,
 	None,
 }
+#[derive(Copy, Clone)]
 pub struct CollisionDecider{
 	pub dir : Direction,
 	pub dist : i32,
@@ -175,28 +177,23 @@ impl<'a> Player<'a> {
 				let p_pos = self.pos();
 
 				core.wincan.copy(&hitbox, src, w_pos);
-				if GameData::check_collision(&p_pos, &w_pos) {//I hate collisions
+				if GameData::check_collision(&p_pos, &w_pos) {
 					core.wincan.copy(&hitbox, src, self.cam_pos);
-
 					core.wincan.copy(&hitbox, src, debug_pos);
-					collisions.push(self.resolve_col(p_pos, self.pos().center(), w_pos));
-
-					//println!("welcome to hell");
-					// NW
+					collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 				}
 			}
 			}
 		}
 		
-		self.resolve_col_further(&collisions);
+		self.resolve_col(&collisions);
 
 		for c in &game_data.crates{
 			let crate_pos = c.pos();
 			let p_pos =self.pos();
-		
 			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
 				//println!("welcome to hell");
-				self.resolve_col(self.pos(), self.pos().center(), c.pos());
+				self.collect_col(self.pos(), self.pos().center(), c.pos());
 			}
 		}
 		self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
@@ -445,52 +442,51 @@ impl<'a> Player<'a> {
 		self.coins -= coins_to_add;
 	}
 
-	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
+	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
+		let distance = ((p_center.x() as f64 - other_pos.center().x() as f64).powf(2.0) + (p_center.y() as f64 - other_pos.center().y() as f64).powf(2.0)).sqrt();
+
 		// player above other
 		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
-			println!("bottom of player");
-			let resolution = CollisionDecider::new(Down, other_pos.top() - p_center.y());
+			let resolution = CollisionDecider::new(Down, distance as i32);
 			return resolution;
 		}
 		// player left of other
-		else if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left() {
-			let resolution = CollisionDecider::new(Right, other_pos.left() - p_center.x());
+		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left() {
+			let resolution = CollisionDecider::new(Right, distance as i32);
 			return resolution;
 		}
 		// player below other
-		else if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
-			let resolution = CollisionDecider::new(Up, p_center.y() - other_pos.bottom());
+		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
+			let resolution = CollisionDecider::new(Up, distance as i32);
 			return resolution;
 		}
 		// player right of other
 		 else {
-			 let resolution = CollisionDecider::new(Left, p_center.x() - other_pos.right());
+			 let resolution = CollisionDecider::new(Left, distance as i32);
 			 return resolution;
 		}
 	}
-	pub fn resolve_col_further(&mut self, collisions : &Vec<CollisionDecider>){
+	pub fn resolve_col(&mut self, collisions : &Vec<CollisionDecider>){
 		// Sort vect of collisions by distance
 		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();
 		for c in collisions{
-			
-			sorted_collisions.push( CollisionDecider::new(&c.dir,c.dist) );
+			let new_dir = &c.dir;
+			sorted_collisions.push(CollisionDecider::new(*new_dir,c.dist) );
 		}
 		sorted_collisions.sort_by_key(|x| x.dist);
-		for c in sorted_collisions{
-			println!("{}", c.dist);
-		}
-		if collisions.len() > 0 {
-			match collisions[0].dir{
+
+		// Handle collisions based on distance
+		if sorted_collisions.len() > 0 {
+			match sorted_collisions[0].dir{
 				Direction::Up=>{
 					self.set_y_vel(self.y_vel().clamp(0,100));
-					if collisions.len() > 2 {
-						match collisions[2].dir{
+					if sorted_collisions.len() > 2 {
+						match sorted_collisions[2].dir{
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0,100));
-			
 							}
 							Direction::Down=>{
-	
+								println!("I have no clue how this happened");
 							}
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0,100));
@@ -508,23 +504,19 @@ impl<'a> Player<'a> {
 				}
 				Direction::Down=>{
 					self.set_y_vel(self.y_vel().clamp(-100,0));
-				
-					if collisions.len() > 2 {
-						match collisions[2].dir{
+					if sorted_collisions.len() > 2 {
+						match sorted_collisions[2].dir{
 							Direction::Up=>{
-	
+								println!("I have no clue how this happened");
 							}
 							Direction::Down=>{
 								self.set_y_vel(self.y_vel().clamp(-100,0));
-	
 							}
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0,100));
-	
 							}
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100,0));
-	
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -534,24 +526,19 @@ impl<'a> Player<'a> {
 				}
 				Direction::Right=>{
 					self.set_x_vel(self.x_vel().clamp(-100,0));
-	
-					if collisions.len() > 2 {
-						match collisions[2].dir{
+					if sorted_collisions.len() > 2 {
+						match sorted_collisions[2].dir{
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0,100));
-	
 							}
 							Direction::Down=>{
 								self.set_y_vel(self.y_vel().clamp(-100,0));
-	
 							}
 							Direction::Left=>{
-								//self.set_x_vel(self.x_vel().clamp(0,100));
-	
+								println!("I have no clue how this happened");
 							}
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100,0));
-	
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -561,41 +548,19 @@ impl<'a> Player<'a> {
 				}
 				Direction::Left=>{
 					self.set_x_vel(self.x_vel().clamp(0,100));
-					if collisions.len() > 2 {
-						match collisions[1].dir{
-							Direction::Up=>{
-	
-							}
-							Direction::Down=>{
-								
-							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
-	
-							}
-							Direction::Right=>{
-	
-							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
-							}
-						}
-						match collisions[2].dir{
+					if sorted_collisions.len() > 2 {
+						match sorted_collisions[1].dir{
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0,100));
-	
 							}
 							Direction::Down=>{
 								self.set_y_vel(self.y_vel().clamp(-100,0));
-	
 							}
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0,100));
-	
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
-	
+								println!("I have no clue how this happened");
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -603,7 +568,6 @@ impl<'a> Player<'a> {
 						}
 					}
 				}
-				
 				Direction::None=>{
 					println!("I have no clue how this happened");
 				}
