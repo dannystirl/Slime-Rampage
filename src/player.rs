@@ -171,8 +171,6 @@ impl<'a> Player<'a> {
 			}
 		}
 		if(collisions.len() > 0){
-		
-
 		match collisions[0]{
 			Direction::Up=>{
 				self.set_y_vel(self.y_vel().clamp(0,100));
@@ -225,32 +223,6 @@ impl<'a> Player<'a> {
 					}
 				}
 			}
-			Direction::Left=>{
-				self.set_x_vel(self.x_vel().clamp(0,100));
-				
-				if collisions.len() > 2 {
-					match collisions[2]{
-						Direction::Up=>{
-							self.set_y_vel(self.y_vel().clamp(0,100));
-
-						}
-						Direction::Down=>{
-							self.set_y_vel(self.y_vel().clamp(-100,0));
-
-						}
-						Direction::Left=>{
-							self.set_x_vel(self.x_vel().clamp(0,100));
-
-						}
-						Direction::Right=>{
-
-						}
-						Direction::None=>{
-							println!("I have no clue how this happened");
-						}
-					}
-				}
-			}
 			Direction::Right=>{
 				self.set_x_vel(self.x_vel().clamp(-100,0));
 
@@ -278,6 +250,33 @@ impl<'a> Player<'a> {
 					}
 				}
 			}
+			Direction::Left=>{
+				self.set_x_vel(self.x_vel().clamp(0,100));
+				
+				if collisions.len() > 2 {
+					match collisions[2]{
+						Direction::Up=>{
+							self.set_y_vel(self.y_vel().clamp(0,100));
+
+						}
+						Direction::Down=>{
+							self.set_y_vel(self.y_vel().clamp(-100,0));
+
+						}
+						Direction::Left=>{
+							self.set_x_vel(self.x_vel().clamp(0,100));
+
+						}
+						Direction::Right=>{
+
+						}
+						Direction::None=>{
+							println!("I have no clue how this happened");
+						}
+					}
+				}
+			}
+			
 			Direction::None=>{
 				println!("I have no clue how this happened");
 			}
