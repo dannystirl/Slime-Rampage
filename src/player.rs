@@ -9,7 +9,13 @@ use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
 use crate::SDLCore;
-
+pub enum Direction{
+	Up,
+	Down,
+	Left,
+	Right,
+	None,
+}
 pub enum Ability{
 	Bullet,
 }
@@ -128,6 +134,7 @@ impl<'a> Player<'a> {
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
+		let mut collisions: Vec<Direction> = Vec::with_capacity(5);
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -154,15 +161,40 @@ impl<'a> Player<'a> {
 							core.wincan.copy(&hitbox, src, self.cam_pos);
 
 							core.wincan.copy(&hitbox, src, debug_pos);
-							self.resolve_col(p_pos, self.pos().center(), w_pos);
+							collisions.push(self.resolve_col(p_pos, self.pos().center(), w_pos));
+							
 							//println!("welcome to hell");
 							// NW
-							
 						}
 
 					}
 			}
 		}
+		if(collisions.len() > 0){
+		
+
+		match collisions[0]{
+			Direction::Up=>{
+				self.set_y_vel(self.y_vel().clamp(0,100));
+
+			}
+			Direction::Down=>{
+				self.set_y_vel(self.y_vel().clamp(-100,0));
+			}
+			Direction::Left=>{
+				self.set_x_vel(self.x_vel().clamp(0,100));
+
+			}
+			Direction::Right=>{
+				self.set_x_vel(self.x_vel().clamp(-100,0));
+
+			}
+			Direction::None=>{
+				println!("I have no clue how this happened");
+			}
+		}
+	}
+
 		 /*for ob in &game_data.rooms[game_data.current_room].room_obstacles {
 			let obj_pos = Rect::new(ob.0 * (TILE_SIZE) as i32, ob.1 * (TILE_SIZE)  as i32, TILE_SIZE*2, TILE_SIZE*2);
 			let p_pos = self.pos();
@@ -494,35 +526,34 @@ impl<'a> Player<'a> {
 		self.coins -= coins_to_add;
 	}
 
-	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) {
+	pub fn resolve_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> Direction {
 		// player above other
-		if p_pos.bottom() >= other_pos.top(){
-			if p_center.y() < other_pos.top(){
+
+
+		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
 				println!("bottom of player");
-				self.set_y_vel(self.y_vel().clamp(-100,0));
-			}
+				return Direction::Down
+			
+		}	
+		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left() {
+			println!("right of player");
+			return Direction::Right
+			
+	   }
+		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
+			println!("top of player");
+			return Direction::Up
+			
 		}
 		// player right of other
-		else if p_pos.left() <= other_pos.right() {
-			if p_center.x() > other_pos.right(){
+		 if p_pos.left() <= other_pos.right() && p_center.x() > other_pos.right(){
 				println!("left of player");
-				self.set_x_vel(self.x_vel().clamp(0,100));
-			}
+				return Direction::Left
+			
 		}
 		// player below object
-	 	if p_pos.top() <= other_pos.bottom() {
-			if p_center.y() > other_pos.bottom(){
-			 	println!("top of player");
-			 	self.set_y_vel(self.y_vel().clamp(0,100));
-			}
-		}
 		// player left of other
-	 	else if p_pos.right() >= other_pos.left() {
-		 	if p_center.x() < other_pos.left() {
-			 println!("right of player");
-			 self.set_x_vel(self.x_vel().clamp(-100,0));
-		 	}
-		}
+	 	Direction::None
 	}
 
 }
