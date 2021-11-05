@@ -16,6 +16,10 @@ pub enum Direction{
 	Right,
 	None,
 }
+pub struct CollisionDecider{
+	pub dir : Direction,
+	pub dist : f64,
+}
 pub enum Ability{
 	Bullet,
 }
@@ -170,7 +174,7 @@ impl<'a> Player<'a> {
 					}
 			}
 		}
-
+		
 		self.resolve_col_further(collisions);
 
 		for c in &game_data.crates{
