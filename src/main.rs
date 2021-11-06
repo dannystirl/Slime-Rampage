@@ -249,7 +249,7 @@ impl Game for ROGUELIKE  {
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
 
 			// CHECK COLLISIONS
-			ROGUELIKE::check_collisions(self, &mut player, &mut enemies);
+			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map);
 			if player.is_dead(){break 'gameloop;}
 
 
@@ -890,7 +890,7 @@ impl ROGUELIKE {
 	}
 	
 	// check collisions
-	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>) {
+	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>,  mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let xbounds = self.game_data.rooms[0].xbounds;
 		let ybounds = self.game_data.rooms[0].ybounds;
 		let bounds1 = Rect::new(xbounds.0, ybounds.0, TILE_SIZE, TILE_SIZE);
@@ -936,7 +936,7 @@ impl ROGUELIKE {
 		}
 
 		for projectile in self.game_data.player_projectiles.iter_mut(){
-			projectile.check_bounce( xbounds, ybounds);
+			projectile.check_bounce( xbounds, ybounds, map);
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
