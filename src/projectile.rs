@@ -21,7 +21,7 @@ pub struct Projectile{
 
  impl Projectile {
 	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType) -> Projectile {
-		let mut src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
 		Projectile {
