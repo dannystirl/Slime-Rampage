@@ -239,7 +239,7 @@ impl Game for ROGUELIKE  {
 		
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
+			ROGUELIKE::update_projectiles(self, &map);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
 			ROGUELIKE::draw_player_projectile(self, &bullet, &player);	
 
@@ -876,15 +876,15 @@ impl ROGUELIKE {
 	}
 
 	// update projectiles
-	pub fn update_projectiles(player_projectiles: &mut Vec<Projectile>, enemy_projectiles: &mut Vec<Projectile>) {
+	pub fn update_projectiles(&mut self, map: &[[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		for projectile in player_projectiles {
 			if projectile.is_active() {
-				projectile.update_pos();
+				projectile.update_projectile(&self.game_data, *map, &mut self.core);
 			}
 		}
 		for projectile in enemy_projectiles {
 			if projectile.is_active() {
-				projectile.update_pos();
+				projectile.update_projectile(&self.game_data, *map, &mut self.core);
 
 			}
 		}
@@ -936,9 +936,10 @@ impl ROGUELIKE {
 			}
 		}
 
+		/*
 		for projectile in self.game_data.player_projectiles.iter_mut(){
 			projectile.check_bounce( xbounds, ybounds);
-		}
+		} */
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
