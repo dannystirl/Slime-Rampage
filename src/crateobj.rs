@@ -2,7 +2,7 @@ extern crate rogue_sdl;
 use crate::gamedata::*;
 use sdl2::rect::Rect;
 //use sdl2::image::LoadTexture;
-use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::{Texture};
 use crate::player::*;
 use crate::rigidbody::*;
 //use crate::rigidbody::*;
@@ -124,11 +124,11 @@ impl Crate {
 		}
 	}
 	// calculate velocity resistance
-	fn resist(vel: i32, delta: i32) -> i32 {
+	/* fn resist(vel: i32, delta: i32) -> i32 {
 		if delta == 0 {
 			if vel > 0 {-1}
 			else if vel < 0 {1}
 			else {delta}
 		} else {delta}
-	}
+	} */
 }

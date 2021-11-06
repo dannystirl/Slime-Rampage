@@ -1,5 +1,5 @@
 extern crate rogue_sdl;
-use sdl2::render::Texture;
+//use sdl2::render::Texture;
 use std::cmp;
 use rand::Rng;
 
@@ -40,7 +40,7 @@ impl<'a> Map<'a> {
 		self.create_walls();
 		self.create_obstacles(corridors);
 
-		//self.print_map(self.map);
+		if DEBUG { self.print_map(self.map); }
 	}
 
 	// 2: create randomized rooms

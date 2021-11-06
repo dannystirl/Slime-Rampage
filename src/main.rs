@@ -32,7 +32,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
-use crate::crateobj::*;
+//use crate::crateobj::*;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -70,7 +70,7 @@ impl Game for ROGUELIKE  {
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
+		//let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
@@ -80,8 +80,7 @@ impl Game for ROGUELIKE  {
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let mut crate_manager = crateobj::Crate::manager();
 		//crate generation
-		let mut rng = rand::thread_rng();
-		let num = rng.gen_range(1..500);
+		//let num = rng.gen_range(1..500);
 
 		let pos = Rect::new(
 		(CAM_W/2 - TILE_SIZE/2 -200 + rng.gen_range(1..10)) as i32,
@@ -142,7 +141,7 @@ impl Game for ROGUELIKE  {
 			i+=1;
 		}
 		// CREATE ROOM
-		let mut background = background::Background::new(
+		let background = background::Background::new(
 			texture_creator.load_texture("images/background/bb.png")?,
 			texture_creator.load_texture("images/background/floor_tile_1.png")?,
 			texture_creator.load_texture("images/background/floor_tile_2.png")?,
@@ -225,7 +224,7 @@ impl Game for ROGUELIKE  {
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
-			ROGUELIKE::draw_player_projectile(self, &bullet, &player)?;	
+			ROGUELIKE::draw_player_projectile(self, /* &bullet,  */&player)?;	
 
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
@@ -855,8 +854,8 @@ impl ROGUELIKE {
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>) {
 		let xbounds = self.game_data.rooms[0].xbounds;
 		let ybounds = self.game_data.rooms[0].ybounds;
-		let bounds1 = Rect::new(xbounds.0, ybounds.0, TILE_SIZE, TILE_SIZE);
-		let bounds2 = Rect::new(xbounds.1, ybounds.1, TILE_SIZE, TILE_SIZE);
+		/* let bounds1 = Rect::new(xbounds.0, ybounds.0, TILE_SIZE, TILE_SIZE);
+		let bounds2 = Rect::new(xbounds.1, ybounds.1, TILE_SIZE, TILE_SIZE); */
 
 		for enemy in enemies {
 			if !enemy.is_alive() {
@@ -928,9 +927,10 @@ impl ROGUELIKE {
 	}
 
 	// draw player projectiles
-	pub fn draw_player_projectile(&mut self, bullet: &Texture, player: &Player)-> Result<(), String>  {
+	pub fn draw_player_projectile(&mut self, /* bullet: &Texture, */ player: &Player)-> Result<(), String>  {
 		let texture_creator = self.core.wincan.texture_creator();
 		for projectile in self.game_data.player_projectiles.iter_mut() {
+			#[allow(unused_assignments)]
 			let mut p = texture_creator.load_texture("images/abilities/bullet.png")?;
 
 			if projectile.is_active(){
