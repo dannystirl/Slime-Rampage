@@ -29,11 +29,10 @@ impl CollisionDecider{
 	pub fn new(dir: Direction, dist: i32) -> CollisionDecider{
 		let dir = dir;
 		let dist = dist;
-	CollisionDecider {
-		dir,
-		dist,
-	}
-
+		CollisionDecider {
+			dir,
+			dist,
+		}
 	}
 }
 
@@ -301,20 +300,22 @@ impl<'a> Player<'a> {
         &self.texture_all
     }
 
-	pub fn get_frame_display(&mut self, count: &i32, f_display: &i32) {
-		if count < &f_display { self.set_src(0 as i32, 0 as i32); }
-		else if count < &(f_display * 2) { self.set_src(64 as i32, 0 as i32); }
-		else if count < &(f_display * 3) { self.set_src(128 as i32, 0 as i32); }
-		else if count < &(f_display * 4) { self.set_src(0 as i32, 64 as i32); }
-		else if count < &(f_display * 5) { self.set_src(64 as i32, 64 as i32); }
-		else if count < &(f_display * 6) { self.set_src(128 as i32, 64 as i32); }
-		else if count < &(f_display * 7) { self.set_src(0 as i32, 128 as i32); }
-		else if count < &(f_display * 8) { self.set_src(64 as i32, 128 as i32); }
-		else if count < &(f_display * 9) { self.set_src(128 as i32, 128 as i32); }
-		else if count < &(f_display * 10) { self.set_src(0 as i32, 192 as i32); }
-		else if count < &(f_display * 11) { self.set_src(64 as i32, 192 as i32); }
-		else if count < &(f_display * 12) { self.set_src(128 as i32, 192 as i32); }
-		else { self.set_src(0, 0); }
+	pub fn get_frame_display(&mut self, gamedata: &mut GameData, fps_avg: f64) {
+		let elapsed = gamedata.frame_counter.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
+		match elapsed % 12 as u128 {
+			1 => { self.set_src(0 as i32, 0 as i32); }
+			2 => { self.set_src(64 as i32, 0 as i32); }
+			3 => { self.set_src(128 as i32, 0 as i32); }
+			4 => { self.set_src(0 as i32, 64 as i32); }
+			5 => { self.set_src(64 as i32, 64 as i32); }
+			6 => { self.set_src(128 as i32, 64 as i32); }
+			7 => { self.set_src(0 as i32, 128 as i32); }
+			8 => { self.set_src(64 as i32, 128 as i32); }
+			9 => { self.set_src(128 as i32, 128 as i32); }
+			10 => { self.set_src(0 as i32, 192 as i32); }
+			11 => { self.set_src(64 as i32, 192 as i32); }
+			_ => { self.set_src(128 as i32, 192 as i32); }
+		}
 	}
 
 	// attacking values

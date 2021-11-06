@@ -2,6 +2,7 @@ pub const DEVELOP: bool = true;
 
 use rand::Rng;
 use sdl2::rect::Rect;
+use std::time::Instant;
 
 use crate::gold::*;
 use crate::projectile::*;
@@ -46,6 +47,7 @@ pub const STUN_TIME: u32 = 2000;
 pub const FIRE_COOLDOWN_E: u128 = 1500;
 
 pub struct GameData {
+    pub frame_counter: Instant, 
     pub gold: Vec<Gold>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
@@ -76,8 +78,10 @@ impl GameData {
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
+        let frame_counter = Instant::now();
 
         GameData {
+            frame_counter, 
             current_room,
             gold,
             player_projectiles,
