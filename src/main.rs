@@ -1,4 +1,19 @@
 extern crate rogue_sdl;
+use rogue_sdl::{Game, SDLCore};
+
+use std::time::Duration;
+use std::time::Instant;
+use std::cmp;
+use std::collections::HashSet;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+use sdl2::mouse::{MouseState};
+use sdl2::rect::{Rect, Point};
+use sdl2::image::LoadTexture;
+use sdl2::render::{Texture};//,TextureCreator};
+//use sdl2::pixels::Color;
+use rand::Rng;
+
 mod background;
 mod credits;
 mod enemy;
@@ -11,27 +26,15 @@ mod map;
 mod ui;
 mod crateobj;
 mod rigidbody;
-use std::collections::HashSet;
-use std::time::Duration;
-use std::time::Instant;
-use std::cmp;
-use rand::Rng;
-use rogue_sdl::{Game, SDLCore};
-use crate::background::*;
-use crate::enemy::*;
+
 use crate::gamedata::*;
-//use crate::gold::*;
+use crate::background::*;
 use crate::player::*;
+use crate::enemy::*;
 use crate::projectile::*;
+//use crate::gold::*;
 //use crate::room::*;
 //use crate::ui::*;
-//use sdl2::pixels::Color;
-use sdl2::rect::{Rect, Point};
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use sdl2::mouse::{MouseState};
-use sdl2::image::LoadTexture;
-use sdl2::render::{Texture};//,TextureCreator};
 //use crate::crateobj::*;
 
 pub struct ROGUELIKE {
@@ -51,9 +54,6 @@ impl Game for ROGUELIKE  {
 	fn run(&mut self) -> Result<(), String> {
         let texture_creator = self.core.wincan.texture_creator();
 		let mut rng = rand::thread_rng();
-
-		/* let mut count = 0;
-		let f_display = 15; */
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		let mut player = player::Player::new(
