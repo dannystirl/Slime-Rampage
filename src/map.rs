@@ -10,16 +10,19 @@ pub struct Map<'a> {
 	pub background: Background<'a>, 
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub num_rooms: i32, 
+	pub enemy_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 }
 
 impl<'a> Map<'a> {
 	pub fn new(background: Background<'a>) -> Map<'a> {
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+		let enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let num_rooms=1; 
 		Map {
 			background, 
 			map, 
 			num_rooms, 
+			enemy_spawns, 
 		}
 	}
 
