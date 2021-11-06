@@ -7,6 +7,7 @@ mod gold;
 mod player;
 mod projectile;
 mod room;
+mod map;
 mod ui;
 mod crateobj;
 mod rigidbody;
@@ -104,42 +105,39 @@ impl Game for ROGUELIKE  {
 			let enemy_type: EnemyType; 
 			match num {
 				5 => { enemy_type = EnemyType::Ranged } 
-				4 => { enemy_type=  EnemyType::Ranged } 
+				4 => { enemy_type = EnemyType::Ranged } 
 				_ => { enemy_type = EnemyType::Melee } 
 			}
-
 			match enemy_type{
-			EnemyType::Ranged=>{
-				let e = enemy::Enemy::new(
-					Rect::new(
-						(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-						(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-						TILE_SIZE,
-						TILE_SIZE,
-					),
-					texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
-					enemy_type,
-					i,
-				);
-				enemies.push(e);
+				EnemyType::Ranged=>{
+					let e = enemy::Enemy::new(
+						Rect::new(
+							(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+							(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
+							TILE_SIZE,
+							TILE_SIZE,
+						),
+						texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
+						enemy_type,
+						i,
+					);
+					enemies.push(e);
+				}
+				EnemyType::Melee=>{
+					let e = enemy::Enemy::new(
+						Rect::new(
+							(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+							(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
+							TILE_SIZE,
+							TILE_SIZE,
+						),
+						texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+						enemy_type,
+						i,
+					);
+					enemies.push(e);
+				}
 			}
-			EnemyType::Melee=>
-			{
-				let e = enemy::Enemy::new(
-					Rect::new(
-						(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-						(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-						TILE_SIZE,
-						TILE_SIZE,
-					),
-					texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-					enemy_type,
-					i,
-				);
-				enemies.push(e);
-			}
-		}
-
 			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
 			i+=1;
 		}
@@ -162,11 +160,14 @@ impl Game for ROGUELIKE  {
 			),
 		);
 
-		let mut map = ROGUELIKE::create_map();
+		let mut map_data = map::Map::new(
+			background, 
+		);
+		map_data.create_map();
 
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				if map[h][w] == 3 {
+				if map_data.map[h][w] == 3 {
 					player.set_x((w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
 					player.set_y((h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
 					break;
@@ -177,9 +178,6 @@ impl Game for ROGUELIKE  {
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
-		let mut p_frames = 0;
-		let mut src_y = 0;
-		let mut count_y = 0;
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			for event in self.core.event_pump.poll_iter() {
@@ -194,15 +192,13 @@ impl Game for ROGUELIKE  {
 			let elapsed = last_time.elapsed();
 			if elapsed > Duration::from_secs(1) {
 				fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-				//println!("Average FPS: {:.2}", fps_avg);
 				self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
 				self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
-
 			}
 			// reset frame values
 			player.set_x_delta(0);
 			player.set_y_delta(0);
-			self.core.wincan.copy(&background.black, None, None)?;
+			self.core.wincan.copy(&map_data.background.black, None, None)?;
 
 			// GET INPUT
 			let mousestate= self.core.event_pump.mouse_state();
@@ -211,14 +207,14 @@ impl Game for ROGUELIKE  {
 				.pressed_scancodes()
 				.filter_map(Keycode::from_scancode)
 				.collect();
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player);
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player)?;
 
 			// UPDATE BACKGROUND
-			ROGUELIKE::update_background(self, &player, &mut background, map)?;
+			ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
 
 			// UPDATE PLAYER
-			player.update_player(&self.game_data, map, &mut self.core);
-			self.draw_player(fps_avg, &mut player, background.get_curr_background());
+			player.update_player(&self.game_data, map_data.map, &mut self.core)?;
+			ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
@@ -229,16 +225,16 @@ impl Game for ROGUELIKE  {
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
-			ROGUELIKE::draw_player_projectile(self, &bullet, &player);	
+			ROGUELIKE::draw_player_projectile(self, &bullet, &player)?;	
 
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
 			// UPDATE INTERACTABLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
-			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture)?;
+			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
 			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures, &player);
 			for c in self.game_data.crates.iter_mut() {
-				self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player));
+				self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
 			}
 
 			// CHECK COLLISIONS
@@ -279,7 +275,8 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_rooms(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+	//1
+	pub fn create_rooms(map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
 		let mut new_map = map;
 
@@ -332,12 +329,45 @@ impl ROGUELIKE {
 		return (num_rooms - 1, new_map);
 	}
 
-	pub fn build_maze(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], num_maze: &i32, recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool),i32)>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	//2
+	pub fn create_maze(num_rooms: i32, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H], [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
+		let mut num_mazes = num_rooms;
+		let mut new_map = map;
+		for h in (1..MAP_SIZE_H).step_by(2) {
+			for w in (1..MAP_SIZE_W).step_by(2) {
+				if new_map[h][w] == 0 {
+					let y = h;
+					let x = w;
+					recurse.push((y,x,(false,false,false,false), 4));
+					recurse.push((y,x,(false,false,false,false), 4)); // dupe prevents edge case
+					num_mazes += 1;
+					new_map = ROGUELIKE::build_maze(new_map, num_mazes, &mut recurse);
+				}
+			}
+		}
+
+		let mut corridors = map;
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if new_map[h][w] > num_rooms {
+					corridors[h][w] = 1;
+				} else {
+					corridors[h][w] = 0;
+				}
+			}
+		}
+
+		return (num_mazes, new_map, corridors);
+	}
+
+	//2.1
+	pub fn build_maze(map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], num_maze: i32, recurse: &mut Vec<(usize,usize,(bool,bool,bool,bool),i32)>) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut rec_length = recurse.len()-1;
 		let mut y = recurse[rec_length].0;
 		let mut x = recurse[rec_length].1;
 		let mut new_map = map;
-		new_map[y][x] = *num_maze;
+		new_map[y][x] = num_maze;
 		
 		while rec_length >= 1 {
 			let mut update = false;
@@ -362,7 +392,7 @@ impl ROGUELIKE {
 									recurse.push((y-2,x,(false,false,true,false), 3));	// push a new point for recursion
 									rec_length+=1;
 									update = true;
-									new_map[y-1][x] = *num_maze;
+									new_map[y-1][x] = num_maze;
 									y = y - 2;
 								}
 							}
@@ -384,7 +414,7 @@ impl ROGUELIKE {
 									recurse.push((y,x+2,(false,false,false,true), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y][x+1] = *num_maze;
+									new_map[y][x+1] = num_maze;
 									x = x + 2;
 								}
 							}
@@ -406,7 +436,7 @@ impl ROGUELIKE {
 									recurse.push((y+2,x,(true,false,false,false), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y+1][x] = *num_maze;
+									new_map[y+1][x] = num_maze;
 									y = y + 2;
 								}
 							}
@@ -428,7 +458,7 @@ impl ROGUELIKE {
 									recurse.push((y,x-2,(false,true,false,false), 3));
 									rec_length+=1;
 									update = true;
-									new_map[y][x-1] = *num_maze;
+									new_map[y][x-1] = num_maze;
 									x = x - 2;
 								}
 							}
@@ -437,7 +467,7 @@ impl ROGUELIKE {
 				}
 			}
 			if update {
-				new_map[y][x] = *num_maze;
+				new_map[y][x] = num_maze;
 			} else if recurse[rec_length].3 == 0 {
 				recurse.pop();
 				rec_length -= 1;
@@ -448,45 +478,13 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn create_maze(num_rooms: &i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H], [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
-		let mut y = 1;
-		let mut x = 1;
-		let mut num_mazes = *num_rooms;
-		let mut new_map = map;
-		for h in (1..MAP_SIZE_H).step_by(2) {
-			for w in (1..MAP_SIZE_W).step_by(2) {
-				if new_map[h][w] == 0 {
-					y = h;
-					x = w;
-					recurse.push((y,x,(false,false,false,false), 4));
-					recurse.push((y,x,(false,false,false,false), 4)); // dupe prevents edge case
-					num_mazes += 1;
-					new_map = ROGUELIKE::build_maze(new_map, &num_mazes, &mut recurse);
-				}
-			}
-		}
-
-		let mut corridors = map;
-		for h in 0..MAP_SIZE_H {
-			for w in 0..MAP_SIZE_W {
-				if new_map[h][w] > *num_rooms {
-					corridors[h][w] = 1;
-				} else {
-					corridors[h][w] = 0;
-				}
-			}
-		}
-
-		return (num_mazes, new_map, corridors);
-	}
-
-	pub fn get_connectors(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<(usize, usize, i32, i32)> {
+	//3.2
+	pub fn get_connectors(map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<(usize, usize, i32, i32)> {
 		let mut connectors: Vec<(usize, usize, i32, i32)> = Vec::new();
 
 		for h in 0..MAP_SIZE_H as i32 {
 			for w in 0..MAP_SIZE_W as i32 {
-				if (map[h as usize][w as usize] != 0) {
+				if map[h as usize][w as usize] != 0 {
 					for k in 0..3 as i32 {
 						for l in 0..3 as i32 {
 							if h + 2 * k - 2 < 0 ||
@@ -498,15 +496,7 @@ impl ROGUELIKE {
 							if map[h as usize + k as usize - 1][w as usize] == 0 && 
 							   map[h as usize + 2 * (k as usize) - 2][w as usize] != 0 {
 								let r1 = map[h as usize + 2 * (k as usize) - 2][w as usize];
-								let mut r2 = 0;
-								if k == 0 {
-									r2 = map[(h as usize + 2 * (k as usize) - 2) + 2][w as usize];
-								} else if k == 1 {
-									r2 = map[h as usize + 2 * (k as usize) - 2][w as usize];
-								} else {
-									r2 = map[(h as usize + 2 * (k as usize) - 2) - 2][w as usize];
-								}
-
+								let r2 = map[h as usize][w as usize];
 								if r1 != r2 {
 									connectors.push((h as usize + k as usize - 1, w as usize, r1, r2));
 								}
@@ -514,15 +504,7 @@ impl ROGUELIKE {
 							else if map[h as usize][w as usize + l as usize - 1] == 0 && 
 									map[h as usize][w as usize + 2 * (l as usize) - 2] != 0 {
 								let r1 = map[h as usize][w as usize + 2 * (l as usize) - 2];
-								let mut r2 = 0;
-								if l == 0 {
-									r2 = map[h as usize][(w as usize + 2 * (l as usize) - 2) + 2];
-								} else if l == 1 {
-									r2 = map[h as usize][w as usize + 2 * (l as usize) - 2];
-								} else {
-									r2 = map[h as usize][(w as usize + 2 * (l as usize) - 2) - 2];
-								}
-
+								let r2 = map[h as usize][w as usize];
 								if r1 != r2 {
 									connectors.push((h as usize, w as usize + l as usize - 1, r1, r2));
 								}
@@ -532,11 +514,11 @@ impl ROGUELIKE {
 				}
 			}
 		}	
-
 		return connectors;
 	}
 
-	pub fn coalesce(r1: i32, r2: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	//3.1
+	pub fn coalesce(r1: i32, r2: i32, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
 
 		let region = cmp::min(r1, r2);
@@ -552,15 +534,13 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn connect_maze(num_regions: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
-		let mut rng = rand::thread_rng();
-
+	//3
+	pub fn connect_maze(map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
-
 		let mut connectors = ROGUELIKE::get_connectors(new_map);
 
 		while connectors.len() > 0 {
-			let rand_connection = rng.gen_range(0..connectors.len());
+			let rand_connection = rand::thread_rng().gen_range(0..connectors.len());
 			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 1;
 			new_map = ROGUELIKE::coalesce(connectors[rand_connection].2, connectors[rand_connection].3, new_map);
 			connectors = ROGUELIKE::get_connectors(new_map);
@@ -569,7 +549,8 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn remove_dead_ends(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	//4
+	pub fn remove_dead_ends(map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
 		let mut still_removing = true;
 		
@@ -603,7 +584,8 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn create_walls(mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	//5
+	pub fn create_walls(map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut new_map = map;
 
 		for h in 0..MAP_SIZE_H as i32 {
@@ -625,18 +607,16 @@ impl ROGUELIKE {
 				}
 			}
 		}
-
 		return new_map;
 	}
 
-	// STAIRS ARE INCLUDED :)
-	pub fn create_obstacles(mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
+	//6 - currently just create stairs. not obstacles. 
+	pub fn create_obstacles(corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H], map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut rng = rand::thread_rng();
 
 		let mut new_map = map;
 		let mut stairs_added: i32 = 0;
 
-		let attempts = 100;
 		while stairs_added < 2 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
@@ -660,40 +640,30 @@ impl ROGUELIKE {
 				}
 			}
 		}
-
-		/* let h = rng.gen_range(0..MAP_SIZE_H - 1);
-		let w = rng.gen_range(0..MAP_SIZE_W - 1);
-
-		// Add upstairs (3)
-		if stairs_added == 0 {
-			new_map[h][w] = 4;
-			stairs_added += 1;
-		} */
-
 		return new_map;
 	}
 
+	//0
 	pub fn create_map() -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		if !DEVELOP {
 			return [[0; MAP_SIZE_W]; MAP_SIZE_H];
 		}
 		let mut map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
-		let mut num_rooms = 0;
-		let mut num_mazes = 0;
 
+		// create rooms
 		let rooms_tuple = ROGUELIKE::create_rooms(map);
-		num_rooms = rooms_tuple.0;
 		map = rooms_tuple.1;
-		let maze_tuple = ROGUELIKE::create_maze(&num_rooms, map);
-		num_mazes = maze_tuple.0;
+		// create maze
+		let maze_tuple = ROGUELIKE::create_maze(rooms_tuple.0, map);
 		map = maze_tuple.1;
 		let corridors = maze_tuple.2;
-		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
+		// form level
+		map = ROGUELIKE::connect_maze(map);
 		map = ROGUELIKE::remove_dead_ends(map);
 		map = ROGUELIKE::create_walls(map);
 		map = ROGUELIKE::create_obstacles(corridors, map);
 
-		println!("");
+		/* println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
 				// Blankspace
@@ -718,11 +688,12 @@ impl ROGUELIKE {
 				}
 			}
 			println!("");
-		}
+		} */
 		return map;
 	}
 
-	pub fn update_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
+	// draw background
+	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
@@ -748,13 +719,13 @@ impl ROGUELIKE {
 					   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 						continue;
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 1 {
-						self.core.wincan.copy(&floor, src, pos);
+						self.core.wincan.copy_ex(&floor, src, pos, 0.0, None, false, false).unwrap();
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						self.core.wincan.copy(&tile, src, pos);
+						self.core.wincan.copy_ex(&tile, src, pos, 0.0, None, false, false).unwrap();
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 3 {
-						self.core.wincan.copy(&upstairs, src, pos);
+						self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap();
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 4 {
-						self.core.wincan.copy(&downstairs, src, pos);
+						self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap();
 					}
 				}
 			}
@@ -765,7 +736,7 @@ impl ROGUELIKE {
 				for j in 0..self.game_data.rooms[0].ywalls.1+1 {
 					if tiles[n].0 {
 						let t = background.get_tile_info(tiles[n].1, i, j, player.x(), player.y());
-						self.core.wincan.copy(t.0, t.1, t.2)?;
+						self.core.wincan.copy_ex(t.0, t.1, t.2, 0.0, None, false, false).unwrap();
 					}
 					n+=1;
 				}
@@ -773,6 +744,7 @@ impl ROGUELIKE {
 		}
 		Ok(())
 	}
+	
 	// update enemies
 	pub fn update_enemies(&mut self, rngt: &mut Vec<i32>, enemies: &mut Vec<Enemy>, player: &Player) -> Vec<i32> {
 		let mut i = 1;
@@ -792,7 +764,7 @@ impl ROGUELIKE {
 		return rngt.to_vec();
 	}
 
-	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) -> Result<(), String> {
+	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
@@ -800,16 +772,15 @@ impl ROGUELIKE {
 				self.game_data.gold.push(drop);
 			}
 		}
+		// draw uncollected coins
 		for coin in self.game_data.gold.iter_mut() {
 			if !coin.collected() {
 				let pos = Rect::new(coin.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
-
-				self.core.wincan.copy(&coin_texture, coin.src(), pos)?;
+				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
 			}
 		}
-		Ok(())
 	}
 
 	// check input values
@@ -860,8 +831,7 @@ impl ROGUELIKE {
 		if keystate.contains(&Keycode::P) {
 			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
-			println!("{} {}", player.x(), player.y());
-			
+			println!("{} {}", player.x(), player.y());	
 		}
 		Ok(())	
 	}
@@ -972,7 +942,7 @@ impl ROGUELIKE {
 						 p = texture_creator.load_texture("images/abilities/beng.png")?;
 					}
 				}	
-				self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player));
+				self.core.wincan.copy(&p, projectile.src(), projectile.offset_pos(player)).unwrap();
 			}
 		}
 		Ok(())
@@ -980,7 +950,6 @@ impl ROGUELIKE {
 
 	//draw player weapon
 	pub fn draw_weapon(&mut self, player: &Player, texture : &Texture){
-
 		let rotation_point;
 		let pos;
 		let mut angle;
@@ -1004,7 +973,7 @@ impl ROGUELIKE {
 	pub fn draw_enemy_projectile(&mut self, bullet: &Texture, player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player));
+				self.core.wincan.copy(&bullet, projectile.src(), projectile.offset_pos(player)).unwrap();
 			}
 		}
 	}

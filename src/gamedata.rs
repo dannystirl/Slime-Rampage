@@ -7,6 +7,7 @@ use std::time::Instant;
 use crate::gold::*;
 use crate::projectile::*;
 use crate::room::*;
+use crate::map::*;
 use crate::crateobj::*;
 
 // window globals

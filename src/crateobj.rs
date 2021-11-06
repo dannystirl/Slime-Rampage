@@ -102,7 +102,7 @@ impl Crate {
 			c.set_x((c.x() as i32 + c.velocity[0] as i32).clamp(game_data.rooms[0].xbounds.0, game_data.rooms[0].xbounds.1));
 			c.set_y((c.y() as i32 + c.velocity[1] as i32).clamp(game_data.rooms[0].ybounds.0, game_data.rooms[0].ybounds.1));
 			self.set_rb();
-			 core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
+			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player)).unwrap();
 		}
 	}
 	pub fn offset_pos(&self, player:&Player)-> Rect{
