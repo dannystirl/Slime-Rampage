@@ -52,7 +52,7 @@ pub struct Enemy<'a> {
 		let hp = 10;
 		let alive = true;
 		let enemy_type = enemy_type;
-		let enemy_number = num-1;
+		let enemy_number = num;
 		Enemy {
 			vel,
 			pos,
@@ -111,8 +111,8 @@ pub struct Enemy<'a> {
 
 	// movement stuff
 	pub fn update_pos(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64)) -> Rect {
-		let xbounds = game_data.rooms[game_data.current_room].xbounds;
-		let ybounds = game_data.rooms[game_data.current_room].ybounds;
+		// let xbounds = game_data.rooms[game_data.current_room].xbounds;
+		// let ybounds = game_data.rooms[game_data.current_room].ybounds;
 
 		// aggro / move
 		let x_d = (self.x() - x).powf(2.0);
@@ -131,52 +131,52 @@ pub struct Enemy<'a> {
 			if self.y_flipped {
 				y *= -1.0;
 			}
-			self.pos.set_x(((self.x() + x) as i32).clamp(xbounds.0, xbounds.1));
-			self.pos.set_y(((self.y() + y) as i32).clamp(ybounds.0, ybounds.1));
+			self.pos.set_x(((self.x() + x) as i32)/*.clamp(xbounds.0, xbounds.1)*/);
+			self.pos.set_y(((self.y() + y) as i32)/*.clamp(ybounds.0, ybounds.1)*/);
 		}
 		if distance > 300.0 {
-			self.wander(rngt[i], xbounds, ybounds);
+			self.wander(rngt[i]/* , xbounds, ybounds*/);
 		} else {
 			match self.enemy_type {
 			EnemyType::Melee=>{
-				self.aggro(x.into(), y.into(), xbounds, ybounds, game_data.get_speed_limit());}
+				self.aggro(x.into(), y.into(), /* xbounds, ybounds,  */game_data.get_speed_limit());}
 			EnemyType::Ranged =>{
-				self.flee(x.into(), y.into(), xbounds, ybounds, game_data.get_speed_limit());
+				self.flee(x.into(), y.into(), /* xbounds, ybounds,  */game_data.get_speed_limit());
 			}
 		}
 	}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
-						 TILE_SIZE, TILE_SIZE);
+						 TILE_SIZE / 2, TILE_SIZE / 2);
 	}
 
-	pub fn wander(&mut self, roll:i32, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+	pub fn wander(&mut self, roll:i32/* , x_bounds: (i32, i32), y_bounds: (i32, i32) */) {
 		if self.is_stunned {
 			return;
 		}
 		if roll == 1 {
-			self.pos.set_x((self.x() as i32 + (self.x_vel() as i32) + 1).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() as i32 + self.y_vel() as i32).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + (self.x_vel() as i32) + 1)/* .clamp(x_bounds.0, x_bounds.1) */);
+			self.pos.set_y((self.y() as i32 + self.y_vel() as i32)/* .clamp(y_bounds.0, y_bounds.1) */);
 		}
 		if roll == 2 {
-			self.pos.set_x((self.x() as i32 + self.x_vel() as i32).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() as i32 + (self.y_vel() as i32) + 1).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + self.x_vel() as i32)/* .clamp(x_bounds.0, x_bounds.1) */);
+			self.pos.set_y((self.y() as i32 + (self.y_vel() as i32) + 1)/* .clamp(y_bounds.0, y_bounds.1) */);
 		}
 		if roll == 3 {
-			self.pos.set_x((self.x() as i32 + self.x_vel() as i32).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() as i32 + (self.y_vel() as i32) - 1).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + self.x_vel() as i32)/* .clamp(x_bounds.0, x_bounds.1) */);
+			self.pos.set_y((self.y() as i32 + (self.y_vel() as i32) - 1)/* .clamp(y_bounds.0, y_bounds.1) */);
 		}
 		if roll == 4 {
-			self.pos.set_x((self.x() as i32 + (self.x_vel() as i32) - 1).clamp(x_bounds.0, x_bounds.1));
-			self.pos.set_y((self.y() as i32 + self.y_vel() as i32).clamp(y_bounds.0, y_bounds.1));
+			self.pos.set_x((self.x() as i32 + (self.x_vel() as i32) - 1)/* .clamp(x_bounds.0, x_bounds.1) */);
+			self.pos.set_y((self.y() as i32 + self.y_vel() as i32)/* .clamp(y_bounds.0, y_bounds.1) */);
 		}
 	}
 
-	pub fn aggro(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32), speed_limit_adj: f64) {
-		if self.is_stunned {
+	pub fn aggro(&mut self, player_pos_x: f64, player_pos_y: f64, /* x_bounds: (i32, i32), y_bounds: (i32, i32),  */speed_limit_adj: f64) {
+		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
+		if self.is_stunned || ((vec[0].abs() < 0.1) && (vec[1].abs() < 0.1)) {
 			return;
 		}
-		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		let mut x = speed_limit_adj * angle.sin();
 		if vec[0] < 0.0 {
@@ -186,11 +186,11 @@ pub struct Enemy<'a> {
 		if vec[1] < 0.0  {
 			y *= -1.0;
 		}
-		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
-		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
+		self.pos.set_x(((self.x() + x) as i32)/* .clamp(x_bounds.0, x_bounds.1) */);
+		self.pos.set_y(((self.y() + y) as i32)/* .clamp(y_bounds.0, y_bounds.1) */);
 	}
 
-	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32), speed_limit_adj: f64) {
+	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, /* x_bounds: (i32, i32), y_bounds: (i32, i32),  */speed_limit_adj: f64) {
 		if self.is_stunned {
 			return;
 		}
@@ -204,8 +204,8 @@ pub struct Enemy<'a> {
 		if vec[1] >= 0.0  {
 			y *= -1.0;
 		}
-		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
-		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
+		self.pos.set_x(((self.x() + x) as i32)/* .clamp(x_bounds.0, x_bounds.1) */);
+		self.pos.set_y(((self.y() + y) as i32)/* .clamp(y_bounds.0, y_bounds.1) */);
 	}
 
 	pub fn force_move(&mut self, game_data: &GameData) -> bool{
