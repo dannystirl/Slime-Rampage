@@ -272,7 +272,7 @@ impl Game for ROGUELIKE  {
 
 			// UPDATE ENEMIES
 			if elapsed > Duration::from_secs(2) {
-				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player);
+				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
 			}
 		
 			// UPDATE ATTACKS
@@ -382,7 +382,7 @@ impl ROGUELIKE {
 	}
 	
 	// update enemies
-	pub fn update_enemies(&mut self, rngt: &mut Vec<i32>, enemies: &mut Vec<Enemy>, player: &Player) -> Vec<i32> {
+	pub fn update_enemies(&mut self, rngt: &mut Vec<i32>, enemies: &mut Vec<Enemy>, player: &Player,map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Vec<i32> {
 		let mut i = 0;
 		for enemy in enemies {
 			if enemy.is_alive(){
@@ -391,7 +391,7 @@ impl ROGUELIKE {
 					rngt[i] = rand::thread_rng().gen_range(1..5);
 					rngt[0] = 0;
 				}*/
-				let t = enemy.update_pos(&self.game_data, rngt, i, (player.x(), player.y()));
+				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), t).unwrap();
 				i += 1;
 			}

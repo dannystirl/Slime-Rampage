@@ -197,7 +197,7 @@ impl<'a> Player<'a> {
 				self.collect_col(self.pos(), self.pos().center(), c.pos());
 			}
 		}
-		self.update_pos((-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32), (-100 * TILE_SIZE as i32, 100 * TILE_SIZE as i32));/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
+		self.update_pos();/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		if self.get_attack_timer() > ATTK_COOLDOWN {
@@ -262,7 +262,7 @@ impl<'a> Player<'a> {
 
 	// update position
 	#[allow(unused_variables)]
-	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+	pub fn update_pos(&mut self) {
 		self.pos.0 = self.x() + self.x_vel() as f64 * 2.0 /* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
 		self.pos.1 = self.y() + self.y_vel() as f64 * 2.0 /* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
