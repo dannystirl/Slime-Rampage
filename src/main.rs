@@ -86,9 +86,8 @@ impl Game for ROGUELIKE  {
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 		let mut crate_manager = crateobj::Crate::manager();
-		//crate generation
-		//let num = rng.gen_range(1..500);
 
+		// OBJECT GENERATION
 		let pos = Rect::new(
 		(CAM_W/2 - TILE_SIZE/2 -200 + rng.gen_range(1..10)) as i32,
 		(CAM_H/2 - TILE_SIZE/2) as i32 -200 + rng.gen_range(0..10),
@@ -97,58 +96,6 @@ impl Game for ROGUELIKE  {
 		
 		if !DEVELOP {
 			self.game_data.crates.push(crateobj::Crate::new(pos));
-		}
-		//crate generation over
-
-		// old enemy generation. DO NOT EDIT THIS SECTION
-		if !DEVELOP {
-			let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
-			if DEBUG {
-				enemies = Vec::with_capacity(0);	// Size is max number of enemies
-			}
-			let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
-			let mut i=1;
-			for _ in 0..enemies.capacity() {
-				let num = rng.gen_range(1..5);
-				let enemy_type: EnemyType; 
-				match num {
-					5 => { enemy_type = EnemyType::Ranged } 
-					4 => { enemy_type = EnemyType::Ranged } 
-					_ => { enemy_type = EnemyType::Melee } 
-				}
-				match enemy_type {
-					EnemyType::Ranged => {
-						let e = enemy::Enemy::new (
-							Rect::new(
-								(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-								(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-								TILE_SIZE,
-								TILE_SIZE,
-							),
-							texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
-							enemy_type,
-							i,
-						);
-						enemies.push(e);
-					}
-					EnemyType::Melee => {
-						let e = enemy::Enemy::new(
-							Rect::new(
-								(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-								(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-								TILE_SIZE,
-								TILE_SIZE,
-							),
-							texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-							enemy_type,
-							i,
-						);
-						enemies.push(e);
-					}
-				}
-				rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
-				i+=1;
-			}
 		}
 
 		// CREATE ROOM
@@ -179,7 +126,7 @@ impl Game for ROGUELIKE  {
 		player.set_y((map_data.starting_position.1 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
 
 		let mut enemies: Vec<Enemy> = Vec::new();	// Size is max number of enemies
-		let mut rngt = /* vec![0; enemies.capacity()+1] */ Vec::new(); // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
+		let mut rngt = Vec::new();
 
 		/* let ghost_tex = texture_creator.load_texture("images/enemies/place_holder_enemy.png")?;
 		let gellem_tex = texture_creator.load_texture("images/enemies/ranged_enemy.png")?; */
@@ -387,16 +334,16 @@ impl ROGUELIKE {
 		for enemy in enemies {
 			if enemy.is_alive(){
 				enemy.check_attack(&mut self.game_data, (player.x(), player.y()));
-				/*if rngt[0] > 30 || enemy.force_move(&self.game_data){
+				// direction changer
+				if self.game_data.frame_counter.elapsed().as_millis() % 120 as u128 == 0 as u128 /* || 
+				   enemy.force_move(&self.game_data) */ { // keep comment. this check will stop enemies from running into walls
 					rngt[i] = rand::thread_rng().gen_range(1..5);
-					rngt[0] = 0;
-				}*/
+				}
 				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
 				self.core.wincan.copy(enemy.txtre(), enemy.src(), t).unwrap();
 				i += 1;
 			}
 		}
-		rngt[0] += 1;
 		return rngt.to_vec();
 	}
 

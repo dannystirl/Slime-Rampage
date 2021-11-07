@@ -128,17 +128,18 @@ pub struct Enemy<'a> {
 		if self.get_stun_timer() > 1000 {
 			self.set_stunned(false);
 		} 
-		if distance > 300.0 {
-			self.wander(rngt[i]/* , xbounds, ybounds*/);
+		if distance > 200.0 {
+			self.wander(rngt[i]);
 		} else {
 			match self.enemy_type {
-			EnemyType::Melee=>{
-				self.aggro(x.into(), y.into(), game_data.get_speed_limit());}
-			EnemyType::Ranged =>{
-				self.flee(x.into(), y.into(), game_data.get_speed_limit());
+				EnemyType::Melee=>{
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit());}
+				EnemyType::Ranged =>{
+					self.flee(x.into(), y.into(), game_data.get_speed_limit());
+				}
 			}
 		}
-	}
+		// this should all be copied into force move once its simplified. checking new bounds will solve the bug where enemies will continiously run into a wall. 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -301,36 +302,41 @@ pub struct Enemy<'a> {
 		let mut rng = rand::thread_rng();
 		match self.enemy_type {
 			EnemyType::Ranged=>{
-				if self.get_fire_timer() > self.get_fire_cooldown() {
-					self.set_fire_cooldown();
-					let fire_chance = rng.gen_range(1..60);
-					if fire_chance < 5 { // chance to fire
-						self.fire(); // sets is firing true
-						let vec = vec![x - self.x(), y - self.y()];
-						let angle = ((vec[0] / vec[1]).abs()).atan();
-						let mut x = &game_data.get_speed_limit() * angle.sin();
-						let mut y = &game_data.get_speed_limit() * angle.cos();
-						if vec[0] < 0.0 {
-							x *= -1.0;
+				if self.radius_from_point((x,y)) < 500.0 {	// only fire if close enough
+					if self.get_fire_timer() > self.get_fire_cooldown() {
+						self.set_fire_cooldown();
+						let fire_chance = rng.gen_range(1..60);
+						if fire_chance < 5 { // chance to fire
+							self.fire(); // sets is firing true
+							let vec = vec![x - self.x(), y - self.y()];
+							let angle = ((vec[0] / vec[1]).abs()).atan();
+							let mut x = &game_data.get_speed_limit() * angle.sin();
+							let mut y = &game_data.get_speed_limit() * angle.cos();
+							if vec[0] < 0.0 {
+								x *= -1.0;
+							}
+							if vec[1] < 0.0  {
+								y *= -1.0;
+							}
+							let bullet = Projectile::new(
+								Rect::new(
+									self.pos().x(),
+									self.pos().y(),
+									TILE_SIZE/2,
+									TILE_SIZE/2,
+								),
+								true,
+								vec![x,y],
+								ProjectileType::Bullet,
+							);
+						game_data.enemy_projectiles.push(bullet);
 						}
-						if vec[1] < 0.0  {
-							y *= -1.0;
-						}
-						let bullet = Projectile::new(
-							Rect::new(
-								self.pos().x(),
-								self.pos().y(),
-								TILE_SIZE/2,
-								TILE_SIZE/2,
-							),
-							true,
-							vec![x,y],
-							ProjectileType::Bullet,
-						);
-					game_data.enemy_projectiles.push(bullet);
 					}
 				}
-			} EnemyType::Melee=>{}
+			}
+			EnemyType::Melee=>{
+
+			}
 		}
 	}
 
@@ -443,19 +449,13 @@ pub struct Enemy<'a> {
 							Direction::Up=>{
 								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
 							}
-							Direction::Down=>{
-								println!("I have no clue how this happened");
-							}
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
-	
 							}
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
-	
 							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
+							_ =>{
 							}
 						}
 					}
@@ -464,9 +464,6 @@ pub struct Enemy<'a> {
 					self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								println!("I have no clue how this happened");
-							}
 							Direction::Down=>{
 								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 							}
@@ -476,8 +473,8 @@ pub struct Enemy<'a> {
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
 							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
+							_ =>{
+								
 							}
 						}
 					}
@@ -492,14 +489,11 @@ pub struct Enemy<'a> {
 							Direction::Down=>{
 								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 							}
-							Direction::Left=>{
-								println!("I have no clue how this happened");
-							}
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
 							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
+							_ =>{
+								
 							}
 						}
 					}
@@ -517,17 +511,14 @@ pub struct Enemy<'a> {
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
 							}
-							Direction::Right=>{
-								println!("I have no clue how this happened");
-							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
+							_ =>{
+								
 							}
 						}
 					}
 				}
-				Direction::None=>{
-					println!("I have no clue how this happened");
+				_ =>{
+					
 				}
 			}
 		}
