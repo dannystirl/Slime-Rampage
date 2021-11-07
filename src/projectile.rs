@@ -46,19 +46,19 @@ pub struct Projectile{
 		return self.pos.y;
 	}
 
-	pub fn set_xvel(&mut self, vel: f64) {
+	pub fn set_x_vel(&mut self, vel: f64) {
 		self.vector[0] = vel;
 	}
 
-	pub fn set_yvel(&mut self, vel: f64) {
+	pub fn set_y_vel(&mut self, vel: f64) {
 		self.vector[1] = vel;
 	}
 
-	pub fn xvel(&self) -> f64 {
+	pub fn x_vel(&self) -> f64 {
 		return self.vector[0];
 	}
 
-	pub fn yvel(&self) -> f64 {
+	pub fn y_vel(&self) -> f64 {
 		return self.vector[1];
 	}
 
@@ -87,19 +87,19 @@ pub struct Projectile{
 			}	
 		if !DEVELOP {
 			if self.x() <= xbounds.0 && self.is_active() {
-				self.set_xvel( -self.xvel() );
+				self.set_x_vel( -self.x_vel() );
 				self.inc_bounce();
 			}
 			if self.x() >= xbounds.1 && self.is_active() {
-				self.set_xvel( -self.xvel() );
+				self.set_x_vel( -self.x_vel() );
 				self.inc_bounce();
 			}
 			if self.y() <= ybounds.0 && self.is_active() {
-				self.set_yvel( -self.yvel() );
+				self.set_y_vel( -self.y_vel() );
 				self.inc_bounce();
 			}
 			if self.y() >= ybounds.1 && self.is_active() {
-				self.set_yvel( -self.yvel() );
+				self.set_y_vel( -self.y_vel() );
 				self.inc_bounce();
 			}
 
@@ -175,21 +175,21 @@ pub struct Projectile{
 		if sorted_collisions.len() > 0 {
 			match sorted_collisions[0].dir{
 				Direction::Up=>{
-					self.set_yvel(-self.yvel());
+					self.set_y_vel(-self.y_vel());
 					self.inc_bounce();
 				}
 				Direction::Down=>{
-					self.set_yvel(-self.yvel());
+					self.set_y_vel(-self.y_vel());
 					self.inc_bounce();
 					
 				}
 				Direction::Right=>{
-					self.set_xvel(-self.xvel());
+					self.set_x_vel(-self.x_vel());
 					self.inc_bounce();
 				
 				}
 				Direction::Left=>{
-					self.set_xvel(-self.xvel());
+					self.set_x_vel(-self.x_vel());
 					self.inc_bounce();
 					
 				}
