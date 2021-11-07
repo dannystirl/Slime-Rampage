@@ -5,6 +5,7 @@ use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;
 use crate::projectile::Direction::{Down, Up, Left, Right};
+use crate::player::*;
 
 pub enum ProjectileType{
 	Bullet,
@@ -21,32 +22,6 @@ pub struct Projectile{
 	pub bounce_counter: i32,
 }
 
-#[derive(Copy, Clone)]
-pub enum Direction{
-	Up,
-	Down,
-	Left,
-	Right,
-	None,
-}
-
-#[derive(Copy, Clone)]
-pub struct CollisionDecider{
-	pub dir : Direction,
-	pub dist : i32,
-}
-
-impl CollisionDecider{
-	pub fn new(dir: Direction, dist: i32) -> CollisionDecider{
-		let dir = dir;
-		let dist = dist;
-	CollisionDecider {
-		dir,
-		dist,
-	}
-
-	}
-}
 
  impl Projectile {
 	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType) -> Projectile {
@@ -202,104 +177,21 @@ impl CollisionDecider{
 				Direction::Up=>{
 					self.set_yvel(-self.yvel());
 					self.inc_bounce();
-					/*
-					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								self.set_yvel(self.yvel().clamp(0 as f64,100 as f64));
-							}
-							Direction::Down=>{
-								println!("I have no clue how this happened");
-							}
-							Direction::Left=>{
-								self.set_xvel(self.xvel().clamp(0 as f64,100 as f64));
-	
-							}
-							Direction::Right=>{
-								self.set_xvel(self.xvel().clamp(-100 as f64,0 as f64));
-	
-							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
-							}
-						}
-					}
-					*/
 				}
 				Direction::Down=>{
 					self.set_yvel(-self.yvel());
 					self.inc_bounce();
-					/*
-					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								println!("I have no clue how this happened");
-							}
-							Direction::Down=>{
-								self.set_yvel(self.yvel().clamp(-100 as f64,0 as f64));
-							}
-							Direction::Left=>{
-								self.set_xvel(self.xvel().clamp(0 as f64,100 as f64));
-							}
-							Direction::Right=>{
-								self.set_xvel(self.xvel().clamp(-100 as f64,0 as f64));
-							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
-							}
-						}
-					}
-					*/
+					
 				}
 				Direction::Right=>{
 					self.set_xvel(-self.xvel());
 					self.inc_bounce();
-					/*
-					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								self.set_yvel(self.yvel().clamp(0 as f64,100 as f64));
-							}
-							Direction::Down=>{
-								self.set_yvel(self.yvel().clamp(-100 as f64,0 as f64));
-							}
-							Direction::Left=>{
-								println!("I have no clue how this happened");
-							}
-							Direction::Right=>{
-								self.set_xvel(self.xvel().clamp(-100 as f64,0 as f64));
-							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
-							}
-						}
-					}
-					*/
+				
 				}
 				Direction::Left=>{
 					self.set_xvel(-self.xvel());
 					self.inc_bounce();
-					/*
-					if sorted_collisions.len() > 2 {
-						match sorted_collisions[1].dir{
-							Direction::Up=>{
-								self.set_yvel(self.yvel().clamp(0 as f64,100 as f64));
-							}
-							Direction::Down=>{
-								self.set_yvel(self.yvel().clamp(-100 as f64,0 as f64));
-							}
-							Direction::Left=>{
-								self.set_xvel(self.xvel().clamp(0 as f64,100 as f64));
-							}
-							Direction::Right=>{
-								println!("I have no clue how this happened");
-							}
-							Direction::None=>{
-								println!("I have no clue how this happened");
-							}
-						}
-					}
-					*/
+					
 				}
 				Direction::None=>{
 					println!("I have no clue how this happened");
@@ -327,12 +219,14 @@ impl CollisionDecider{
 		 self.is_active = false;
 	}
     pub fn pos(&self) -> Rect {
-		self.pos
+		return Rect::new(self.x() as i32 , //screen coordinates
+		self.y() as i32 ,
+		TILE_SIZE/2, TILE_SIZE/2);
     }
 	pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE, TILE_SIZE);
+		TILE_SIZE/2, TILE_SIZE/2);
 	}
 	pub fn inc_bounce(&mut self) {
 		self.bounce_counter += 1;
@@ -341,6 +235,4 @@ impl CollisionDecider{
 	pub fn get_bounce(&mut self) -> i32 {
 		return self.bounce_counter;
 	}
-
-
 }
