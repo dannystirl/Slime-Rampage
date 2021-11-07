@@ -8,6 +8,7 @@ pub struct Rigidbody{
     //mass: f64,
 }
 
+#[allow(dead_code)]
 impl Rigidbody{
 
     pub fn new(pos: Rect)->Rigidbody{
@@ -18,7 +19,7 @@ impl Rigidbody{
         }
     }
     
-//we might have to change this later
+    //we might have to change this later
     pub fn point_vs_rect(&self,p : Point, r : &Rect) -> bool {
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }

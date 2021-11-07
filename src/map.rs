@@ -10,18 +10,27 @@ pub struct Map<'a> {
 	pub background: Background<'a>, 
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub num_rooms: i32, 
+	pub starting_position: (i32,i32), 
+	pub starting_room: i32, 
+	pub ending_room: i32, 
 	pub enemy_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 }
 
 impl<'a> Map<'a> {
 	pub fn new(background: Background<'a>) -> Map<'a> {
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
-		let enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let num_rooms=1; 
+		let starting_room = 1;
+		let starting_position = (0,0);
+		let ending_room = 2;
+		let enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		Map {
 			background, 
 			map, 
 			num_rooms, 
+			starting_position, 
+			starting_room, 
+			ending_room, 
 			enemy_spawns, 
 		}
 	}
@@ -37,12 +46,16 @@ impl<'a> Map<'a> {
 		self.create_rooms();
 		// create maze
 		let corridors = self.create_maze(); 
-		// form level
+		// form levels
 		self.connect_maze();
 		self.remove_dead_ends();
 		self.create_walls();
+		// add objects and entities
+		println!("\ncreating objects");
 		self.create_obstacles(corridors);
-
+		println!("\ncreating enemies");
+		self.create_enemies();
+		
 		if DEBUG { self.print_map(self.map); }
 	}
 
@@ -373,29 +386,47 @@ impl<'a> Map<'a> {
 		self.map = new_map;
 	}
 
-	// 7: create obstacles, stairs, and other random spawns
+	// 8: create obstacles, stairs, and other random spawns
 	pub fn create_obstacles(&mut self, corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
 
 		let mut new_map = self.map;
 		let mut stairs_added: i32 = 0;
 
+		for h in 0..MAP_SIZE_H {
+			for w in 0..MAP_SIZE_W {
+				if self.map[h][w] > self.num_rooms {
+					self.num_rooms = self.map[h][w];
+				}
+			}
+		}
 		while stairs_added < 2 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
-			if new_map[h][w] == 1 && corridors[h][w] != 1 && new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2
-				&& new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 && new_map[h - 1][w - 1] != 2
-				&& new_map[h - 1][w + 1] != 2 && new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
+			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
+				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
+				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
+				new_map[h - 1][w - 1] != 2 && new_map[h - 1][w + 1] != 2 &&
+				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
 
 				// Add upstairs (3)
-				if stairs_added == 0 {
+				if stairs_added == 0 {			
 					new_map[h][w] = 3;
+					self.starting_position = (h as i32, w as i32);
+					self.starting_room = self.map[h][w];
 					stairs_added += 1;
 				}
 				// Add downstairs (4)
 				else if stairs_added == 1 {
-					new_map[h][w] = 4;
-					stairs_added += 1;
+					//println!("in function: {} {}", self.map[h][w], self.starting_room);	
+					/* if self.num_rooms > 1 && self.map[h][w] == self.starting_room {
+						continue; 
+					}
+					else { */
+						new_map[h][w] = 4;
+						self.ending_room = self.map[h][w];
+						stairs_added += 1;
+					//}
 				}
 				// Add wall
 				else{
@@ -404,6 +435,50 @@ impl<'a> Map<'a> {
 			}
 		}
 		self.map = new_map;
+	}
+
+	// 9: create enemies
+	pub fn create_enemies(&mut self) {
+		let mut rng = rand::thread_rng();
+		let mut enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+		let mut spawn_positions: Vec<(usize, usize)>;
+
+		for i in 1..(self.num_rooms + 1) {
+			if i == self.starting_room || i == self.ending_room {
+				continue;
+			}
+			spawn_positions = Vec::new();
+			for h in 0..MAP_SIZE_H {
+				for w in 0..MAP_SIZE_W {
+					if self.map[h][w] == i {
+						spawn_positions.push((h, w));
+					}
+				}
+			}
+
+			let ghosts = rng.gen_range(2..5);
+			let mut ghosts_placed = 0;
+			while ghosts_placed < ghosts {
+				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
+				if enemy_spawns[pos.0][pos.1] != 0 {
+					continue;
+				}
+				enemy_spawns[pos.0][pos.1] = 1;
+				ghosts_placed += 1;
+			}
+
+			let gellems = rng.gen_range(0..3);
+			let mut gellems_placed = 0;
+			while gellems_placed < gellems {
+				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
+				if enemy_spawns[pos.0][pos.1] != 0 {
+					continue;
+				}
+				enemy_spawns[pos.0][pos.1] = 2;
+				gellems_placed += 1;
+			}
+		}
+		self.enemy_spawns = enemy_spawns;
 	}
 
 	// print the current map

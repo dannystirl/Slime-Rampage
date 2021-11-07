@@ -3,7 +3,7 @@ use rogue_sdl::{Game, SDLCore};
 
 use std::time::Duration;
 use std::time::Instant;
-use std::cmp;
+//use std::cmp;
 use std::collections::HashSet;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -93,54 +93,56 @@ impl Game for ROGUELIKE  {
 		}
 		//crate generation over
 
-		/*let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
-		if DEVELOP {
-			enemies = Vec::with_capacity(0);	// Size is max number of enemies
+		// old enemy generation. DO NOT EDIT THIS SECTION
+		if !DEVELOP {
+			let mut enemies: Vec<Enemy> = Vec::with_capacity(5);	// Size is max number of enemies
+			if DEBUG {
+				enemies = Vec::with_capacity(0);	// Size is max number of enemies
+			}
+			let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
+			let mut i=1;
+			for _ in 0..enemies.capacity() {
+				let num = rng.gen_range(1..5);
+				let enemy_type: EnemyType; 
+				match num {
+					5 => { enemy_type = EnemyType::Ranged } 
+					4 => { enemy_type = EnemyType::Ranged } 
+					_ => { enemy_type = EnemyType::Melee } 
+				}
+				match enemy_type {
+					EnemyType::Ranged => {
+						let e = enemy::Enemy::new (
+							Rect::new(
+								(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+								(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
+								TILE_SIZE,
+								TILE_SIZE,
+							),
+							texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
+							enemy_type,
+							i,
+						);
+						enemies.push(e);
+					}
+					EnemyType::Melee => {
+						let e = enemy::Enemy::new(
+							Rect::new(
+								(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
+								(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
+								TILE_SIZE,
+								TILE_SIZE,
+							),
+							texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+							enemy_type,
+							i,
+						);
+						enemies.push(e);
+					}
+				}
+				rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
+				i+=1;
+			}
 		}
-		let mut rngt = vec![0; enemies.capacity()+1]; // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
-		let mut i=1;
-		for _ in 0..enemies.capacity() {
-			let num = rng.gen_range(1..5);
-			let enemy_type: EnemyType; 
-			match num {
-				5 => { enemy_type = EnemyType::Ranged } 
-				4 => { enemy_type = EnemyType::Ranged } 
-				_ => { enemy_type = EnemyType::Melee } 
-			}
-			match enemy_type {
-				EnemyType::Ranged => {
-					let e = enemy::Enemy::new (
-						Rect::new(
-							(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-							(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-							TILE_SIZE,
-							TILE_SIZE,
-						),
-						texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
-						enemy_type,
-						i,
-					);
-					enemies.push(e);
-				}
-				EnemyType::Melee => {
-					let e = enemy::Enemy::new(
-						Rect::new(
-							(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-							(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-							TILE_SIZE,
-							TILE_SIZE,
-						),
-						texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-						enemy_type,
-						i,
-					);
-					enemies.push(e);
-				}
-			}
-
-			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
-			i+=1;
-		}*/
 
 		// CREATE ROOM
 		let background = background::Background::new(
@@ -160,28 +162,20 @@ impl Game for ROGUELIKE  {
 				CAM_H,
 			),
 		);
-
 		let mut map_data = map::Map::new(
 			background, 
 		);
 		map_data.create_map();
 
-		for h in 0..MAP_SIZE_H {
-			for w in 0..MAP_SIZE_W {
-				if map_data.map[h][w] == 3 {
-					player.set_x((w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
-					player.set_y((h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
-					break;
-				}
-			}
-		}
+		// set starting position
+		player.set_x((map_data.starting_position.0 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
+		player.set_y((map_data.starting_position.1 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
 
 		let mut enemies: Vec<Enemy> = Vec::new();	// Size is max number of enemies
 		let mut rngt = /* vec![0; enemies.capacity()+1] */ Vec::new(); // rngt[0] is the timer for the enemys choice of movement. if we make an entities file, this should probably be moved there
-		let mut i = 1;
 
-		let ghost_tex = texture_creator.load_texture("images/enemies/place_holder_enemy.png")?;
-		let gellem_tex = texture_creator.load_texture("images/enemies/ranged_enemy.png")?;
+		/* let ghost_tex = texture_creator.load_texture("images/enemies/place_holder_enemy.png")?;
+		let gellem_tex = texture_creator.load_texture("images/enemies/ranged_enemy.png")?; */
 
 		let mut enemy_count = 0;
 		for h in 0..MAP_SIZE_H {
@@ -189,10 +183,9 @@ impl Game for ROGUELIKE  {
 				if map_data.enemy_spawns[h][w] == 0 {
 					continue;
 				}
-
+				if DEBUG { println!("{}, {}", w, h); }
 				match map_data.enemy_spawns[h][w] {
 					1 => {
-						println!("{}, {}", w, h);
 						let e = enemy::Enemy::new(
 							Rect::new(
 								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */,
@@ -228,49 +221,6 @@ impl Game for ROGUELIKE  {
 				}
 			}
 		}
-		/*for _ in 0..enemies.capacity() {
-			let num = rng.gen_range(1..5);
-			let enemy_type: EnemyType; 
-			match num {
-				5 => { enemy_type = EnemyType::Ranged } 
-				4 => { enemy_type=  EnemyType::Ranged } 
-				_ => { enemy_type = EnemyType::Melee } 
-			}
-
-			match enemy_type {
-				EnemyType::Ranged => {
-					let e = enemy::Enemy::new (
-						Rect::new(
-							(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-							(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-							TILE_SIZE,
-							TILE_SIZE,
-						),
-						texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
-						enemy_type,
-						i,
-					);
-					enemies.push(e);
-				}
-				EnemyType::Melee => {
-					let e = enemy::Enemy::new(
-						Rect::new(
-							(CAM_W/2 - TILE_SIZE/2 + 200 + 5*rng.gen_range(5..20)) as i32,
-							(CAM_H/2 - TILE_SIZE/2) as i32 + 5*rng.gen_range(5..20),
-							TILE_SIZE,
-							TILE_SIZE,
-						),
-						texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-						enemy_type,
-						i,
-					);
-					enemies.push(e);
-				}
-			}
-
-			rngt[i] = rng.gen_range(1..5); // decides if an enemy moves
-			i+=1;
-		}*/
 
 		let mut all_frames = 0;
 		let last_time = Instant::now();
@@ -323,7 +273,6 @@ impl Game for ROGUELIKE  {
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet, &player);	
 			ROGUELIKE::draw_player_projectile(self, /* &bullet,  */&player)?;	
-
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
 			// UPDATE INTERACTABLES
@@ -372,7 +321,7 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // Create map
 impl ROGUELIKE {
-	pub fn create_rooms(attempts: i32, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+	/* pub fn create_rooms(attempts: i32, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
 		let mut new_map = map;
 
@@ -706,8 +655,8 @@ impl ROGUELIKE {
 		return new_map;
 	}
 
-	pub fn create_stairs(mut rooms: [[i32; MAP_SIZE_W]; MAP_SIZE_H], mut corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
-						 mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+	pub fn create_stairs(rooms: [[i32; MAP_SIZE_W]; MAP_SIZE_H], corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
+						 map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> (i32, i32, [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
 
 		let mut new_map = map;
@@ -770,7 +719,7 @@ impl ROGUELIKE {
 						  map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) ->
 						  ([[i32; MAP_SIZE_W]; MAP_SIZE_H], [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
-		let mut new_map = map;
+		let new_map = map;
 		let mut enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H];
 
 		let mut spawn_positions: Vec<(usize, usize)>;
@@ -829,12 +778,12 @@ impl ROGUELIKE {
 		map = rooms_tuple.1;
 		let rooms = rooms_tuple.1;
 
-		let maze_tuple = ROGUELIKE::create_maze(&num_rooms, map);
+		let maze_tuple = ROGUELIKE::create_maze(num_rooms, map);
 		num_mazes = maze_tuple.0;
 		map = maze_tuple.1;
 		let corridors = maze_tuple.2;
 
-		map = ROGUELIKE::connect_maze(num_rooms + num_mazes, map);
+		map = ROGUELIKE::connect_maze(map);
 		map = ROGUELIKE::remove_dead_ends(map);
 		map = ROGUELIKE::create_walls(map);
 		let map_tuple = ROGUELIKE::create_stairs(rooms, corridors, map);
@@ -876,7 +825,7 @@ impl ROGUELIKE {
 				}
 			}
 			println!("");
-		}
+		} */
 
 		/* println!("");
 		for h in 0..MAP_SIZE_H {
@@ -894,7 +843,7 @@ impl ROGUELIKE {
 		} */
 
 		return (enemy_spawns, map);
-	}
+	} */
 
 	// draw background
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {

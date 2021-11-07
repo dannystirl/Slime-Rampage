@@ -110,6 +110,7 @@ pub struct Enemy<'a> {
 	}
 
 	// movement stuff
+	#[allow(unused_parens)]
 	pub fn update_pos(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64)) -> Rect {
 		// let xbounds = game_data.rooms[game_data.current_room].xbounds;
 		// let ybounds = game_data.rooms[game_data.current_room].ybounds;
@@ -150,6 +151,7 @@ pub struct Enemy<'a> {
 						 TILE_SIZE / 2, TILE_SIZE / 2);
 	}
 
+	#[allow(unused_parens)]
 	pub fn wander(&mut self, roll:i32/* , x_bounds: (i32, i32), y_bounds: (i32, i32) */) {
 		if self.is_stunned {
 			return;
@@ -172,6 +174,7 @@ pub struct Enemy<'a> {
 		}
 	}
 
+	#[allow(unused_parens)]
 	pub fn aggro(&mut self, player_pos_x: f64, player_pos_y: f64, /* x_bounds: (i32, i32), y_bounds: (i32, i32),  */speed_limit_adj: f64) {
 		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
 		if self.is_stunned || ((vec[0].abs() < 0.1) && (vec[1].abs() < 0.1)) {
@@ -204,8 +207,8 @@ pub struct Enemy<'a> {
 		if vec[1] >= 0.0  {
 			y *= -1.0;
 		}
-		self.pos.set_x(((self.x() + x) as i32)/* .clamp(x_bounds.0, x_bounds.1) */);
-		self.pos.set_y(((self.y() + y) as i32)/* .clamp(y_bounds.0, y_bounds.1) */);
+		self.pos.set_x((self.x() + x) as i32)/* .clamp(x_bounds.0, x_bounds.1) */;
+		self.pos.set_y((self.y() + y) as i32)/* .clamp(y_bounds.0, y_bounds.1) */;
 	}
 
 	pub fn force_move(&mut self, game_data: &GameData) -> bool{
