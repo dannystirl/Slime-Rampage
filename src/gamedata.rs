@@ -1,11 +1,14 @@
 pub const DEVELOP: bool = true; 
+pub const DEBUG: bool = false; 
 
 use rand::Rng;
 use sdl2::rect::Rect;
+use std::time::Instant;
 
 use crate::gold::*;
 use crate::projectile::*;
 use crate::room::*;
+//use crate::map::*;
 use crate::crateobj::*;
 
 // window globals
@@ -18,13 +21,13 @@ pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE / 2) as i32;
 pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE / 2) as i32;
 
 //background globals
-pub const BG_W: u32 = 2400;
-pub const BG_H: u32 = 1440;
+//pub const BG_W: u32 = 2400;
+//pub const BG_H: u32 = 1440;
 
 // room globals
 pub const MIN_ROOM_W: usize = 11;
 pub const MAX_ROOM_W: usize = 21;
-pub const MAP_SIZE_W: usize = 101;
+pub const MAP_SIZE_W: usize = 51;
 pub const MIN_ROOM_H: usize = 11;
 pub const MAX_ROOM_H: usize = 21;
 pub const MAP_SIZE_H: usize = 51;
@@ -32,7 +35,7 @@ pub const MAP_SIZE_H: usize = 51;
 // game globals
 pub const SPEED_LIMIT: f64 = 200.0;
 pub const ACCEL_RATE: f64 = 100.0;
-pub const STARTING_TIMER: u128 = 1000;
+//pub const STARTING_TIMER: u128 = 1000;
 
 // player globals
 pub const ATTACK_LENGTH: u32 = TILE_SIZE * 3 / 2;
@@ -42,10 +45,11 @@ pub const FIRE_COOLDOWN_P: u128 = 300;
 pub const MANA_RESTORE_RATE: u128 = 1000;
 
 // enemy globals
-pub const STUN_TIME: u32 = 2000;
+//pub const STUN_TIME: u32 = 2000;
 pub const FIRE_COOLDOWN_E: u128 = 1500;
 
 pub struct GameData {
+    pub frame_counter: Instant, 
     pub gold: Vec<Gold>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
@@ -76,8 +80,10 @@ impl GameData {
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
+        let frame_counter = Instant::now();
 
         GameData {
+            frame_counter, 
             current_room,
             gold,
             player_projectiles,
