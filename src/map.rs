@@ -9,6 +9,7 @@ use crate::background::*;
 pub struct Map<'a> {
 	pub background: Background<'a>, 
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
+	pub numbered_map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub num_rooms: i32, 
 	pub starting_position: (i32,i32), 
 	pub starting_room: i32, 
@@ -19,6 +20,7 @@ pub struct Map<'a> {
 impl<'a> Map<'a> {
 	pub fn new(background: Background<'a>) -> Map<'a> {
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let num_rooms=1; 
 		let starting_room = 1;
 		let starting_position = (0,0);
@@ -27,6 +29,7 @@ impl<'a> Map<'a> {
 		Map {
 			background, 
 			map, 
+			numbered_map, 
 			num_rooms, 
 			starting_position, 
 			starting_room, 
@@ -46,14 +49,13 @@ impl<'a> Map<'a> {
 		self.create_rooms();
 		// create maze
 		let corridors = self.create_maze(); 
+		self.numbered_map = self.map;
 		// form levels
 		self.connect_maze();
 		self.remove_dead_ends();
 		self.create_walls();
 		// add objects and entities
-		println!("\ncreating objects");
 		self.create_obstacles(corridors);
-		println!("\ncreating enemies");
 		self.create_enemies();
 		
 		if DEBUG { self.print_map(self.map); }
@@ -386,20 +388,19 @@ impl<'a> Map<'a> {
 		self.map = new_map;
 	}
 
-	// 8: create obstacles, stairs, and other random spawns
+	// 7: create obstacles, stairs, and other random spawns
 	pub fn create_obstacles(&mut self, corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
-
 		let mut new_map = self.map;
 		let mut stairs_added: i32 = 0;
 
-		for h in 0..MAP_SIZE_H {
+		/* for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				if self.map[h][w] > self.num_rooms {
-					self.num_rooms = self.map[h][w];
+				if self.numbered_map[h][w] > self.num_rooms {
+					self.num_rooms = self.numbered_map[h][w];
 				}
 			}
-		}
+		} */
 		while stairs_added < 2 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
@@ -412,21 +413,20 @@ impl<'a> Map<'a> {
 				// Add upstairs (3)
 				if stairs_added == 0 {			
 					new_map[h][w] = 3;
-					self.starting_position = (h as i32, w as i32);
-					self.starting_room = self.map[h][w];
+					self.starting_position = (w as i32, h as i32);
+					self.starting_room = self.numbered_map[h][w];
 					stairs_added += 1;
 				}
 				// Add downstairs (4)
 				else if stairs_added == 1 {
-					//println!("in function: {} {}", self.map[h][w], self.starting_room);	
-					/* if self.num_rooms > 1 && self.map[h][w] == self.starting_room {
+					if self.num_rooms > 1 && self.numbered_map[h][w] == self.starting_room {
 						continue; 
 					}
-					else { */
+					else {
 						new_map[h][w] = 4;
-						self.ending_room = self.map[h][w];
+						self.ending_room = self.numbered_map[h][w];
 						stairs_added += 1;
-					//}
+					}
 				}
 				// Add wall
 				else{
@@ -437,7 +437,7 @@ impl<'a> Map<'a> {
 		self.map = new_map;
 	}
 
-	// 9: create enemies
+	// 8: create enemies
 	pub fn create_enemies(&mut self) {
 		let mut rng = rand::thread_rng();
 		let mut enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H];
@@ -450,7 +450,7 @@ impl<'a> Map<'a> {
 			spawn_positions = Vec::new();
 			for h in 0..MAP_SIZE_H {
 				for w in 0..MAP_SIZE_W {
-					if self.map[h][w] == i {
+					if self.numbered_map[h][w] == i {
 						spawn_positions.push((h, w));
 					}
 				}
