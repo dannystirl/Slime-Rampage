@@ -536,6 +536,9 @@ impl ROGUELIKE {
 		for projectile in self.game_data.player_projectiles.iter_mut(){
 			projectile.check_bounce( xbounds, ybounds, map);
 		}
+		for projectile in self.game_data.enemy_projectiles.iter_mut(){
+			projectile.check_bounce( xbounds, ybounds, map);
+		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
