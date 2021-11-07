@@ -29,11 +29,10 @@ impl CollisionDecider{
 	pub fn new(dir: Direction, dist: i32) -> CollisionDecider{
 		let dir = dir;
 		let dist = dist;
-	CollisionDecider {
-		dir,
-		dist,
-	}
-
+		CollisionDecider {
+			dir,
+			dist,
+		}
 	}
 }
 
@@ -66,7 +65,7 @@ pub struct Player<'a> {
 	pub mana: i32,
 	pub max_mana: i32,
 	pub is_attacking: bool,
-	pub weapon_frame: i32,	
+	pub weapon_frame: i32,
 	pub is_firing: bool,
 	pub coins: u32,
 	pub weapon: Weapon,
@@ -99,7 +98,7 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let invincible = true;
-		let weapon_frame=0; 
+		let weapon_frame=0;
 		let coins = 0;
 		let weapon = Weapon::Sword;
 		let ability = Ability::Bullet;
@@ -133,13 +132,15 @@ impl<'a> Player<'a> {
 	}
 
 	// update player
-	pub fn update_player(&mut self, game_data: &GameData, mut map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], core: &mut SDLCore) -> Result<(), String>  {
+	pub fn update_player(&mut self, game_data: &GameData, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], core: &mut SDLCore) -> Result<(), String>  {
+		// debug stuff
 		let tc = core.wincan.texture_creator();
 		let hitbox =tc.load_texture("images/objects/crate.png")?;
-		let xwalls = game_data.rooms[0].xwalls;
-		let ywalls = game_data.rooms[0].ywalls;
+		let src = Rect::new(0, 0, TILE_SIZE/4, TILE_SIZE/4);
+		/* let xwalls = game_data.rooms[0].xwalls;
+		let ywalls = game_data.rooms[0].ywalls; */
 		let speed_limit_adj = game_data.get_speed_limit();
-		
+
 		// Slow down to 0 vel if no input and non-zero velocity
 		self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
 		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
@@ -147,11 +148,11 @@ impl<'a> Player<'a> {
 		// Don't exceed speed limit
 		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
 		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-		
+
 		// Stay inside the viewing window
 		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-		let src = Rect::new(0, 0, TILE_SIZE/4, TILE_SIZE/4);
+		
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
@@ -159,38 +160,38 @@ impl<'a> Player<'a> {
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
+				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);
 
-			let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
-			(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
-			TILE_SIZE, TILE_SIZE);
+				let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);
+				if h as i32 + h_bounds_offset < 0 ||
+				w as i32 + w_bounds_offset < 0 ||
+				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					continue;
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+					let p_pos = self.pos();
 
-			let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
-			(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
-			TILE_SIZE, TILE_SIZE);
-			if h as i32 + h_bounds_offset < 0 ||
-		  	 w as i32 + w_bounds_offset < 0 ||
-		  	 h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-		  	 w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-		   	map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-			continue;
-			} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-				let p_pos = self.pos();
-
-				//core.wincan.copy(&hitbox, src, w_pos);
-				if GameData::check_collision(&p_pos, &w_pos) {
-				//	core.wincan.copy(&hitbox, src, self.cam_pos);
-				//	core.wincan.copy(&hitbox, src, debug_pos);
-					collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+					if GameData::check_collision(&p_pos, &w_pos) {
+						if DEBUG { 
+							core.wincan.copy(&hitbox, src, self.cam_pos)?;
+							core.wincan.copy(&hitbox, src, debug_pos)?; 
+						}
+						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+					}
 				}
-			}
 			}
 		}
 		
 		self.resolve_col(&collisions);
 
 		for c in &game_data.crates{
-			let crate_pos = c.pos();
-			let p_pos =self.pos();
+			/* let crate_pos = c.pos();
+			let p_pos =self.pos(); */
 			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
 				//println!("welcome to hell");
 				self.collect_col(self.pos(), self.pos().center(), c.pos());
@@ -260,9 +261,10 @@ impl<'a> Player<'a> {
 	}
 
 	// update position
+	#[allow(unused_variables)]
 	pub fn update_pos(&mut self, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
-		self.pos.0 = (self.x() + self.x_vel() as f64 * 2.0 )/* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
-		self.pos.1 = (self.y() + self.y_vel() as f64 * 2.0)/* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
+		self.pos.0 = self.x() + self.x_vel() as f64 * 2.0 /* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		self.pos.1 = self.y() + self.y_vel() as f64 * 2.0 /* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -301,20 +303,22 @@ impl<'a> Player<'a> {
         &self.texture_all
     }
 
-	pub fn get_frame_display(&mut self, count: &i32, f_display: &i32) {
-		if count < &f_display { self.set_src(0 as i32, 0 as i32); }
-		else if count < &(f_display * 2) { self.set_src(64 as i32, 0 as i32); }
-		else if count < &(f_display * 3) { self.set_src(128 as i32, 0 as i32); }
-		else if count < &(f_display * 4) { self.set_src(0 as i32, 64 as i32); }
-		else if count < &(f_display * 5) { self.set_src(64 as i32, 64 as i32); }
-		else if count < &(f_display * 6) { self.set_src(128 as i32, 64 as i32); }
-		else if count < &(f_display * 7) { self.set_src(0 as i32, 128 as i32); }
-		else if count < &(f_display * 8) { self.set_src(64 as i32, 128 as i32); }
-		else if count < &(f_display * 9) { self.set_src(128 as i32, 128 as i32); }
-		else if count < &(f_display * 10) { self.set_src(0 as i32, 192 as i32); }
-		else if count < &(f_display * 11) { self.set_src(64 as i32, 192 as i32); }
-		else if count < &(f_display * 12) { self.set_src(128 as i32, 192 as i32); }
-		else { self.set_src(0, 0); }
+	pub fn get_frame_display(&mut self, gamedata: &mut GameData, fps_avg: f64) {
+		let elapsed = gamedata.frame_counter.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
+		match elapsed % 12 as u128 {
+			1 => { self.set_src(0 as i32, 0 as i32); }
+			2 => { self.set_src(64 as i32, 0 as i32); }
+			3 => { self.set_src(128 as i32, 0 as i32); }
+			4 => { self.set_src(0 as i32, 64 as i32); }
+			5 => { self.set_src(64 as i32, 64 as i32); }
+			6 => { self.set_src(128 as i32, 64 as i32); }
+			7 => { self.set_src(0 as i32, 128 as i32); }
+			8 => { self.set_src(64 as i32, 128 as i32); }
+			9 => { self.set_src(128 as i32, 128 as i32); }
+			10 => { self.set_src(0 as i32, 192 as i32); }
+			11 => { self.set_src(64 as i32, 192 as i32); }
+			_ => { self.set_src(128 as i32, 192 as i32); }
+		}
 	}
 
 	// attacking values
