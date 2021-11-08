@@ -120,6 +120,7 @@ impl Game for ROGUELIKE  {
 			background, 
 		);
 		map_data.create_map();
+		map_data.print_map(map_data.map);
 
 		// set starting position
 		player.set_x((map_data.starting_position.0 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
