@@ -137,7 +137,7 @@ impl Game for ROGUELIKE  {
 				if map_data.enemy_spawns[h][w] == 0 {
 					continue;
 				}
-				if true { println!("{}, {}", w, h); }
+				if DEBUG { println!("{}, {}", w, h); }
 				match map_data.enemy_spawns[h][w] {
 					1 => {
 						let e = enemy::Enemy::new(
