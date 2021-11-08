@@ -47,9 +47,9 @@ impl<'a> Map<'a> {
 
 		// create rooms
 		self.create_rooms();
+		self.numbered_map = self.map;
 		// create maze
 		let corridors = self.create_maze(); 
-		self.numbered_map = self.map;
 		// form levels
 		self.connect_maze();
 		self.remove_dead_ends();
@@ -110,6 +110,7 @@ impl<'a> Map<'a> {
 				count += 1;
 			}
 		}
+		self.num_rooms -= 1;
 		self.map = new_map;
 	}
 

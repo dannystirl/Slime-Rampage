@@ -142,8 +142,8 @@ impl Game for ROGUELIKE  {
 					1 => {
 						let e = enemy::Enemy::new(
 							Rect::new(
-								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */,
-								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */,
+								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 								TILE_SIZE / 2,
 								TILE_SIZE / 2
 							),
@@ -158,8 +158,8 @@ impl Game for ROGUELIKE  {
 					2 => {
 						let e = enemy::Enemy::new(
 							Rect::new(
-								w as i32 * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32,
-								h as i32 * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32,
+								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 								TILE_SIZE / 2,
 								TILE_SIZE / 2
 							),
