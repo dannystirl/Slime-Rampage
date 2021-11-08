@@ -444,22 +444,6 @@ impl<'a> Map<'a> {
 		let mut enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H];
 		let mut spawn_positions: Vec<(usize, usize)>;
 
-		println!("");
-		for h in 0..MAP_SIZE_H {
-			for w in 0..MAP_SIZE_W {
-				if self.numbered_map[h][w] == 0 {
-					print!("  ");
-				} else if self.numbered_map[h][w] < 10 {
-					print!("{} ", self.numbered_map[h][w]);
-				} else {
-					print!("{}", self.numbered_map[h][w]);
-				}
-			}
-			println!("");
-		}
-
-		println!("num_rooms: {}", self.num_rooms);
-
 		for i in 1..(self.num_rooms + 1) {
 			if i == self.starting_room || i == self.ending_room {
 				continue;

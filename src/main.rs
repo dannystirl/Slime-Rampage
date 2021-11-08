@@ -121,30 +121,6 @@ impl Game for ROGUELIKE  {
 		);
 		map_data.create_map();
 
-		println!("");
-		for h in 0..MAP_SIZE_H {
-			for w in 0..MAP_SIZE_W {
-				if map_data.enemy_spawns[h][w] == 1 {
-					print!("G ");
-				} else if map_data.enemy_spawns[h][w] == 2 {
-					print!("E ");
-				} else if map_data.map[h][w] == 0 {
-					print!("  ");
-				} else if map_data.map[h][w] == 1 {
-					print!(". ");
-				} else if map_data.map[h][w] == 2 {
-					print!("+ ");
-				} else if map_data.map[h][w] == 3 {
-					print!("U ");
-				} else if map_data.map[h][w] == 4 {
-					print!("D ");
-				} else {
-					print!("X ");
-				}
-			}
-			println!("");
-		}
-
 		// set starting position
 		player.set_x((map_data.starting_position.0 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
 		player.set_y((map_data.starting_position.1 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
@@ -166,8 +142,8 @@ impl Game for ROGUELIKE  {
 					1 => {
 						let e = enemy::Enemy::new(
 							Rect::new(
-								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */,
-								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */,
+								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 								TILE_SIZE / 2,
 								TILE_SIZE / 2
 							),
@@ -182,8 +158,8 @@ impl Game for ROGUELIKE  {
 					2 => {
 						let e = enemy::Enemy::new(
 							Rect::new(
-								w as i32 * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32,
-								h as i32 * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32,
+								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 								TILE_SIZE / 2,
 								TILE_SIZE / 2
 							),
