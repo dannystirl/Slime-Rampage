@@ -1,41 +1,56 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
 use sdl2::rect::Rect;
-use sdl2::image::LoadTexture;
-use sdl2::render::{Texture, TextureCreator};
+//use sdl2::image::LoadTexture;
+use sdl2::render::{Texture};
 use crate::player::*;
-use sdl2::pixels;
+use crate::rigidbody::*;
+//use crate::rigidbody::*;
+
+//use sdl2::pixels;
 use crate::SDLCore;
 
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
+	vel: (f64,f64),
 	velocity: Vec<f64>,
+
 	acceleration: Vec<f64>,
+	rb:  Rigidbody,
 }
 
 impl Crate {
     pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
         let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE, TILE_SIZE);
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
+		let rb = Rigidbody::new(pos); //hitbox
+
         Crate{
             pos,
             src,
+			vel,
 			velocity,
-			acceleration
+			acceleration,
+			rb,
         }
     }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
+		let rb = Rigidbody::new(pos);
 		Crate{
 			pos,
 			src,
+			vel,
 			velocity,
 			acceleration,
+			rb,
 		}
 	}
 
@@ -76,12 +91,18 @@ impl Crate {
 	pub fn set_y(&mut self, y: i32){
 		self.pos.y = y;
 	}
+	pub fn set_rb(&mut self){
+		self.rb.set_pos(self.pos);
+		self.rb.set_vel(self.vel);
+
+	}
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
 			// println!("{}, {}", c.velocity[0], c.velocity[1]);
 			c.set_x((c.x() as i32 + c.velocity[0] as i32).clamp(game_data.rooms[0].xbounds.0, game_data.rooms[0].xbounds.1));
 			c.set_y((c.y() as i32 + c.velocity[1] as i32).clamp(game_data.rooms[0].ybounds.0, game_data.rooms[0].ybounds.1));
-			// core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player));
+			self.set_rb();
+			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player)).unwrap();
 		}
 	}
 	pub fn offset_pos(&self, player:&Player)-> Rect{
@@ -103,11 +124,11 @@ impl Crate {
 		}
 	}
 	// calculate velocity resistance
-	fn resist(vel: i32, delta: i32) -> i32 {
+	/* fn resist(vel: i32, delta: i32) -> i32 {
 		if delta == 0 {
 			if vel > 0 {-1}
 			else if vel < 0 {1}
 			else {delta}
 		} else {delta}
-	}
+	} */
 }

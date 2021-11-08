@@ -1,6 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
-use crate::{gold,main};
+//use crate::{gold,main};
 use crate::Player;
 use sdl2::rect::Rect;
 use crate::SDLCore;
@@ -164,7 +164,7 @@ impl<'a> UI<'a> {
 		core.wincan.copy(coin.texture(), coin.src(), coin.pos())?;
 		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
-		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) );
+		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) )?;
 																//(text to display, src(none), (positionx, positiony, sizex, sizey))
 		Ok(())
 	}
