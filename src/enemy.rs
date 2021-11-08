@@ -175,7 +175,6 @@ pub struct Enemy<'a> {
 						 TILE_SIZE / 2, TILE_SIZE / 2);
 	}
 
-	#[allow(unused_parens)]
 	pub fn wander(&mut self, roll:i32) {
 
 		if self.is_stunned {
