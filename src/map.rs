@@ -118,7 +118,7 @@ impl<'a> Map<'a> {
 	pub fn create_maze(&mut self) -> [[i32; MAP_SIZE_W]; MAP_SIZE_H] {
 		let mut recurse: Vec<(usize, usize, (bool,bool,bool,bool), i32)> = Vec::new(); // y, x, direction
 		let mut new_map = self.map;
-		let mut num_mazes = self.num_rooms-1;
+		let mut num_mazes = self.num_rooms;
 		for h in (1..MAP_SIZE_H).step_by(2) {
 			for w in (1..MAP_SIZE_W).step_by(2) {
 				if new_map[h][w] == 0 {
@@ -267,6 +267,7 @@ impl<'a> Map<'a> {
 		let mut connectors = self.get_connectors(self.map);
 		
 		let mut new_map = self.map;
+
 		while connectors.len() > 0 {
 			let rand_connection = rand::thread_rng().gen_range(0..connectors.len());
 			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 1;
@@ -326,6 +327,7 @@ impl<'a> Map<'a> {
 				}
 			}
 		}
+
 		return new_map;
 	}
 
@@ -487,8 +489,16 @@ impl<'a> Map<'a> {
 		println!("");
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				// Blankspace
-				if map[h][w] == 0 {
+				// Ghosts
+				if self.enemy_spawns[h][w] == 1 {
+					print!("G ");
+				}
+				// Gellems
+				else if self.enemy_spawns[h][w] == 2 {
+					print!("E ");
+				}
+				// Blank space
+				else if map[h][w] == 0 {
 					print!("  ");
 				}
 				// Tiles
