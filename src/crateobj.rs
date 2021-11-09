@@ -99,8 +99,8 @@ impl Crate {
 	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player) {
 		for c in game_data.crates.iter_mut() {
 			// println!("{}, {}", c.velocity[0], c.velocity[1]);
-			c.set_x((c.x() as i32 + c.velocity[0] as i32).clamp(game_data.rooms[0].xbounds.0, game_data.rooms[0].xbounds.1));
-			c.set_y((c.y() as i32 + c.velocity[1] as i32).clamp(game_data.rooms[0].ybounds.0, game_data.rooms[0].ybounds.1));
+			c.set_x(c.x() as i32 + c.velocity[0] as i32);
+			c.set_y(c.y() as i32 + c.velocity[1] as i32);
 			self.set_rb();
 			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player)).unwrap();
 		}
@@ -108,7 +108,7 @@ impl Crate {
 	pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE, TILE_SIZE);
+		TILE_SIZE / 2, TILE_SIZE / 2);
 	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){

@@ -135,11 +135,11 @@ impl Game for ROGUELIKE  {
 		let mut enemy_count = 0;
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
-				if map_data.enemy_spawns[h][w] == 0 {
+				if map_data.enemy_and_object_spawns[h][w] == 0 {
 					continue;
 				}
 				if DEBUG { println!("{}, {}", w, h); }
-				match map_data.enemy_spawns[h][w] {
+				match map_data.enemy_and_object_spawns[h][w] {
 					1 => {
 						let e = enemy::Enemy::new(
 							Rect::new(
@@ -171,6 +171,17 @@ impl Game for ROGUELIKE  {
 						enemies.push(e);
 						rngt.push(rng.gen_range(1..5));
 						enemy_count += 1;
+					}
+					3 => {
+						let c = crateobj::Crate::new(
+							Rect::new(
+								w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+								h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+								TILE_SIZE / 2,
+								TILE_SIZE / 2
+							)
+						);
+						self.game_data.crates.push(c);
 					}
 					_ => {}
 				}
@@ -283,7 +294,6 @@ impl ROGUELIKE {
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
 		let upstairs = texture_creator.load_texture("images/background/upstairs.png")?;
 		let downstairs = texture_creator.load_texture("images/background/downstairs.png")?;
-
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
@@ -310,7 +320,7 @@ impl ROGUELIKE {
 						self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap();
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 4 {
 						self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap();
-					}
+					}					
 				}
 			}
 		} else {
