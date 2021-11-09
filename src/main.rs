@@ -518,7 +518,7 @@ impl ROGUELIKE {
 				//player.set_x_vel(0);
 				//player.set_y_vel(0);
 			} else {
-			//	c.friction();
+				c.friction();
 			}
 		}
 

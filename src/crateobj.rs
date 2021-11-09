@@ -82,8 +82,8 @@ impl Crate {
 		return self.velocity[1];
 	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
-		self.velocity[0] = self.velocity[0] + x as f64;
-		self.velocity[1] = self.velocity[1] + y as f64;
+		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-10.0, 10.0);
+		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-10.0, 10.0);
 	}
 	pub fn update_acceleration(&mut self, x: f64, y: f64){
 		self.acceleration[0] = x;
@@ -96,10 +96,10 @@ impl Crate {
 		self.pos.y = y;
 	}
 	pub fn set_x_vel(&mut self, x_vel: f64) {
-		self.velocity[0] = x_vel;
+		self.velocity[0] = x_vel.clamp(-10.0, 10.0);
 	}
 	pub fn set_y_vel(&mut self, y_vel: f64) {
-		self.velocity[1] = y_vel;
+		self.velocity[1] = y_vel.clamp(-10.0, 10.0);
 	}
 	pub fn set_rb(&mut self){
 		self.rb.set_pos(self.pos);
@@ -291,14 +291,14 @@ impl Crate {
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
 		if self.x_vel() > 0.0 {
-			self.update_velocity(-1.0, 0.0);
+			self.update_velocity(-0.1, 0.0);
 		} else if self.x_vel() < 0.0 {
-			self.update_velocity(1.0, 0.0);
+			self.update_velocity(0.1, 0.0);
 		}
 		if self.y_vel() > 0.0 {
-			self.update_velocity(0.0, -1.0);
+			self.update_velocity(0.0, -0.1);
 		} else if self.y_vel() < 0.0 {
-			self.update_velocity(0.0, 1.0);
+			self.update_velocity(0.0, 0.1);
 		}
 	}
 	// calculate velocity resistance
