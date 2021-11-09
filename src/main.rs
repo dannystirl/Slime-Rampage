@@ -180,6 +180,8 @@ impl Game for ROGUELIKE  {
 		let mut all_frames = 0;
 		let last_time = Instant::now();
 
+		
+
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			for event in self.core.event_pump.poll_iter() {
