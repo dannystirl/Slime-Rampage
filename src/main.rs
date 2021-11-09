@@ -32,6 +32,7 @@ use crate::background::*;
 use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
+use crate::crateobj::Crate;
 //use crate::gold::*;
 //use crate::room::*;
 //use crate::ui::*;
@@ -85,7 +86,6 @@ impl Game for ROGUELIKE  {
 		crate_textures.push(crate_texture);
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
-		let mut crate_manager = crateobj::Crate::manager();
 
 		// OBJECT GENERATION
 		let pos = Rect::new(
@@ -233,7 +233,7 @@ impl Game for ROGUELIKE  {
 			if elapsed > Duration::from_secs(2) {
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
 			}
-		
+			ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
@@ -244,10 +244,9 @@ impl Game for ROGUELIKE  {
 			// UPDATE INTERACTABLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
 			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
-			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures, &player, map_data.map);
-			for c in self.game_data.crates.iter_mut() {
-				self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
-			}
+			//for c in self.game_data.crates.iter_mut() {
+			//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
+		//	}
 
 			// CHECK COLLISIONS
 			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map);
@@ -357,7 +356,11 @@ impl ROGUELIKE {
 		}
 		return rngt.to_vec();
 	}
-
+	pub fn update_crates(&mut self, crate_textures: &Vec<Texture>, player: &Player,map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+		for c in self.game_data.crates.iter_mut(){
+			c.update_crates( &mut self.core, crate_textures, player, map);
+		}
+	}
 	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
@@ -512,7 +515,7 @@ impl ROGUELIKE {
 				//player.set_x_vel(0);
 				//player.set_y_vel(0);
 			} else {
-				c.friction();
+			//	c.friction();
 			}
 		}
 	}

@@ -160,7 +160,6 @@ pub struct Enemy<'a> {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let p_pos = self.pos();
-
 					if GameData::check_collision(&p_pos, &w_pos) {
 						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 					}
@@ -168,8 +167,7 @@ pub struct Enemy<'a> {
 			}
 		}
 		self.resolve_col(&collisions);
-
-	self.update_pos();
+		self.update_pos();
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
 						 TILE_SIZE / 2, TILE_SIZE / 2);

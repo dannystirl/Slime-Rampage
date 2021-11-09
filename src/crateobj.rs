@@ -12,6 +12,7 @@ use sdl2::rect::Point;
 //use sdl2::pixels;
 use crate::SDLCore;
 
+//#[derive(Copy, Clone)]
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
@@ -21,6 +22,7 @@ pub struct Crate{
 	acceleration: Vec<f64>,
 	rb:  Rigidbody,
 }
+
 
 impl Crate {
     pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
@@ -104,8 +106,7 @@ impl Crate {
 		self.rb.set_vel(self.vel);
 
 	}
-	pub fn update_crates(&mut self,game_data: &mut GameData, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-		for c in game_data.crates.iter_mut() {
+	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 			// println!("{}, {}", c.velocity[0], c.velocity[1]);
 			let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 			let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
@@ -127,13 +128,11 @@ impl Crate {
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 						continue;
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						let p_pos = self.pos();
-
+						let p_pos = self.offset_pos(&player);
+				
 						if GameData::check_collision(&p_pos, &w_pos) {
-							/*if DEBUG { 
-								// core.wincan.copy(&hitbox, src, self.cam_pos);
-								core.wincan.copy(&hitbox, src, debug_pos); 
-							}*/
+							
+							//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
 							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 						}
 					}
@@ -142,11 +141,11 @@ impl Crate {
 			
 			self.resolve_col(&collisions);
 
-			c.set_x(c.x() + c.velocity[0] as i32);
-			c.set_y(c.y() + c.velocity[1] as i32);
+			self.set_x(self.x() + self.velocity[0] as i32);
+			self.set_y(self.y() + self.velocity[1] as i32);
 			self.set_rb();
-			core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(player)).unwrap();
-		}
+			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+		
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
