@@ -244,7 +244,7 @@ impl Game for ROGUELIKE  {
 			// UPDATE INTERACTABLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
 			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
-			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures, &player);
+			crate_manager.update_crates(&mut self.game_data, &mut self.core, &crate_textures, &player, map_data.map);
 			for c in self.game_data.crates.iter_mut() {
 				self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
 			}
