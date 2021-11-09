@@ -103,7 +103,7 @@ pub struct Projectile{
 				self.inc_bounce();
 			}
 
-		}else{
+		} else {
 			let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 			let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
 			let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
