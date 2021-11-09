@@ -72,7 +72,7 @@ pub struct Projectile{
 		return self.is_active;
 	}
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
-	pub fn check_bounce(&mut self, xbounds:(i32,i32), ybounds: (i32,i32), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, game_data: &GameData, xbounds:(i32,i32), ybounds: (i32,i32), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 			match self.p_type{
 				ProjectileType::Fireball=>{
 					if self.get_bounce() >= 1 {
@@ -132,6 +132,15 @@ pub struct Projectile{
 				}
 			}
 			self.resolve_col(&collisions);
+
+			for c in &game_data.crates{
+				/* let crate_pos = c.pos();
+				let p_pos =self.pos(); */
+				if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
+					//println!("welcome to hell");
+					self.collect_col(self.pos(), self.pos().center(), c.pos());
+				}
+			}
 
 		}
 		
