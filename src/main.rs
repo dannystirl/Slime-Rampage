@@ -233,7 +233,7 @@ impl Game for ROGUELIKE  {
 			if elapsed > Duration::from_secs(2) {
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
 			}
-			ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
+			//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
 			// UPDATE ATTACKS
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
@@ -249,7 +249,7 @@ impl Game for ROGUELIKE  {
 		//	}
 
 			// CHECK COLLISIONS
-			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map);
+			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
 			if player.is_dead(){break 'gameloop;}
 
 			// UPDATE UI
@@ -356,11 +356,13 @@ impl ROGUELIKE {
 		}
 		return rngt.to_vec();
 	}
+
 	pub fn update_crates(&mut self, crate_textures: &Vec<Texture>, player: &Player,map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		for c in self.game_data.crates.iter_mut(){
 			c.update_crates( &mut self.core, crate_textures, player, map);
 		}
 	}
+	
 	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
@@ -449,7 +451,7 @@ impl ROGUELIKE {
 	}
 	
 	// check collisions
-	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
+	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
 		let xbounds = self.game_data.rooms[0].xbounds;
 		let ybounds = self.game_data.rooms[0].ybounds;
 		/* let bounds1 = Rect::new(xbounds.0, ybounds.0, TILE_SIZE, TILE_SIZE);
@@ -508,6 +510,7 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		//check collision between crates and player
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
 				// provide impulse
@@ -518,6 +521,11 @@ impl ROGUELIKE {
 			//	c.friction();
 			}
 		}
+
+		for c in self.game_data.crates.iter_mut(){
+			c.update_crates(&mut self.core, &crate_textures, player, map);
+		}
+
 	}
 
 	// draw player

@@ -128,8 +128,8 @@ impl Crate {
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 						continue;
 					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						let p_pos = self.offset_pos(&player);
-				
+						//let p_pos = self.offset_pos(&player);
+						let p_pos = self.pos();//this kind of works?
 						if GameData::check_collision(&p_pos, &w_pos) {
 							
 							//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
@@ -144,6 +144,7 @@ impl Crate {
 			self.set_x(self.x() + self.velocity[0] as i32);
 			self.set_y(self.y() + self.velocity[1] as i32);
 			self.set_rb();
+			//core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 		
 	}
