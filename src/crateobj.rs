@@ -89,6 +89,9 @@ impl Crate {
 		self.acceleration[0] = x;
 		self.acceleration[1] = y;
 	}
+	pub fn get_magnitude(&self) -> f64{
+		return ((self.x_vel() as f64).powf(2.0) + (self.y_vel() as f64).powf(2.0)).sqrt()
+	}
 	pub fn set_x(&mut self, x: i32){
 		self.pos.x = x;
 	}
