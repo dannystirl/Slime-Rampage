@@ -117,10 +117,10 @@ impl GameData {
     // collisions
     pub fn check_collision(a: &Rect, b: &Rect) -> bool {
         // check collision
-        if a.bottom() < b.top()
-            || a.top() > b.bottom()
-            || a.right() < b.left()
-            || a.left() > b.right()
+        if a.bottom() <= b.top()
+            || a.top() >= b.bottom()
+            || a.right() <= b.left()
+            || a.left() >= b.right()
         {
             false
         } else {
