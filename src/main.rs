@@ -470,7 +470,7 @@ impl ROGUELIKE {
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut(){
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
-					enemy.knockback(projectile.x().into(), projectile.y().into(), xbounds, ybounds);
+					enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
 					enemy.minus_hp(5);
 					projectile.die();
 				}
@@ -480,7 +480,7 @@ impl ROGUELIKE {
 			// player melee collisions
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
-					enemy.knockback(player.x().into(), player.y().into(), xbounds, ybounds);
+					enemy.knockback(player.x().into(), player.y().into());
 					enemy.minus_hp(1);
 				}
 			}

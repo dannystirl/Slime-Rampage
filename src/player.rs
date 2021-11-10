@@ -420,7 +420,7 @@ impl<'a> Player<'a> {
 		if self.invincible {
 			return;
 		}
-		self.hp -= dmg;
+		// self.hp -= dmg;
 		self.damage_timer = Instant::now();
 	}
 

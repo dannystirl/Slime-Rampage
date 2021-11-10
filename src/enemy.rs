@@ -17,7 +17,8 @@ pub enum EnemyType{
 	Ranged,
 }
 pub struct Enemy<'a> {
-	vel: Rect,
+	vel_x: f64,
+	vel_y: f64,
 	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
@@ -39,7 +40,8 @@ pub struct Enemy<'a> {
 
  impl<'a> Enemy<'a> {
 	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, num: usize) -> Enemy<'a> {
-		let vel = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+		let vel_x = 0.0;
+		let vel_y = 0.0;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
@@ -56,7 +58,8 @@ pub struct Enemy<'a> {
 		let enemy_type = enemy_type;
 		let enemy_number = num;
 		Enemy {
-			vel,
+			vel_x,
+			vel_y,
 			pos,
 			src,
 			txtre,
@@ -85,10 +88,10 @@ pub struct Enemy<'a> {
 		return self.pos.x.into();
 	}
 	pub fn set_x_vel(&mut self, x:f64){
-		self.vel.x = x as i32;
+		self.vel_x = x;
 	}
 	pub fn x_vel(&self) -> f64 {
-		return self.vel.x.into();
+		return self.vel_x;
 	}
 	pub fn width(&self) -> u32 {
 		self.pos.width()
@@ -102,10 +105,10 @@ pub struct Enemy<'a> {
 		return self.pos.y.into();
 	}
 	pub fn set_y_vel(&mut self, y:f64){
-		self.vel.y = y as i32;
+		self.vel_y = y;
 	}
 	pub fn y_vel(&self) -> f64 {
-		return self.vel.y.into();
+		return self.vel_y;
 	}
 	pub fn height(&self) -> u32 {
 		self.pos.height()
@@ -128,7 +131,7 @@ pub struct Enemy<'a> {
 		if self.get_stun_timer() > 1000 {
 			self.set_stunned(false);
 		} 
-		if distance > 200.0 {
+		if distance > 300.0 {
 			self.wander(rngt[i]);
 		} else {
 			match self.enemy_type {
@@ -168,6 +171,9 @@ pub struct Enemy<'a> {
 		}
 		self.resolve_col(&collisions);
 		self.update_pos();
+		if self.is_stunned {
+			self.slow_vel(1.0);
+		}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
 						 TILE_SIZE / 2, TILE_SIZE / 2);
@@ -247,11 +253,11 @@ pub struct Enemy<'a> {
 		else {return false;}
 	}
 
-	pub fn knockback(&mut self, player_pos_x: f64, player_pos_y: f64, x_bounds: (i32, i32), y_bounds: (i32, i32)) {
+	pub fn knockback(&mut self, player_pos_x: f64, player_pos_y: f64) {
 		self.x_flipped = false;
 		self.y_flipped = false;
 		self.is_stunned = true;
-		self.knockback_vel = 4.0;
+		self.knockback_vel = 40.0;
 		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		self.angle = angle;
@@ -263,10 +269,33 @@ pub struct Enemy<'a> {
 		let mut y = -5.0 * angle.cos();
 		if vec[1] < 0.0 {
 			y *= -1.0;
-			self.y_flipped = false;
+			self.y_flipped = true;
 		}
-		self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
-		self.pos.set_y(((self.y() + y) as i32).clamp(y_bounds.0, y_bounds.1));
+		/* if self.x_flipped {
+			self.set_x_vel((-self.x_vel() + x).clamp(-10.0, 10.0));
+		} else {
+			self.set_x_vel((self.x_vel() + x).clamp(-10.0, 10.0));
+		}
+		if self.y_flipped {
+			self.set_y_vel((self.y_vel() + y).clamp(-10.0, 10.0));
+		} else {
+			self.set_y_vel((self.y_vel() + y).clamp(-10.0, 10.0));
+		} */
+		/* self.pos.set_x((self.x() + x) as i32);
+		self.pos.set_y((self.y() + y) as i32); */
+		self.set_x_vel((self.x_vel() + x).clamp(-20.0, 20.0));
+		self.set_y_vel((self.y_vel() + y).clamp(-20.0, 20.0));
+		// self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
+		// self.set_y_vel((self.y_vel() + y).clamp(-SPEED_LIMIT, SPEED_LIMIT));
+		self.stun_timer = Instant::now();
+	}
+
+	pub fn projectile_knockback(&mut self, v_x: f64, v_y: f64) {
+		self.is_stunned = true;
+
+		self.set_x_vel(self.x_vel() + v_x);
+		self.set_y_vel(self.y_vel() + v_y);
+
 		self.stun_timer = Instant::now();
 	}
 
@@ -287,7 +316,26 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn slow_vel(&mut self, decel: f64) {
-		self.knockback_vel -= decel;
+		let mut x_positive = false;
+		let mut y_positive = false;
+
+		if self.x_vel() >= 0.0 {
+			x_positive = true;
+		}
+		if self.y_vel() >= 0.0 {
+			y_positive = true;
+		}
+
+		if x_positive {
+			self.set_x_vel(self.x_vel() - decel);
+		} else {
+			self.set_x_vel(self.x_vel() + decel);
+		}
+		if y_positive {
+			self.set_y_vel(self.y_vel() - decel);
+		} else {
+			self.set_y_vel(self.y_vel() + decel);
+		}
 	}
 
 	pub fn angle(&self) -> f64 {
@@ -367,7 +415,7 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: i32) {
-		self.hp -= dmg;
+		// self.hp -= dmg;
 
 		if self.hp <= 0 {
 			self.die();
@@ -438,85 +486,76 @@ pub struct Enemy<'a> {
 
 		// Handle collisions based on distance
 		if sorted_collisions.len() > 0 {
-			match sorted_collisions[0].dir{
-				Direction::Up=>{
+			match sorted_collisions[0].dir {
+				Direction::Up => {
 					self.set_y_vel(self.y_vel().clamp(0.0,100.0));
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
+						match sorted_collisions[2].dir {
+							Direction::Up => {
 								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
 							}
-							Direction::Left=>{
+							Direction::Left => {
 								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
 							}
-							Direction::Right=>{
+							Direction::Right => {
 								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
 							}
-							_ =>{
-							}
+							_ => {}
 						}
 					}
 				}
 				Direction::Down=>{
 					self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Down=>{
+						match sorted_collisions[2].dir {
+							Direction::Down=> {
 								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 							}
-							Direction::Left=>{
+							Direction::Left => {
 								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
 							}
-							Direction::Right=>{
+							Direction::Right => {
 								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
 							}
-							_ =>{
-								
-							}
+							_ => {}
 						}
 					}
 				}
-				Direction::Right=>{
+				Direction::Right => {
 					self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
+						match sorted_collisions[2].dir {
+							Direction::Up => {
 								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
 							}
-							Direction::Down=>{
+							Direction::Down => {
 								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 							}
-							Direction::Right=>{
+							Direction::Right => {
 								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
 							}
-							_ =>{
-								
-							}
+							_ => {}
 						}
 					}
 				}
 				Direction::Left=>{
 					self.set_x_vel(self.x_vel().clamp(0.0,100.0));
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[1].dir{
-							Direction::Up=>{
+						match sorted_collisions[1].dir {
+							Direction::Up => {
 								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
 							}
-							Direction::Down=>{
+							Direction::Down => {
 								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
 							}
-							Direction::Left=>{
+							Direction::Left => {
 								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
 							}
-							_ =>{
-								
-							}
+							_ => {}
 						}
 					}
 				}
-				_ =>{
-					
-				}
+				_ => {}
 			}
 		}
 	}
