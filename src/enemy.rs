@@ -165,14 +165,6 @@ pub struct Enemy<'a> {
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let p_pos = self.pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
-						for c in &game_data.crates{
-							if GameData::check_collision(&self.pos,&c.pos()){
-								if self.got_squished(w_pos, c.pos(), c.x_vel(), c.y_vel()) {
-									self.die();
-									continue;
-								}
-							}
-						}
 						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 					}
 				}
@@ -180,6 +172,10 @@ pub struct Enemy<'a> {
 		}
 		for c in &game_data.crates{
 			if GameData::check_collision(&self.pos,&c.pos()){
+				// crate squishes enemy
+				if c.get_magnitude() > 0.0{
+					self.die();
+				}
 				collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
 			}
 		}
@@ -449,7 +445,7 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: i32) {
-		// self.hp -= dmg;
+		self.hp -= dmg;
 
 		if self.hp <= 0 {
 			self.die();
