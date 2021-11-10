@@ -14,7 +14,7 @@ pub struct Map<'a> {
 	pub starting_position: (i32,i32), 
 	pub starting_room: i32, 
 	pub ending_room: i32, 
-	pub enemy_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
+	pub enemy_and_object_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 }
 
 impl<'a> Map<'a> {
@@ -25,7 +25,7 @@ impl<'a> Map<'a> {
 		let starting_room = 1;
 		let starting_position = (0,0);
 		let ending_room = 2;
-		let enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		Map {
 			background, 
 			map, 
@@ -34,7 +34,7 @@ impl<'a> Map<'a> {
 			starting_position, 
 			starting_room, 
 			ending_room, 
-			enemy_spawns, 
+			enemy_and_object_spawns, 
 		}
 	}
 
@@ -57,6 +57,7 @@ impl<'a> Map<'a> {
 		// add objects and entities
 		self.create_obstacles(corridors);
 		self.create_enemies();
+		self.create_objects();
 		
 		if DEBUG { self.print_map(self.map); }
 	}
@@ -431,19 +432,32 @@ impl<'a> Map<'a> {
 						stairs_added += 1;
 					}
 				}
-				// Add wall
-				else{
-					new_map[h][w] = 2;
-				}
 			}
 		}
+
+		//add obstacles
+		let attempts: i32 = 50;
+		for _i in 1..attempts {
+			let h = rng.gen_range(0..MAP_SIZE_H - 1);
+			let w = rng.gen_range(0..MAP_SIZE_W - 1);
+			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
+				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
+				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
+				new_map[h - 1][w - 1] != 2 && new_map[h - 1][w + 1] != 2 &&
+				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
+				
+				//add wall
+				new_map[h][w] = 2;	
+			}
+		}
+
 		self.map = new_map;
 	}
 
 	// 8: create enemies
 	pub fn create_enemies(&mut self) {
 		let mut rng = rand::thread_rng();
-		let mut enemy_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+		let mut enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H];
 		let mut spawn_positions: Vec<(usize, usize)>;
 
 		for i in 1..(self.num_rooms + 1) {
@@ -463,10 +477,10 @@ impl<'a> Map<'a> {
 			let mut ghosts_placed = 0;
 			while ghosts_placed < ghosts {
 				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-				if enemy_spawns[pos.0][pos.1] != 0 {
+				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
 					continue;
 				}
-				enemy_spawns[pos.0][pos.1] = 1;
+				enemy_and_object_spawns[pos.0][pos.1] = 1;
 				ghosts_placed += 1;
 			}
 
@@ -474,14 +488,46 @@ impl<'a> Map<'a> {
 			let mut gellems_placed = 0;
 			while gellems_placed < gellems {
 				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-				if enemy_spawns[pos.0][pos.1] != 0 {
+				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
 					continue;
 				}
-				enemy_spawns[pos.0][pos.1] = 2;
+				enemy_and_object_spawns[pos.0][pos.1] = 2;
 				gellems_placed += 1;
 			}
 		}
-		self.enemy_spawns = enemy_spawns;
+		self.enemy_and_object_spawns = enemy_and_object_spawns;
+	}
+
+	pub fn create_objects(&mut self) {
+		let mut rng = rand::thread_rng();
+		let mut enemy_and_object_spawns = self.enemy_and_object_spawns;
+		let mut spawn_positions: Vec<(usize, usize)>;
+
+		for i in 1..(self.num_rooms + 1) {
+			if i == self.starting_room || i == self.ending_room {
+				continue;
+			}
+			spawn_positions = Vec::new();
+			for h in 0..MAP_SIZE_H {
+				for w in 0..MAP_SIZE_W {
+					if self.numbered_map[h][w] == i {
+						spawn_positions.push((h, w));
+					}
+				}
+			}
+
+			let crates = rng.gen_range(1..4);
+			let mut crates_placed = 0;
+			while crates_placed < crates {
+				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
+				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
+					continue;
+				}
+				enemy_and_object_spawns[pos.0][pos.1] = 3;
+				crates_placed += 1;
+			}
+		}
+		self.enemy_and_object_spawns = enemy_and_object_spawns;
 	}
 
 	// print the current map
@@ -490,12 +536,16 @@ impl<'a> Map<'a> {
 		for h in 0..MAP_SIZE_H {
 			for w in 0..MAP_SIZE_W {
 				// Ghosts
-				if self.enemy_spawns[h][w] == 1 {
+				if self.enemy_and_object_spawns[h][w] == 1 {
 					print!("G ");
 				}
 				// Gellems
-				else if self.enemy_spawns[h][w] == 2 {
+				else if self.enemy_and_object_spawns[h][w] == 2 {
 					print!("E ");
+				}
+				// Crates
+				else if self.enemy_and_object_spawns[h][w] == 3 {
+					print!("C ");
 				}
 				// Blank space
 				else if map[h][w] == 0 {
@@ -516,7 +566,7 @@ impl<'a> Map<'a> {
 				// Downstairs
 				else if map[h][w] == 4{
 					print!("D ");
-				}
+				}				
 			}
 			println!("");
 		}

@@ -6,6 +6,7 @@ use sdl2::rect::Point;
 use crate::gamedata::*;
 use crate::projectile::Direction::{Down, Up, Left, Right};
 use crate::player::*;
+use crate::crateobj::*;
 
 pub enum ProjectileType{
 	Bullet,
@@ -72,19 +73,20 @@ pub struct Projectile{
 		return self.is_active;
 	}
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
-	pub fn check_bounce(&mut self, xbounds:(i32,i32), ybounds: (i32,i32), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
-			match self.p_type{
-				ProjectileType::Fireball=>{
-					if self.get_bounce() >= 1 {
-						self.die();
-					}
+	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, xbounds:(i32,i32), ybounds: (i32,i32), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+		match self.p_type {
+			ProjectileType::Fireball => {
+				if self.get_bounce() >= 1 {
+					self.die();
 				}
-				_ =>{
-					if self.get_bounce() >= 4 {
-						self.die();
-					}
+			}
+			_ => {
+				if self.get_bounce() >= 4 {
+					self.die();
 				}
-			}	
+			}
+		}
+
 		if !DEVELOP {
 			if self.x() <= xbounds.0 && self.is_active() {
 				self.set_x_vel( -self.x_vel() );
@@ -102,8 +104,7 @@ pub struct Projectile{
 				self.set_y_vel( -self.y_vel() );
 				self.inc_bounce();
 			}
-
-		}else{
+		} else {
 			let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 			let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
 			let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -131,8 +132,17 @@ pub struct Projectile{
 					}
 				}
 			}
-			self.resolve_col(&collisions);
 
+			for c in crates {
+				/* let crate_pos = c.pos();
+				let p_pos =self.pos(); */
+				if GameData::check_collision(&self.pos(), &c.pos()) { //I hate collisions
+					//println!("welcome to hell");
+					collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
+				}
+			}
+
+			self.resolve_col(&collisions);
 		}
 		
 	}
@@ -156,9 +166,9 @@ pub struct Projectile{
 			return resolution;
 		}
 		// player right of other
-		 else {
-			 let resolution = CollisionDecider::new(Left, distance as i32);
-			 return resolution;
+		else {
+			let resolution = CollisionDecider::new(Left, distance as i32);
+			return resolution;
 		}
 	}
 
@@ -173,25 +183,30 @@ pub struct Projectile{
 
 		// Handle collisions based on distance
 		if sorted_collisions.len() > 0 {
-			match sorted_collisions[0].dir{
+			match sorted_collisions[0].dir {
 				Direction::Up=>{
-					self.set_y_vel(-self.y_vel());
-					self.inc_bounce();
+					if self.y_vel() < 0.0 {
+						self.set_y_vel(-self.y_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::Down=>{
-					self.set_y_vel(-self.y_vel());
-					self.inc_bounce();
-					
+					if self.y_vel() > 0.0 {
+						self.set_y_vel(-self.y_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::Right=>{
-					self.set_x_vel(-self.x_vel());
-					self.inc_bounce();
-				
+					if self.x_vel() > 0.0 {
+						self.set_x_vel(-self.x_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::Left=>{
-					self.set_x_vel(-self.x_vel());
-					self.inc_bounce();
-					
+					if self.x_vel() < 0.0 {
+						self.set_x_vel(-self.x_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::None=>{
 					println!("I have no clue how this happened");

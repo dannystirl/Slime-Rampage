@@ -83,8 +83,8 @@ impl<'a> Player<'a> {
 		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
-		let height = TILE_SIZE; // 32;
-		let width = TILE_SIZE; // 32;
+		let height = TILE_SIZE; 
+		let width = TILE_SIZE; 
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30;
 		let mana = 4;
@@ -175,7 +175,7 @@ impl<'a> Player<'a> {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let p_pos = self.pos();
-
+				
 					if GameData::check_collision(&p_pos, &w_pos) {
 						if DEBUG {
 							core.wincan.copy(&hitbox, src, self.cam_pos)?;
@@ -186,7 +186,6 @@ impl<'a> Player<'a> {
 				}
 			}
 		}
-
 		self.resolve_col(&collisions);
 
 		for c in &game_data.crates{
@@ -421,7 +420,7 @@ impl<'a> Player<'a> {
 		if self.invincible {
 			return;
 		}
-		self.hp -= dmg;
+		// self.hp -= dmg;
 		self.damage_timer = Instant::now();
 	}
 
