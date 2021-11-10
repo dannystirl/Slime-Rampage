@@ -12,7 +12,6 @@ use rand::Rng;
 use crate::{gold};
 //use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
-use crate::crateobj::*;
 pub enum EnemyType{
 	Melee,
 	Ranged,
