@@ -172,8 +172,7 @@ pub struct Enemy<'a> {
 		self.resolve_col(&collisions);
 		self.update_pos();
 		if self.is_stunned {
-			println!("{}, {}", self.x_vel(), self.y_vel());
-			self.slow_vel(0.1);
+			self.slow_vel(1.0);
 		}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
@@ -272,7 +271,7 @@ pub struct Enemy<'a> {
 			y *= -1.0;
 			self.y_flipped = true;
 		}
-		if self.x_flipped {
+		/* if self.x_flipped {
 			self.set_x_vel((-self.x_vel() + x).clamp(-10.0, 10.0));
 		} else {
 			self.set_x_vel((self.x_vel() + x).clamp(-10.0, 10.0));
@@ -281,8 +280,22 @@ pub struct Enemy<'a> {
 			self.set_y_vel((self.y_vel() + y).clamp(-10.0, 10.0));
 		} else {
 			self.set_y_vel((self.y_vel() + y).clamp(-10.0, 10.0));
-		}
+		} */
+		/* self.pos.set_x((self.x() + x) as i32);
+		self.pos.set_y((self.y() + y) as i32); */
+		self.set_x_vel((self.x_vel() + x).clamp(-20.0, 20.0));
+		self.set_y_vel((self.y_vel() + y).clamp(-20.0, 20.0));
+		// self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
 		// self.set_y_vel((self.y_vel() + y).clamp(-SPEED_LIMIT, SPEED_LIMIT));
+		self.stun_timer = Instant::now();
+	}
+
+	pub fn projectile_knockback(&mut self, v_x: f64, v_y: f64) {
+		self.is_stunned = true;
+
+		self.set_x_vel(self.x_vel() + v_x);
+		self.set_y_vel(self.y_vel() + v_y);
+
 		self.stun_timer = Instant::now();
 	}
 
@@ -303,10 +316,6 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn slow_vel(&mut self, decel: f64) {
-		if self.x_vel() == 0.0 && self.y_vel() == 0.0 {
-			println!("Yo");
-		}
-
 		let mut x_positive = false;
 		let mut y_positive = false;
 
@@ -327,25 +336,6 @@ pub struct Enemy<'a> {
 		} else {
 			self.set_y_vel(self.y_vel() + decel);
 		}
-
-		/* if x_positive {
-			if self.x_vel() < 0.0 {
-				self.set_x_vel(0.0);
-			}
-		} else {
-			if self.x_vel() > 0.0 {
-				self.set_x_vel(0.0);
-			}
-		}
-		if y_positive {
-			if self.y_vel() < 0.0 {
-				self.set_y_vel(0.0);
-			}
-		} else {
-			if self.y_vel() > 0.0 {
-				self.set_y_vel(0.0);
-			}
-		} */
 	}
 
 	pub fn angle(&self) -> f64 {
