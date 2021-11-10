@@ -12,6 +12,7 @@ use rand::Rng;
 use crate::{gold};
 //use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
+use crate::crateobj::*;
 pub enum EnemyType{
 	Melee,
 	Ranged,
@@ -164,6 +165,11 @@ pub struct Enemy<'a> {
 						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 					}
 				}
+			}
+		}
+		for c in &game_data.crates{
+			if GameData::check_collision(&self.pos,&c.pos()){
+				collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
 			}
 		}
 		self.resolve_col(&collisions);

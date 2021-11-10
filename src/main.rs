@@ -493,6 +493,13 @@ impl ROGUELIKE {
 					projectile.die();
 				}
 			}
+
+			// check crate collisions
+			for c in self.game_data.crates.iter_mut(){
+				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
+					enemy.knockback(c.x().into(), c.y().into(), xbounds, ybounds);
+				}
+			}
 		}
 
 		for projectile in self.game_data.player_projectiles.iter_mut() {
