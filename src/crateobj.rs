@@ -12,7 +12,6 @@ use sdl2::rect::Point;
 //use sdl2::pixels;
 use crate::SDLCore;
 
-//#[derive(Copy, Clone)]
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
