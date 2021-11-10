@@ -185,20 +185,28 @@ pub struct Projectile{
 		if sorted_collisions.len() > 0 {
 			match sorted_collisions[0].dir {
 				Direction::Up=>{
-					self.set_y_vel(-self.y_vel());
-					self.inc_bounce();
+					if self.y_vel() < 0.0 {
+						self.set_y_vel(-self.y_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::Down=>{
-					self.set_y_vel(-self.y_vel());
-					self.inc_bounce();
+					if self.y_vel() > 0.0 {
+						self.set_y_vel(-self.y_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::Right=>{
-					self.set_x_vel(-self.x_vel());
-					self.inc_bounce();
+					if self.x_vel() > 0.0 {
+						self.set_x_vel(-self.x_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::Left=>{
-					self.set_x_vel(-self.x_vel());
-					self.inc_bounce();
+					if self.x_vel() < 0.0 {
+						self.set_x_vel(-self.x_vel());
+						self.inc_bounce();
+					}
 				}
 				Direction::None=>{
 					println!("I have no clue how this happened");
