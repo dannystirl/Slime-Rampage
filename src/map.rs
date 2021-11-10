@@ -437,7 +437,7 @@ impl<'a> Map<'a> {
 
 		//add obstacles
 		let attempts: i32 = 50;
-		for i in 1..attempts {
+		for _i in 1..attempts {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 

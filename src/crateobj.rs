@@ -118,9 +118,9 @@ impl Crate {
 					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
 					TILE_SIZE, TILE_SIZE);
 
-					let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32,// - (CENTER_W - self.x() as i32),
+					/*let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32,// - (CENTER_W - self.x() as i32),
 					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32,// - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);
+					TILE_SIZE, TILE_SIZE);*/
 					if h as i32 + h_bounds_offset < 0 ||
 					w as i32 + w_bounds_offset < 0 ||
 					h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
@@ -168,9 +168,9 @@ impl Crate {
 			return resolution;
 		}
 		// player right of other
-		 else {
-			 let resolution = CollisionDecider::new(Left, distance as i32);
-			 return resolution;
+		else {
+			let resolution = CollisionDecider::new(Left, distance as i32);
+			return resolution;
 		}
 	}
 
