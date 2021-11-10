@@ -520,7 +520,7 @@ impl<'a> Map<'a> {
 			let mut crates_placed = 0;
 			while crates_placed < crates {
 				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
+				if enemy_and_object_spawns[pos.0][pos.1] != 0 && self.map[pos.0][pos.1] != 1 {
 					continue;
 				}
 				enemy_and_object_spawns[pos.0][pos.1] = 3;
