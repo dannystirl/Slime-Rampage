@@ -21,11 +21,12 @@ pub struct Projectile{
 	vector: Vec<f64>,
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
+	pub elapsed: u128,
 }
 
 
  impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType) -> Projectile {
+	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
@@ -37,6 +38,7 @@ pub struct Projectile{
 			vector,
 			p_type,
 			bounce_counter,
+			elapsed,
 		}
 	}
 	pub fn x(&self) -> i32 {

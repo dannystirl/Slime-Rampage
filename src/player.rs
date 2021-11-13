@@ -346,7 +346,7 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType) -> Projectile {
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType, elapsed: u128) -> Projectile {
 			self.is_firing = true;
 			self.use_mana();
 			self.fire_timer = Instant::now();
@@ -374,6 +374,7 @@ impl<'a> Player<'a> {
 				false,
 				vec![x, y],
 				p_type,
+				elapsed,
 			);
 
 			return bullet;
