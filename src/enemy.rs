@@ -12,7 +12,6 @@ use rand::Rng;
 use crate::{gold};
 //use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
-use crate::crateobj::*;
 pub enum EnemyType{
 	Melee,
 	Ranged,
@@ -143,7 +142,7 @@ pub struct Enemy<'a> {
 				}
 			}
 		}
-		// this should all be copied into force move once its simplified. checking new bounds will solve the bug where enemies will continiously run into a wall. 
+		// this should all be copied into force move once its simplified. checking new bounds will solve the bug where enemies will continuously run into a wall.
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -172,6 +171,10 @@ pub struct Enemy<'a> {
 		}
 		for c in &game_data.crates{
 			if GameData::check_collision(&self.pos,&c.pos()){
+				// crate squishes enemy
+				if c.get_magnitude() > 0.0{
+					self.die();
+				}
 				collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
 			}
 		}
@@ -184,6 +187,26 @@ pub struct Enemy<'a> {
 						 self.y() as i32 + (CENTER_H - y as i32),
 						 TILE_SIZE / 2, TILE_SIZE / 2);
 	}
+
+	 pub fn got_squished(&mut self, w_pos: Rect, c_pos: Rect, c_xvel: f64, c_yvel: f64) -> bool{
+		 // wall above and crate y_vel negative
+		 if self.pos().top() <= w_pos.bottom() && self.pos().bottom() >= c_pos.top() && c_yvel < 0.0{
+			 return true;
+		 }
+		 // wall below and crate y_vel positive
+		 else if self.pos().bottom() >= w_pos.top() && self.pos().top() >= c_pos.bottom() && c_yvel > 0.0{
+			 return true;
+		 }
+		 // wall left and crate x_vel negative
+		 else if self.pos().left() <= w_pos.right() && self.pos().right() >= c_pos.left() && c_xvel < 0.0{
+			 return true;
+		 }
+		 // wall right and crate x_vel positive
+		 else if self.pos().right() >= w_pos.left() && self.pos().left() <= c_pos.right() && c_xvel > 0.0{
+			 return true;
+		 }
+		 else { return false; }
+	 }
 
 	pub fn wander(&mut self, roll:i32) {
 
@@ -421,7 +444,7 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: i32) {
-		// self.hp -= dmg;
+		self.hp -= dmg;
 
 		if self.hp <= 0 {
 			self.die();
@@ -460,22 +483,22 @@ pub struct Enemy<'a> {
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
 		let distance = ((p_center.x() as f64 - other_pos.center().x() as f64).powf(2.0) + (p_center.y() as f64 - other_pos.center().y() as f64).powf(2.0)).sqrt();
 
-		// player above other
+		// enemy above other
 		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
 			let resolution = CollisionDecider::new(Down, distance as i32);
 			return resolution;
 		}
-		// player left of other
+		// enemy left of other
 		if p_pos.right() >= other_pos.left() && p_center.x() < other_pos.left() {
 			let resolution = CollisionDecider::new(Right, distance as i32);
 			return resolution;
 		}
-		// player below other
+		// enemy below other
 		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
 			let resolution = CollisionDecider::new(Up, distance as i32);
 			return resolution;
 		}
-		// player right of other
+		// enemy right of other
 		 else {
 			 let resolution = CollisionDecider::new(Left, distance as i32);
 			 return resolution;

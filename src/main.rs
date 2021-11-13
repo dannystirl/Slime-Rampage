@@ -468,7 +468,7 @@ impl ROGUELIKE {
 			}
 
 			// player projectile collisions
-			for projectile in self.game_data.player_projectiles.iter_mut(){
+			for projectile in self.game_data.player_projectiles.iter_mut() {
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
 					enemy.minus_hp(5);
@@ -486,7 +486,7 @@ impl ROGUELIKE {
 			}
 		
 			// enemy projectile collisions
-			for projectile in self.game_data.enemy_projectiles.iter_mut(){
+			for projectile in self.game_data.enemy_projectiles.iter_mut() {
 				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
 					player.minus_hp(5);
 					player.set_invincible();
@@ -497,7 +497,7 @@ impl ROGUELIKE {
 			// check crate collisions
 			for c in self.game_data.crates.iter_mut(){
 				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
-					enemy.knockback(c.x().into(), c.y().into());//, xbounds, ybounds);
+					enemy.projectile_knockback(c.x_vel(), c.y_vel());
 				}
 			}
 		}
