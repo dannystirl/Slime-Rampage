@@ -49,7 +49,7 @@ pub const MANA_RESTORE_RATE: u128 = 1000;
 
 // enemy globals
 //pub const STUN_TIME: u32 = 2000;
-pub const FIRE_COOLDOWN_E: u128 = 1500;
+pub const FIRE_COOLDOWN_E: u128 = 2500;
 
 pub struct GameData {
     pub frame_counter: Instant, 

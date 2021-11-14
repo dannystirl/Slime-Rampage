@@ -21,11 +21,11 @@ pub struct Projectile{
 	vector: Vec<f64>,
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
+	pub elapsed: u128,
 }
 
-
- impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType) -> Projectile {
+impl Projectile {
+	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
@@ -37,6 +37,7 @@ pub struct Projectile{
 			vector,
 			p_type,
 			bounce_counter,
+			elapsed,
 		}
 	}
 	pub fn x(&self) -> i32 {
@@ -214,9 +215,6 @@ pub struct Projectile{
 			}
 		}
 	}
-
-
-
 	
 	pub fn update_pos(&mut self) {
 		self.set_x(self.x() + self.vector[0] as i32);
@@ -230,18 +228,28 @@ pub struct Projectile{
 		return self.src;
 	}
 	 pub fn die(&mut self){
-		 // Set death animation when created
-		 self.is_active = false;
+		// Set death animation when created
+		self.is_active = false;
 	}
+
+	// actual position 
     pub fn pos(&self) -> Rect {
-		return Rect::new(self.x() as i32, //screen coordinates
-		self.y() as i32,
-		TILE_SIZE_HALF, TILE_SIZE_HALF);
+		return Rect::new(
+			self.x() as i32,
+			self.y() as i32,
+			TILE_SIZE_PLAYER, 
+			TILE_SIZE_PLAYER
+		);
     }
-	pub fn offset_pos(&self, player:&Player)-> Rect{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE_HALF, TILE_SIZE_HALF);
+
+	// screen coordinates
+	pub fn set_cam_pos(&self, player:&Player)-> Rect{
+		return Rect::new(
+			self.x() as i32 + (CENTER_W - player.x() as i32),
+			self.y() as i32 + (CENTER_H - player.y() as i32),
+			TILE_SIZE_CAM,
+			TILE_SIZE_CAM
+		);
 	}
 	pub fn inc_bounce(&mut self) {
 		self.bounce_counter += 1;

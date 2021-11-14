@@ -396,12 +396,13 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE_HALF,
-									TILE_SIZE_HALF,
+									TILE_SIZE,
+									TILE_SIZE,
 								),
 								true,
 								vec![x,y],
 								ProjectileType::Bullet,
+								0,//elapsed
 							);
 						game_data.enemy_projectiles.push(bullet);
 						}

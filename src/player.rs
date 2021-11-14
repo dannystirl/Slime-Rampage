@@ -77,14 +77,14 @@ impl<'a> Player<'a> {
 		let cam_pos = Rect::new(
 			0,
 			0,
-			TILE_SIZE_HALF,
-			TILE_SIZE_HALF,
+			TILE_SIZE_CAM,
+			TILE_SIZE_CAM,
 		);
 		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
-		let height = TILE_SIZE; // 32;
-		let width = TILE_SIZE; // 32;
+		let height = TILE_SIZE_CAM; 
+		let width = TILE_SIZE_CAM; 
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30;
 		let mana = 4;
@@ -92,7 +92,7 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing =false;
-		let attack_box = Rect::new(0, 0, TILE_SIZE_HALF, TILE_SIZE_HALF);
+		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 		let attack_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
@@ -170,7 +170,7 @@ impl<'a> Player<'a> {
 					let p_pos = self.pos();
 				
 					if GameData::check_collision(&p_pos, &w_pos) {
-						if DEBUG { 
+						if DEBUG {
 							core.wincan.copy(&hitbox, src, self.cam_pos)?;
 							core.wincan.copy(&hitbox, src, debug_pos)?;
 						}
@@ -339,37 +339,37 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType) -> Projectile {
-			self.is_firing = true;
-			self.use_mana();
-			self.fire_timer = Instant::now();
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType, elapsed: u128) -> Projectile {
+		self.is_firing = true;
+		self.use_mana();
+		self.fire_timer = Instant::now();
 
-			let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE_HALF) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE_HALF) as f64];
-			let angle = ((vec[0] / vec[1]).abs()).atan();
-			let speed: f64 = 3.0 * speed_limit;
-			let mut x = &speed * angle.sin();
-			let mut y = &speed * angle.cos();
-			if vec[0] < 0.0 {
-				x *= -1.0;
-			}
-			if vec[1] < 0.0 {
-				y *= -1.0;
-			}
+		let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE_HALF) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE_HALF) as f64];
+		let angle = ((vec[0] / vec[1]).abs()).atan();
+		let speed: f64 = 3.0 * speed_limit;
+		let mut x = &speed * angle.sin();
+		let mut y = &speed * angle.cos();
+		if vec[0] < 0.0 {
+			x *= -1.0;
+		}
+		if vec[1] < 0.0 {
+			y *= -1.0;
+		}
 
-			let p_type = p_type;
-			let bullet = projectile::Projectile::new(
-				Rect::new(
-					self.x() as i32,
-					self.y() as i32,
-					TILE_SIZE_HALF,
-					TILE_SIZE_HALF,
-				),
-				false,
-				vec![x, y],
-				p_type,
-			);
-
-			return bullet;
+		let p_type = p_type;
+		let bullet = projectile::Projectile::new(
+			Rect::new(
+				self.x() as i32,
+				self.y() as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+			false,
+			vec![x, y],
+			p_type,
+			elapsed,
+		);
+		return bullet;
 	}
 
 	//mana values
@@ -486,11 +486,11 @@ impl<'a> Player<'a> {
 							}
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0,100));
-	
+
 							}
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100,0));
-	
+
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -580,6 +580,3 @@ pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 		else {delta}
 	} else {delta}
 }
-
-
-

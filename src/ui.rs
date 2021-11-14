@@ -54,7 +54,7 @@ impl<'a> UI<'a> {
 		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
 		core.wincan.copy(&ui, src, pos)?;
 		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
-		let get_font = ttf_creator.load_font("font/comic_sans.TTF", 80)?;
+		let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
 
 		//create hearts
 		let mut i=0;
