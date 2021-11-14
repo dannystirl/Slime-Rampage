@@ -19,6 +19,7 @@ mod credits;
 mod enemy;
 mod gamedata;
 mod gold;
+mod power;
 mod player;
 mod projectile;
 mod room;
@@ -32,6 +33,7 @@ use crate::background::*;
 use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
+use crate::power::*;
 //use crate::gold::*;
 //use crate::room::*;
 //use crate::ui::*;
@@ -84,6 +86,8 @@ impl Game for ROGUELIKE  {
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		crate_textures.push(crate_texture);
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
+		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
 		// OBJECT GENERATION
@@ -242,7 +246,7 @@ impl Game for ROGUELIKE  {
 			
 			// UPDATE INTERACTABLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
-			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
+			ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
 			//for c in self.game_data.crates.iter_mut() {
 			//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
 		//	}
@@ -362,12 +366,15 @@ impl ROGUELIKE {
 		}
 	}
 	
-	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) {
+	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture,
+						fireball_texture: &Texture, slimeball_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
 				let drop = enemy.drop_item();
+				let dropped_power = enemy.drop_power();
 				self.game_data.gold.push(drop);
+				self.game_data.dropped_powers.push(dropped_power);
 			}
 		}
 		// draw uncollected coins
@@ -377,6 +384,21 @@ impl ROGUELIKE {
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
+			}
+		}
+
+		for p in self.game_data.dropped_powers.iter_mut() {
+			let pos = Rect::new(p.x() as i32 + (CENTER_W - player.x() as i32),
+								p.y() as i32 + (CENTER_H - player.y() as i32),
+								TILE_SIZE, TILE_SIZE);
+			match p.power_type() {
+				PowerType::Fireball => {
+					self.core.wincan.copy_ex(&fireball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+				},
+				PowerType::Slimeball => {
+					self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+				},
+				_ => {},
 			}
 		}
 	}
