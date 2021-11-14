@@ -70,16 +70,17 @@ impl Game for ROGUELIKE  {
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		//let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
-		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
-		let fireball = texture_creator.load_texture("images/abilities/beng.png")?; 
+		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
+		//let fireball = texture_creator.load_texture("images/abilities/beng.png")?; 
+		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
 
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
 		let mut bullet_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		
 		bullet_textures.push(bullet);
 		bullet_textures.push(fireball);
+		bullet_textures.push(enemy_bullet);
 
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		crate_textures.push(crate_texture);
@@ -219,7 +220,7 @@ impl Game for ROGUELIKE  {
 				.pressed_scancodes()
 				.filter_map(Keycode::from_scancode)
 				.collect();
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player)?;
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg)?;
 
 			// UPDATE BACKGROUND
 			ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
@@ -237,7 +238,7 @@ impl Game for ROGUELIKE  {
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
-			ROGUELIKE::draw_player_projectile(self,  &bullet_textures,  &player)?;	
+			ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, fps_avg)?;	
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
 			// UPDATE INTERACTABLES
@@ -382,7 +383,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player)-> Result<(), String>  {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
@@ -412,15 +413,18 @@ impl ROGUELIKE {
 			if !player.is_firing && player.get_mana() > 0 {
 				let p_type = ProjectileType::Bullet;
 				
-				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type);
+				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
 				self.game_data.player_projectiles.push(b);
 			}
 		}
 		//ability
 		if keystate.contains(&Keycode::F){
 			if !player.is_firing && player.get_mana() > 0 {
+				let now = Instant::now();
+				let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
+
 				let p_type = ProjectileType::Fireball;
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
+				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type, elapsed);
 				self.game_data.player_projectiles.push(bullet);
 			}
 			//println!("you found the easter egg");
@@ -542,7 +546,7 @@ impl ROGUELIKE {
 	}
 
 	// draw player projectiles
-	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player)-> Result<(), String>  {
+	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player, fps_avg: f64)-> Result<(), String>  {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				match projectile.p_type{
@@ -550,7 +554,22 @@ impl ROGUELIKE {
 						self.core.wincan.copy(&bullet_textures[0], projectile.src(), projectile.offset_pos(player)).unwrap();
 					}
 					ProjectileType::Fireball=>{
-						self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.offset_pos(player)).unwrap();
+						let time = projectile.elapsed;
+						let row = 6;
+						let col = 5;
+
+						let s = ROGUELIKE::display_animation(time, 4, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
+						
+						if player.facing_right == false && time == 0{
+							projectile.facing_right = false;
+						}else if player.facing_right == true && time == 0{
+							projectile.facing_right = true;
+						}
+
+						projectile.elapsed += 1;
+						//self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.offset_pos(player)).unwrap();
+						
+						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.offset_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 
 					}
 				}	
@@ -584,8 +603,24 @@ impl ROGUELIKE {
 	pub fn draw_enemy_projectile(&mut self,bullet_textures: &Vec<Texture> , player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet_textures[0], projectile.src(), projectile.offset_pos(player)).unwrap();
+				self.core.wincan.copy(&bullet_textures[2], projectile.src(), projectile.offset_pos(player)).unwrap();
 			}
 		}
 	}
+
+	pub fn display_animation(start_time: u128, frames: i32, row: i32, col: i32, size: u32) -> Rect {
+		let x = (start_time/frames as u128) as i32;
+		let mut src_x = 0;
+		let mut src_y = 0;
+
+		for i in 0..row{
+			if x < col*(i+1) {//1st line
+				src_x = (x-i*col)*size as i32;
+				src_y = i*size as i32;
+				break
+			}
+		}
+		Rect::new(src_x as i32, src_y as i32, size, size)
+	}
+
 }

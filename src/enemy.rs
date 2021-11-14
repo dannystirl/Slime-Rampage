@@ -402,6 +402,7 @@ pub struct Enemy<'a> {
 								true,
 								vec![x,y],
 								ProjectileType::Bullet,
+								0,//elapsed
 							);
 						game_data.enemy_projectiles.push(bullet);
 						}

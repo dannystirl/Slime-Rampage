@@ -83,8 +83,8 @@ impl<'a> Player<'a> {
 		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
-		let height = TILE_SIZE; // 32;
-		let width = TILE_SIZE; // 32;
+		let height = TILE_SIZE; 
+		let width = TILE_SIZE; 
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30;
 		let mana = 4;
@@ -152,7 +152,7 @@ impl<'a> Player<'a> {
 		// Stay inside the viewing window
 		//self.set_x((self.x() + self.x_vel() as f64));//.clamp(0.0, (xwalls.1 * TILE_SIZE as i32) as f64) as f64);
 		//self.set_y((self.y() + self.y_vel() as f64));//.clamp(0.0, (ywalls.1 * TILE_SIZE as i32) as f64) as f64);
-		
+
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
@@ -177,7 +177,7 @@ impl<'a> Player<'a> {
 					let p_pos = self.pos();
 				
 					if GameData::check_collision(&p_pos, &w_pos) {
-						if DEBUG { 
+						if DEBUG {
 							core.wincan.copy(&hitbox, src, self.cam_pos)?;
 							core.wincan.copy(&hitbox, src, debug_pos)?;
 						}
@@ -346,7 +346,7 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType) -> Projectile {
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType, elapsed: u128) -> Projectile {
 			self.is_firing = true;
 			self.use_mana();
 			self.fire_timer = Instant::now();
@@ -368,12 +368,13 @@ impl<'a> Player<'a> {
 				Rect::new(
 					self.x() as i32,
 					self.y() as i32,
-					TILE_SIZE / 2,
+					(TILE_SIZE*2) / 2,
 					TILE_SIZE / 2,
 				),
 				false,
 				vec![x, y],
 				p_type,
+				elapsed,
 			);
 
 			return bullet;
@@ -493,11 +494,11 @@ impl<'a> Player<'a> {
 							}
 							Direction::Left=>{
 								self.set_x_vel(self.x_vel().clamp(0,100));
-	
+
 							}
 							Direction::Right=>{
 								self.set_x_vel(self.x_vel().clamp(-100,0));
-	
+
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -587,6 +588,3 @@ pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 		else {delta}
 	} else {delta}
 }
-
-
-
