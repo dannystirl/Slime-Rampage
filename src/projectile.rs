@@ -236,12 +236,12 @@ pub struct Projectile{
     pub fn pos(&self) -> Rect {
 		return Rect::new(self.x() as i32, //screen coordinates
 		self.y() as i32,
-		TILE_SIZE / 2, TILE_SIZE / 2);
+		TILE_SIZE_HALF, TILE_SIZE_HALF);
     }
 	pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE / 2, TILE_SIZE / 2);
+		TILE_SIZE_HALF, TILE_SIZE_HALF);
 	}
 	pub fn inc_bounce(&mut self) {
 		self.bounce_counter += 1;

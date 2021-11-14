@@ -3,7 +3,6 @@ use rogue_sdl::{Game, SDLCore};
 
 use std::time::Duration;
 use std::time::Instant;
-//use std::cmp;
 use std::collections::HashSet;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -11,7 +10,6 @@ use sdl2::mouse::{MouseState};
 use sdl2::rect::{Rect, Point};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
-//use sdl2::pixels::Color;
 use rand::Rng;
 
 mod background;
@@ -32,10 +30,7 @@ use crate::background::*;
 use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
-//use crate::gold::*;
-//use crate::room::*;
-//use crate::ui::*;
-//use crate::crateobj::*;
+use crate::map::*;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -69,7 +64,7 @@ impl Game for ROGUELIKE  {
 			), 
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
-		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
+		
 		//let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
 		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
@@ -88,10 +83,11 @@ impl Game for ROGUELIKE  {
 
 		// OBJECT GENERATION
 		let pos = Rect::new(
-		(CAM_W/2 - TILE_SIZE/2 -200 + rng.gen_range(1..10)) as i32,
-		(CAM_H/2 - TILE_SIZE/2) as i32 -200 + rng.gen_range(0..10),
-		TILE_SIZE,
-		TILE_SIZE,);
+			(CAM_W/2 - TILE_SIZE_HALF) as i32 -200 + rng.gen_range(1..10),
+			(CAM_H/2 - TILE_SIZE_HALF) as i32 -200 + rng.gen_range(0..10),
+			TILE_SIZE,
+			TILE_SIZE
+		);
 		
 		if !DEVELOP {
 			self.game_data.crates.push(crateobj::Crate::new(pos));
@@ -115,17 +111,15 @@ impl Game for ROGUELIKE  {
 				CAM_H,
 			),
 		);
-		let mut map_data = map::Map::new(
-			background, 
-		);
+		let mut map_data = map::Map::new(background);
 		map_data.create_map();
 		map_data.print_map(map_data.map);
 
 		// set starting position
-		player.set_x((map_data.starting_position.0 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2) as f64);
-		player.set_y((map_data.starting_position.1 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2) as f64);
+		player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE_CAM) as i32 / 2) as f64);
+		player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE_CAM) as i32 / 2) as f64);
 
-		let mut enemies: Vec<Enemy> = Vec::new();	// Size is max number of enemies
+		let mut enemies: Vec<Enemy> = Vec::new();
 		let mut rngt = Vec::new();
 
 		/* let ghost_tex = texture_creator.load_texture("images/enemies/place_holder_enemy.png")?;
@@ -144,8 +138,8 @@ impl Game for ROGUELIKE  {
 							Rect::new(
 								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-								TILE_SIZE / 2,
-								TILE_SIZE / 2
+								TILE_SIZE,
+								TILE_SIZE
 							),
 							texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
 							EnemyType::Melee,
@@ -160,8 +154,8 @@ impl Game for ROGUELIKE  {
 							Rect::new(
 								w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 								h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-								TILE_SIZE / 2,
-								TILE_SIZE / 2
+								TILE_SIZE,
+								TILE_SIZE
 							),
 							texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
 							EnemyType::Ranged,
@@ -176,8 +170,8 @@ impl Game for ROGUELIKE  {
 							Rect::new(
 								w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 								h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-								TILE_SIZE / 2,
-								TILE_SIZE / 2
+								TILE_SIZE,
+								TILE_SIZE
 							)
 						);
 						self.game_data.crates.push(c);
@@ -219,7 +213,7 @@ impl Game for ROGUELIKE  {
 				.pressed_scancodes()
 				.filter_map(Keycode::from_scancode)
 				.collect();
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player)?;
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, &map_data)?;
 
 			// UPDATE BACKGROUND
 			ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
@@ -245,7 +239,7 @@ impl Game for ROGUELIKE  {
 			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
 			//for c in self.game_data.crates.iter_mut() {
 			//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
-		//	}
+			//}
 
 			// CHECK COLLISIONS
 			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
@@ -382,7 +376,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player)-> Result<(), String>  {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, map_data: &Map)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
@@ -424,6 +418,16 @@ impl ROGUELIKE {
 				self.game_data.player_projectiles.push(bullet);
 			}
 			//println!("you found the easter egg");
+		}
+		if keystate.contains(&Keycode::E){
+			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
+								 map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
+								 TILE_SIZE, TILE_SIZE);
+			let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE, TILE_SIZE);
+			if check_collision(&ppos, &mpos) {
+				println!("c: {} {}", player.x(), player.y());
+				println!("c: {} {}", mpos.x, mpos.y);
+			}
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
@@ -571,11 +575,11 @@ impl ROGUELIKE {
 		} else { angle = - 60.0; }
 		// display weapon
 		if player.facing_right{
-			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y()+(TILE_SIZE/2) as i32, ATTACK_LENGTH, TILE_SIZE);
-			rotation_point = Point::new(0, (TILE_SIZE/2) as i32); //rotation center
+			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y()+(TILE_SIZE_HALF) as i32, ATTACK_LENGTH, TILE_SIZE);
+			rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 		} else{
-			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y()+(TILE_SIZE/2) as i32, ATTACK_LENGTH, TILE_SIZE);
-			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE/2)  as i32); //rotation center
+			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y()+(TILE_SIZE_HALF) as i32, ATTACK_LENGTH, TILE_SIZE);
+			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 			angle = -angle;
 		}
 		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();

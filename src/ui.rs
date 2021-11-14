@@ -106,7 +106,7 @@ impl<'a> UI<'a> {
 			4 => cur_mana = 32 * 0,
 			_ => cur_mana = 32 * 0,
 		}
-		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE / 2, TILE_SIZE / 2);
+		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE_HALF, TILE_SIZE_HALF);
 		mana.set_src(mana_src);
 		core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
 

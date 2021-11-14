@@ -185,7 +185,7 @@ pub struct Enemy<'a> {
 		}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
-						 TILE_SIZE / 2, TILE_SIZE / 2);
+						 TILE_SIZE, TILE_SIZE);
 	}
 
 	 pub fn got_squished(&mut self, w_pos: Rect, c_pos: Rect, c_xvel: f64, c_yvel: f64) -> bool{
@@ -396,8 +396,8 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE/2,
-									TILE_SIZE/2,
+									TILE_SIZE_HALF,
+									TILE_SIZE_HALF,
 								),
 								true,
 								vec![x,y],

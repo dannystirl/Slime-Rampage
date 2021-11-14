@@ -11,9 +11,10 @@ pub struct Map<'a> {
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub numbered_map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub num_rooms: i32, 
-	pub starting_position: (i32,i32), 
 	pub starting_room: i32, 
+	pub starting_position: (f64,f64), 
 	pub ending_room: i32, 
+	pub ending_position: (i32,i32), 
 	pub enemy_and_object_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 }
 
@@ -23,17 +24,20 @@ impl<'a> Map<'a> {
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let num_rooms=1; 
 		let starting_room = 1;
-		let starting_position = (0,0);
+		let starting_position = (0.0,0.0);
 		let ending_room = 2;
+		let ending_position = (0,0);
 		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+
 		Map {
 			background, 
 			map, 
 			numbered_map, 
 			num_rooms, 
-			starting_position, 
 			starting_room, 
+			starting_position, 
 			ending_room, 
+			ending_position, 
 			enemy_and_object_spawns, 
 		}
 	}
@@ -417,7 +421,7 @@ impl<'a> Map<'a> {
 				// Add upstairs (3)
 				if stairs_added == 0 {			
 					new_map[h][w] = 3;
-					self.starting_position = (w as i32, h as i32);
+					self.starting_position = (w as f64, h as f64);
 					self.starting_room = self.numbered_map[h][w];
 					stairs_added += 1;
 				}
@@ -428,6 +432,7 @@ impl<'a> Map<'a> {
 					}
 					else {
 						new_map[h][w] = 4;
+						self.ending_position = (w as i32, h as i32);
 						self.ending_room = self.numbered_map[h][w];
 						stairs_added += 1;
 					}
