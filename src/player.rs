@@ -368,7 +368,7 @@ impl<'a> Player<'a> {
 				Rect::new(
 					self.x() as i32,
 					self.y() as i32,
-					TILE_SIZE / 2,
+					(TILE_SIZE*2) / 2,
 					TILE_SIZE / 2,
 				),
 				false,

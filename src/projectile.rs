@@ -22,6 +22,7 @@ pub struct Projectile{
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
 	pub elapsed: u128,
+	
 }
 
 

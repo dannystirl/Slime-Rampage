@@ -70,13 +70,10 @@ impl Game for ROGUELIKE  {
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
 		// INITIALIZE ARRAY OF ENEMIES (SHOULD BE MOVED TO room.rs WHEN CREATED)
-		//let laser = texture_creator.load_texture("images/abilities/laser blast.png")?;
-		//let fire_texture = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		//let fireball = texture_creator.load_texture("images/abilities/beng.png")?; 
-		//let fireball = texture_creator.load_texture("images/abilities/test.png")?;
-		let fireball = texture_creator.load_texture("images/abilities/new_fireball.png")?;
+		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
 
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
 		let mut bullet_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
@@ -558,14 +555,21 @@ impl ROGUELIKE {
 					}
 					ProjectileType::Fireball=>{
 						let time = projectile.elapsed;
-						let row = 5;
+						let row = 6;
 						let col = 5;
-						//println!("{}", x);
-						let s = ROGUELIKE::display_animation(time, 5, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
+
+						let s = ROGUELIKE::display_animation(time, 4, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
 						
+						if player.facing_right == false && time == 0{
+							projectile.facing_right = false;
+						}else if player.facing_right == true && time == 0{
+							projectile.facing_right = true;
+						}
+
 						projectile.elapsed += 1;
 						//self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.offset_pos(player)).unwrap();
-						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.offset_pos(player), 0.0, None, !player.facing_right, false).unwrap();
+						
+						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.offset_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 
 					}
 				}	
@@ -611,7 +615,7 @@ impl ROGUELIKE {
 
 		for i in 0..row{
 			if x < col*(i+1) {//1st line
-				src_x = (x-i*row)*size as i32;
+				src_x = (x-i*col)*size as i32;
 				src_y = i*size as i32;
 				break
 			}
