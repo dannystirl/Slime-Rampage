@@ -14,15 +14,18 @@ pub struct Power {
     pos: Rect,
     src: Rect,
     power_type: PowerType,
+    collected: bool,
 }
 
 impl Power {
     pub fn new(pos: Rect, power_type: PowerType) -> Power {
         let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+        let collected = false;
         Power {
             pos,
             src,
             power_type,
+            collected,
         }
     }
 
@@ -40,6 +43,14 @@ impl Power {
 
     pub fn src(&self) -> Rect {
         self.src
+    }
+
+    pub fn collected(&self) -> bool {
+        self.collected
+    }
+
+    pub fn set_collected(&mut self) {
+        self.collected = true;
     }
 
     pub fn power_type(&self) -> &PowerType {

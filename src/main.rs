@@ -11,7 +11,7 @@ use sdl2::mouse::{MouseState};
 use sdl2::rect::{Rect, Point};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
-//use sdl2::pixels::Color;
+use sdl2::pixels::Color;
 use rand::Rng;
 
 mod background;
@@ -388,17 +388,19 @@ impl ROGUELIKE {
 		}
 
 		for p in self.game_data.dropped_powers.iter_mut() {
-			let pos = Rect::new(p.x() as i32 + (CENTER_W - player.x() as i32),
-								p.y() as i32 + (CENTER_H - player.y() as i32),
-								TILE_SIZE, TILE_SIZE);
-			match p.power_type() {
-				PowerType::Fireball => {
-					self.core.wincan.copy_ex(&fireball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
-				},
-				PowerType::Slimeball => {
-					self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
-				},
-				_ => {},
+			if !p.collected() {
+				let pos = Rect::new(p.x() as i32 + (CENTER_W - player.x() as i32),
+									p.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+				match p.power_type() {
+					PowerType::Fireball => {
+						self.core.wincan.copy_ex(&fireball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					PowerType::Slimeball => {
+						self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					_ => {},
+				}
 			}
 		}
 	}
@@ -431,21 +433,43 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			if !player.is_firing && player.get_mana() > 0 {
-				let p_type = ProjectileType::Bullet;
-				
-				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type);
-				self.game_data.player_projectiles.push(b);
+			match player.get_power() {
+				PowerType::Fireball => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let p_type = ProjectileType::Fireball;
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
+						self.game_data.player_projectiles.push(bullet);
+					}
+				},
+				PowerType::Slimeball => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let p_type = ProjectileType::Bullet;
+						
+						let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type);
+						self.game_data.player_projectiles.push(b);
+					}
+				},
+				_ => {},
 			}
 		}
-		//ability
-		if keystate.contains(&Keycode::F){
-			if !player.is_firing && player.get_mana() > 0 {
-				let p_type = ProjectileType::Fireball;
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type);
-				self.game_data.player_projectiles.push(bullet);
+		// Absorb power
+		if keystate.contains(&Keycode::E) {
+			if player.can_pickup() {
+				for drop in self.game_data.dropped_powers.iter_mut() {
+					if check_collision(&player.pos(), &drop.pos()) {
+						drop.set_collected();
+						match drop.power_type() {
+							PowerType::Fireball => {
+								player.set_power(PowerType::Fireball);
+							},
+							PowerType::Slimeball => {
+								player.set_power(PowerType::Slimeball);
+							},
+							_ => {}
+						}
+					}
+				}
 			}
-			//println!("you found the easter egg");
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
@@ -538,6 +562,15 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		let mut can_pickup = false;
+		for drop in self.game_data.dropped_powers.iter_mut() {
+			if check_collision(&player.pos(), &drop.pos()) {
+				if !drop.collected() {
+					can_pickup = true;
+				}
+			}
+		}
+		player.set_can_pickup(can_pickup);
 		//check collision between crates and player
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
