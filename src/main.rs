@@ -197,7 +197,6 @@ impl Game for ROGUELIKE  {
                     	    EnemyType::Melee,
                     		enemy_count,
                     	);
-                    	enemies.push(e);
                     	rngt.push(rng.gen_range(1..5));
                     	enemy_count += 1;
                     }
