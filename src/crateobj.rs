@@ -30,7 +30,7 @@ impl Crate {
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos); //hitbox
+		let rb = Rigidbody::new(pos, true); //hitbox
 
         Crate{
             pos,
@@ -46,7 +46,7 @@ impl Crate {
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos);
+		let rb = Rigidbody::new(pos, true);
 		Crate{
 			pos,
 			src,

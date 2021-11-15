@@ -2,6 +2,7 @@ extern crate rogue_sdl;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 
+/*
 pub struct Pointf{
     pub x: f64,
     pub y: f64,
@@ -18,21 +19,22 @@ pub struct Pointf{
     }
 
 }
+ */
 
 pub struct Rigidbody{
-    pos: Rect,
-    vel: (f64, f64),
-    //mass: f64,
+    pos: Rect,          //world position of the body
+    vel: (f64, f64),    //velocity vector
+    dynamic: bool,      //can the body move
 }
 
 #[allow(dead_code)]
 impl Rigidbody{
-
-    pub fn new(pos: Rect)->Rigidbody{
+    pub fn new(pos: Rect, dynamic: bool)->Rigidbody{
         let vel = (0.0,0.0);
         Rigidbody{
             pos,
             vel,
+            dynamic,
         }
     }
     
@@ -41,6 +43,7 @@ impl Rigidbody{
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }
 
+    /*
     pub fn ray_vs_rect(&self, origin : Pointf , dir : Pointf, other : Rect, hit_near : f64){
        let contact = Pointf::new(0.0,0.0);
        let normal = Pointf::new(0.0,0.0);
@@ -49,6 +52,7 @@ impl Rigidbody{
        let inverse_dir = Pointf::new(inverse_x, inverse_y);
         
     }
+     */
     pub fn rect_vs_rect(&self, other :&Rect)->bool{// Stolen from farnans code
         
             if self.pos.bottom() < other.top()
