@@ -18,6 +18,7 @@ use crate::power::PowerType;
 pub enum EnemyType{
 	Melee,
 	Ranged,
+	Skeleton,
 }
 pub struct Enemy<'a> {
 	vel_x: f64,
@@ -142,6 +143,9 @@ pub struct Enemy<'a> {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit());}
 				EnemyType::Ranged =>{
 					self.flee(x.into(), y.into(), game_data.get_speed_limit());
+				}
+				EnemyType::Skeleton=>{
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
 				}
 			}
 		}
@@ -415,6 +419,7 @@ pub struct Enemy<'a> {
 			EnemyType::Melee=>{
 
 			}
+			EnemyType::Skeleton=>{}
 		}
 	}
 

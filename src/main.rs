@@ -194,7 +194,7 @@ impl Game for ROGUELIKE  {
                     			TILE_SIZE
                     		),
                     		texture_creator.load_texture("images/enemies/Shield_skeleton.png")?,
-                    	    EnemyType::Melee,
+                    	    EnemyType::Skeleton,
                     		enemy_count,
                     	);
                     	enemies.push(e);
@@ -554,7 +554,16 @@ impl ROGUELIKE {
 			// player melee collisions
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
-					enemy.knockback(player.x().into(), player.y().into());
+					match enemy.enemy_type {
+						EnemyType::Melee =>{
+							enemy.knockback(player.x().into(), player.y().into());
+						}
+						EnemyType::Ranged =>{
+							enemy.knockback(player.x().into(), player.y().into());
+						}
+						EnemyType::Skeleton=>{}
+					}
+						
 					enemy.minus_hp(1);
 				}
 			}
