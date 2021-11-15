@@ -1,5 +1,5 @@
 pub const DEVELOP: bool = false; 
-pub const DEBUG: bool = true; 
+pub const DEBUG: bool = false; 
 
 use rand::Rng;
 use sdl2::rect::Rect;
@@ -20,7 +20,7 @@ pub const TILE_SIZE_64: u32 = 64;                       // tile sizes are all 64
 
 pub const TILE_SIZE: u32 = 64;                          // sprite sizes vary 
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;            // generic half tile size
-pub const TILE_SIZE_CAM: u32 = TILE_SIZE_HALF;               // cam position 
+pub const TILE_SIZE_CAM: u32 = TILE_SIZE;               // cam position 
 pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;  // hitboxes are slightly smaller than visual hitboxes
 
 pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;
@@ -47,7 +47,6 @@ pub const FIRE_COOLDOWN_P: u128 = 300;
 pub const MANA_RESTORE_RATE: u128 = 1000;
 
 // enemy globals
-pub const STUN_TIME: u128 = 500;
 pub const FIRE_COOLDOWN_E: u128 = 2500;
 
 pub struct GameData {

@@ -18,6 +18,7 @@ use crate::power::PowerType;
 pub enum EnemyType{
 	Melee,
 	Ranged,
+	Skeleton,
 }
 pub struct Enemy<'a> {
 	vel_x: f64,
@@ -25,8 +26,11 @@ pub struct Enemy<'a> {
 	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
+	pub stun_time: u128, 
 	stun_timer: Instant,
 	fire_timer: Instant,
+	damage_timer: Instant,
+	invincible: bool,
 	knockback_vel: f64,
 	angle: f64,
 	pub has_money: bool,
@@ -42,13 +46,15 @@ pub struct Enemy<'a> {
 }
 
  impl<'a> Enemy<'a> {
-	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, num: usize) -> Enemy<'a> {
+	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, enemy_number: usize) -> Enemy<'a> {
 		let vel_x = 0.0;
 		let vel_y = 0.0;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
-		let knockback_vel = 0.0;
+		let damage_timer = Instant::now();
+		let invincible = true;
+		let knockback_vel: f64; 
 		let angle = 0.0;
 		let x_flipped = false;
 		let has_money = true;
@@ -56,18 +62,27 @@ pub struct Enemy<'a> {
 		let facing_right = false;
 		let is_stunned = false;
 		let is_firing =false;
-		let hp = 10;
 		let alive = true;
-		let enemy_type = enemy_type;
-		let enemy_number = num;
+
+		let hp: i32;
+		let stun_time: u128; 
+		match enemy_type {
+			EnemyType::Melee => { stun_time = 500; hp = 15; knockback_vel = 20.0; }
+			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; } 
+			EnemyType::Skeleton => { stun_time = 100; hp = 30;knockback_vel = 3.0;  }
+		}
+
 		Enemy {
 			vel_x,
 			vel_y,
 			pos,
 			src,
 			txtre,
+			stun_time, 
 			stun_timer,
 			fire_timer,
+			damage_timer,
+			invincible,
 			knockback_vel,
 			angle,
 			has_money,
@@ -130,7 +145,7 @@ pub struct Enemy<'a> {
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
 	
 		// aggro / move
-		if self.get_stun_timer() > STUN_TIME {
+		if self.get_stun_timer() > self.stun_time {
 			self.set_stunned(false);
 		} 
 		// distance should be very close to number of tiles
@@ -142,6 +157,9 @@ pub struct Enemy<'a> {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit());}
 				EnemyType::Ranged =>{
 					self.flee(x.into(), y.into(), game_data.get_speed_limit());
+				}
+				EnemyType::Skeleton=>{
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
 				}
 			}
 		}
@@ -298,22 +316,8 @@ pub struct Enemy<'a> {
 			y *= -1.0;
 			self.y_flipped = true;
 		}
-		/* if self.x_flipped {
-			self.set_x_vel((-self.x_vel() + x).clamp(-10.0, 10.0));
-		} else {
-			self.set_x_vel((self.x_vel() + x).clamp(-10.0, 10.0));
-		}
-		if self.y_flipped {
-			self.set_y_vel((self.y_vel() + y).clamp(-10.0, 10.0));
-		} else {
-			self.set_y_vel((self.y_vel() + y).clamp(-10.0, 10.0));
-		} */
-		/* self.pos.set_x((self.x() + x) as i32);
-		self.pos.set_y((self.y() + y) as i32); */
-		self.set_x_vel((self.x_vel() + x).clamp(-20.0, 20.0));
-		self.set_y_vel((self.y_vel() + y).clamp(-20.0, 20.0));
-		// self.pos.set_x(((self.x() + x) as i32).clamp(x_bounds.0, x_bounds.1));
-		// self.set_y_vel((self.y_vel() + y).clamp(-SPEED_LIMIT, SPEED_LIMIT));
+		self.set_x_vel((self.x_vel() + x).clamp(-self.knockback_vel, self.knockback_vel));
+		self.set_y_vel((self.y_vel() + y).clamp(-self.knockback_vel, self.knockback_vel));
 		self.stun_timer = Instant::now();
 	}
 
@@ -410,6 +414,7 @@ pub struct Enemy<'a> {
 			EnemyType::Melee=>{
 
 			}
+			EnemyType::Skeleton=>{}
 		}
 	}
 
@@ -443,12 +448,25 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: i32) {
+		self.set_invincible(); 
+		if self.invincible {
+			return;
+		}
+		self.damage_timer = Instant::now();
 		self.hp -= dmg;
-
 		if self.hp <= 0 {
 			self.die();
 		}
 	}
+
+	pub fn set_invincible(&mut self){
+		if self.damage_timer.elapsed().as_millis() < self.stun_time {
+			self.invincible = true;
+		} else {
+			self.invincible = false;
+		}
+	}
+
 
 	pub fn drop_item(&mut self) -> Gold {
 		let coin = gold::Gold::new(
