@@ -10,8 +10,11 @@ use std::time::Instant;
 use sdl2::render::Texture;
 use rand::Rng;
 use crate::{gold};
+use crate::{power};
 //use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
+use crate::power::Power;
+use crate::power::PowerType;
 pub enum EnemyType{
 	Melee,
 	Ranged,
@@ -185,7 +188,7 @@ pub struct Enemy<'a> {
 		}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
-						 TILE_SIZE / 2, TILE_SIZE / 2);
+						 TILE_SIZE, TILE_SIZE);
 	}
 
 	 pub fn got_squished(&mut self, w_pos: Rect, c_pos: Rect, c_xvel: f64, c_yvel: f64) -> bool{
@@ -396,12 +399,13 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE/2,
-									TILE_SIZE/2,
+									TILE_SIZE,
+									TILE_SIZE,
 								),
 								true,
 								vec![x,y],
 								ProjectileType::Bullet,
+								0,//elapsed
 							);
 						game_data.enemy_projectiles.push(bullet);
 						}
@@ -451,18 +455,58 @@ pub struct Enemy<'a> {
 		}
 	}
 
-	 pub fn drop_item(&mut self) -> Gold {
-		 let coin = gold::Gold::new(
-			 Rect::new(
-				 self.x() as i32,
-				 self.y() as i32,
-				 TILE_SIZE,
-				 TILE_SIZE,
-			 ),
-		 );
-		 self.set_no_gold();
-		 return coin;
-	 }
+	pub fn drop_item(&mut self) -> Gold {
+		let coin = gold::Gold::new(
+			Rect::new(
+				self.x() as i32,
+				self.y() as i32,
+				TILE_SIZE,
+				TILE_SIZE,
+			),
+		);
+		self.set_no_gold();
+		return coin;
+	}
+
+	pub fn drop_power(&mut self) -> Power {
+		let power;
+		match self.enemy_type {
+			EnemyType::Melee => {
+				power = power::Power::new(
+					Rect::new(
+						self.x() as i32,
+						self.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					PowerType::Fireball,
+				);
+			},
+			EnemyType::Ranged => {
+				power = power::Power::new(
+					Rect::new(
+						self.x() as i32,
+						self.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					PowerType::Slimeball,
+				);
+			},
+			_ => {
+				power = power::Power::new(
+					Rect::new(
+						self.x() as i32,
+						self.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					PowerType::None,
+				);
+			}
+		}
+		return power;
+	}
 
 	pub fn die(&mut self){
 		// Set death animation when created

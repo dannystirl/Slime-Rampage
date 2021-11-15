@@ -7,6 +7,7 @@ use crate::SDLCore;
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use crate::player::*;
+use crate::power::*;
 use sdl2::pixels::Color;
 
 pub struct UI<'a>{
@@ -54,7 +55,7 @@ impl<'a> UI<'a> {
 		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
 		core.wincan.copy(&ui, src, pos)?;
 		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
-		let get_font = ttf_creator.load_font("font/comic_sans.TTF", 80)?;
+		let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
 
 		//create hearts
 		let mut i=0;
@@ -106,7 +107,7 @@ impl<'a> UI<'a> {
 			4 => cur_mana = 32 * 0,
 			_ => cur_mana = 32 * 0,
 		}
-		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE / 2, TILE_SIZE / 2);
+		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE_HALF, TILE_SIZE_HALF);
 		mana.set_src(mana_src);
 		core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
 
@@ -118,9 +119,14 @@ impl<'a> UI<'a> {
 		s += "/";
 		s += &a;
 
-		//display string next to mana
+		// Display helper text for absorption
+		if player.can_pickup() {
+			let absorb_help = get_font.render("[E]: Absorb Power").blended(Color::WHITE).unwrap();
+			let display_absorb_help = texture_creator.create_texture_from_surface( &absorb_help ).unwrap();
+			core.wincan.copy(&display_absorb_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+		}
 
-		//display equipped waepon
+		//display equipped weapon
 		match player.weapon{
 			Weapon::Sword=>{ 
 				let weapon = UI::new(
@@ -136,20 +142,35 @@ impl<'a> UI<'a> {
 			}
 			
 		}
-	match player.ability{
-		Ability::Bullet=>{
-		let ui_ability = UI::new(
-				Rect::new(
-					(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*6) as i32,
-					(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
-					(TILE_SIZE as f64 * 1.2) as u32,
-					(TILE_SIZE as f64 * 1.2) as u32,
-				),
-				texture_creator.load_texture("images/abilities/bullet.png")?,
-			);
-			core.wincan.copy(ui_ability.texture(), ui_ability.src(),ui_ability.pos())?;
+		
+		// Display current power
+		match player.get_power() {
+			PowerType::Fireball => {
+				let ui_ability = UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*6) as i32,
+						(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+						(TILE_SIZE as f64 * 1.2) as u32,
+						(TILE_SIZE as f64 * 1.2) as u32,
+					),
+					texture_creator.load_texture("images/abilities/fireball_pickup.png")?,
+				);
+				core.wincan.copy(ui_ability.texture(), ui_ability.src(),ui_ability.pos())?;
+			},
+			PowerType::Slimeball => {
+				let ui_ability = UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE as f64 * 1.2) as u32)*6) as i32,
+						(CAM_H-(TILE_SIZE as f64 * 1.2) as u32) as i32,
+						(TILE_SIZE as f64 * 1.2) as u32,
+						(TILE_SIZE as f64 * 1.2) as u32,
+					),
+					texture_creator.load_texture("images/abilities/slimeball_pickup.png")?,
+				);
+				core.wincan.copy(ui_ability.texture(), ui_ability.src(), ui_ability.pos())?;
+			},
+			_ => {},
 		}
-	}
 	
 		// create coins
 		let coin = UI::new(
@@ -165,7 +186,6 @@ impl<'a> UI<'a> {
 		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
 		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) )?;
-																//(text to display, src(none), (positionx, positiony, sizex, sizey))
 		Ok(())
 	}
 }

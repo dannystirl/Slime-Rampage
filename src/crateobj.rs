@@ -17,7 +17,6 @@ pub struct Crate{
 	src: Rect,
 	vel: (f64,f64),
 	velocity: Vec<f64>,
-
 	acceleration: Vec<f64>,
 	rb:  Rigidbody,
 }
@@ -109,46 +108,40 @@ impl Crate {
 
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-			// println!("{}, {}", c.velocity[0], c.velocity[1]);
-			let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
-			let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
-			let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
+		// println!("{}, {}", c.velocity[0], c.velocity[1]);
+		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
+		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
+		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 
-			for h in 0..(CAM_H / TILE_SIZE) + 1 {
-				for w in 0..(CAM_W / TILE_SIZE) + 1 {
-					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);
+		for h in 0..(CAM_H / TILE_SIZE) + 1 {
+			for w in 0..(CAM_W / TILE_SIZE) + 1 {
+				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);
 
-					/*let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32,// - (CENTER_W - self.x() as i32),
-					(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32,// - (CENTER_H - self.y() as i32),
-					TILE_SIZE, TILE_SIZE);*/
-					if h as i32 + h_bounds_offset < 0 ||
-					w as i32 + w_bounds_offset < 0 ||
-					h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-					w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-						continue;
-					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						//let p_pos = self.offset_pos(&player);
-						let p_pos = self.pos();//this kind of works?
-						if GameData::check_collision(&p_pos, &w_pos) {
-							
-							//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
-							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
-						}
+				/*let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32,// - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32,// - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);*/
+				if h as i32 + h_bounds_offset < 0 ||
+				w as i32 + w_bounds_offset < 0 ||
+				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					continue;
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+					let p_pos = self.pos();//this kind of works?
+					if GameData::check_collision(&p_pos, &w_pos) {
+						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
+						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 					}
 				}
 			}
-			
-			self.resolve_col(&collisions);
-
-			self.set_x(self.x() + self.velocity[0] as i32);
-			self.set_y(self.y() + self.velocity[1] as i32);
-			self.set_rb();
-			//core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
-			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
-		
+		}
+		self.resolve_col(&collisions);
+		self.set_x(self.x() + self.velocity[0] as i32);
+		self.set_y(self.y() + self.velocity[1] as i32);
+		self.set_rb();
+		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
@@ -288,7 +281,7 @@ impl Crate {
 	pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
 		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE / 2, TILE_SIZE / 2);
+		TILE_SIZE_HALF, TILE_SIZE_HALF);
 	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
