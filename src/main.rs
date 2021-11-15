@@ -555,7 +555,15 @@ impl ROGUELIKE {
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut() {
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
-					enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+					match enemy.enemy_type {
+						EnemyType::Melee =>{
+							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+						}
+						EnemyType::Ranged =>{
+							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+						}
+						EnemyType::Skeleton=>{}
+					}
 					enemy.minus_hp(projectile.damage);
 					projectile.die();
 				}
@@ -565,15 +573,6 @@ impl ROGUELIKE {
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into());
-					/* match enemy.enemy_type {
-						EnemyType::Melee =>{
-							enemy.knockback(player.x().into(), player.y().into());
-						}
-						EnemyType::Ranged =>{
-							enemy.knockback(player.x().into(), player.y().into());
-						}
-						EnemyType::Skeleton=>{}
-					} */
 					enemy.minus_hp(2);
 				}
 			}
