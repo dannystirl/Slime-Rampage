@@ -8,6 +8,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
 
@@ -60,6 +61,8 @@ pub struct Player<'a> {
 	mana_timer: Instant,
 	texture_all: Texture<'a>,
 	invincible: bool,
+	power: PowerType,
+	can_pickup: bool,
 	pub facing_right: bool,
 	pub hp: u32,
 	pub mana: i32,
@@ -98,6 +101,8 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let invincible = true;
+		let power = PowerType::None;
+		let can_pickup = false;
 		let weapon_frame=0;
 		let coins = 0;
 		let weapon = Weapon::Sword;
@@ -117,6 +122,8 @@ impl<'a> Player<'a> {
 			damage_timer,
 			mana_timer,
 			invincible,
+			power,
+			can_pickup,
 			texture_all,
 			facing_right,
 			hp,
@@ -400,7 +407,21 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
+	pub fn get_power(&self) -> &PowerType {
+		&self.power
+	}
 
+	pub fn set_power(&mut self, power: PowerType) {
+		self.power = power;
+	}
+
+	pub fn can_pickup(&self) -> bool {
+		self.can_pickup
+	}
+
+	pub fn set_can_pickup(&mut self, can: bool) {
+		self.can_pickup = can;
+	}
 
 	// heatlh values
 	pub fn get_hp(&self) -> u32 {

@@ -6,6 +6,7 @@ use sdl2::rect::Rect;
 use std::time::Instant;
 
 use crate::gold::*;
+use crate::power::*;
 use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
@@ -54,6 +55,7 @@ pub struct GameData {
     accel_rate: f64,
 
     pub gold: Vec<Gold>,
+    pub dropped_powers: Vec<Power>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
     pub crates: Vec<Crate>,
@@ -81,6 +83,7 @@ impl GameData {
 
         // objects
         let gold: Vec<Gold> = Vec::with_capacity(5);
+        let dropped_powers: Vec<Power> = Vec::new();
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
@@ -91,6 +94,7 @@ impl GameData {
             frame_counter, 
             current_room,
             gold,
+            dropped_powers,
             player_projectiles,
             enemy_projectiles,
             rooms,

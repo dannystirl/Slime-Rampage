@@ -17,6 +17,7 @@ mod credits;
 mod enemy;
 mod gamedata;
 mod gold;
+mod power;
 mod player;
 mod projectile;
 mod room;
@@ -30,6 +31,11 @@ use crate::background::*;
 use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
+use crate::power::*;
+//use crate::gold::*;
+//use crate::room::*;
+//use crate::ui::*;
+//use crate::crateobj::*;
 use crate::map::*;
 
 pub struct ROGUELIKE {
@@ -84,8 +90,8 @@ impl Game for ROGUELIKE  {
 		crate_textures.push(crate_texture);
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
-
-		// weapon textures
+		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
+		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
 		if DEVELOP {
@@ -200,74 +206,63 @@ impl Game for ROGUELIKE  {
 					}
 				}
 				// fps calculations
-				let mut fps_avg: f64 = 60.0; 
-				all_frames += 1;
-				let elapsed = last_time.elapsed();
-				if elapsed > Duration::from_secs(1) {
-					fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-					self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
-					self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
-				}
-				// reset frame values
-				player.set_x_delta(0);
-				player.set_y_delta(0);
-				self.core.wincan.copy(&map_data.background.black, None, None)?;
+			let mut fps_avg: f64 = 60.0; 
+			all_frames += 1;
+			let elapsed = last_time.elapsed();
+			if elapsed > Duration::from_secs(1) {
+				fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
+				self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
+				self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
+			}
+			// reset frame values
+			player.set_x_delta(0);
+			player.set_y_delta(0);
+			self.core.wincan.copy(&map_data.background.black, None, None)?;
 
-				// GET INPUT
-				let mousestate= self.core.event_pump.mouse_state();
-				let keystate: HashSet<Keycode> = self.core.event_pump
-					.keyboard_state()
-					.pressed_scancodes()
-					.filter_map(Keycode::from_scancode)
-					.collect();
-				if keystate.contains(&Keycode::E){
-					let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
-					map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
-					TILE_SIZE, TILE_SIZE);
-					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE, TILE_SIZE);
-					if check_collision(&ppos, &mpos) {
-						println!("c: {} {}", player.x(), player.y());
-						println!("c: {} {}", mpos.x, mpos.y);
-						break 'level
-					}
-				}
-				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &map_data)?;
+			// GET INPUT
+			let mousestate= self.core.event_pump.mouse_state();
+			let keystate: HashSet<Keycode> = self.core.event_pump
+				.keyboard_state()
+				.pressed_scancodes()
+				.filter_map(Keycode::from_scancode)
+				.collect();
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &map_data)?;
 
-				// UPDATE BACKGROUND
-				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
+			// UPDATE BACKGROUND
+			ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
 
-				// UPDATE PLAYER
-				player.update_player(&self.game_data, map_data.map, &mut self.core)?;
-				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
+			// UPDATE PLAYER
+			player.update_player(&self.game_data, map_data.map, &mut self.core)?;
+			ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
 
-				// UPDATE ENEMIES
-				if elapsed > Duration::from_secs(2) {
-					rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
-				}
-				//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
-				// UPDATE ATTACKS
-				// Should be switched to take in array of active fireballs, bullets, etc.
-				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-				ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
-				ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, fps_avg)?;	
-				ROGUELIKE::draw_weapon(self, &player,&sword);
-				
-				// UPDATE INTERACTABLES
-				// function to check explosive barrels stuff like that should go here. placed for ordering.
-				ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
-				//for c in self.game_data.crates.iter_mut() {
-				//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
-				//}
+			// UPDATE ENEMIES
+			if elapsed > Duration::from_secs(2) {
+				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
+			}
+			//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
+			// UPDATE ATTACKS
+			// Should be switched to take in array of active fireballs, bullets, etc.
+			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
+			ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
+			ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, mousestate)?;	
+			ROGUELIKE::draw_weapon(self, &player,&sword);
+			
+			// UPDATE INTERACTABLES
+			// function to check explosive barrels stuff like that should go here. placed for ordering.
+			ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
+			//for c in self.game_data.crates.iter_mut() {
+			//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
+			//}
 
-				// CHECK COLLISIONS
-				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
-				if player.is_dead(){break 'gameloop;}
+			// CHECK COLLISIONS
+			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
+			if player.is_dead(){break 'gameloop;}
 
-				// UPDATE UI
-				ui.update_ui( &player, &mut self.core)?;
-				
-				// UPDATE FRAME
-				self.core.wincan.present();
+			// UPDATE UI
+			ui.update_ui( &player, &mut self.core)?;
+			
+			// UPDATE FRAME
+			self.core.wincan.present();
 			}
 		}
 		self.game_data.current_floor += 1;
@@ -377,12 +372,15 @@ impl ROGUELIKE {
 		}
 	}
 	
-	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) {
+	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture,
+						fireball_texture: &Texture, slimeball_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
 				let drop = enemy.drop_item();
+				let dropped_power = enemy.drop_power();
 				self.game_data.gold.push(drop);
+				self.game_data.dropped_powers.push(dropped_power);
 			}
 		}
 		// draw uncollected coins
@@ -392,6 +390,23 @@ impl ROGUELIKE {
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
+			}
+		}
+
+		for p in self.game_data.dropped_powers.iter_mut() {
+			if !p.collected() {
+				let pos = Rect::new(p.x() as i32 + (CENTER_W - player.x() as i32),
+									p.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+				match p.power_type() {
+					PowerType::Fireball => {
+						self.core.wincan.copy_ex(&fireball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					PowerType::Slimeball => {
+						self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					_ => {},
+				}
 			}
 		}
 	}
@@ -424,24 +439,46 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			if !player.is_firing && player.get_mana() > 0 {
-				let p_type = ProjectileType::Bullet;
-				
-				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
-				self.game_data.player_projectiles.push(b);
-			}
-		}
-		//ability
-		if keystate.contains(&Keycode::F){
-			if !player.is_firing && player.get_mana() > 0 {
-				let now = Instant::now();
+			match player.get_power() {
+				PowerType::Fireball => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let now = Instant::now();
 				let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
 
 				let p_type = ProjectileType::Fireball;
 				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type, elapsed);
 				self.game_data.player_projectiles.push(bullet);
+					}
+				},
+				PowerType::Slimeball => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let p_type = ProjectileType::Bullet;
+						
+						let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
+						self.game_data.player_projectiles.push(b);
+					}
+				},
+				_ => {},
 			}
-			//println!("you found the easter egg");
+		}
+		// Absorb power
+		if keystate.contains(&Keycode::E) {
+			if player.can_pickup() {
+				for drop in self.game_data.dropped_powers.iter_mut() {
+					if check_collision(&player.pos(), &drop.pos()) {
+						drop.set_collected();
+						match drop.power_type() {
+							PowerType::Fireball => {
+								player.set_power(PowerType::Fireball);
+							},
+							PowerType::Slimeball => {
+								player.set_power(PowerType::Slimeball);
+							},
+							_ => {}
+						}
+					}
+				}
+			}
 		}
 		if keystate.contains(&Keycode::E){
 			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
@@ -544,6 +581,15 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		let mut can_pickup = false;
+		for drop in self.game_data.dropped_powers.iter_mut() {
+			if check_collision(&player.pos(), &drop.pos()) {
+				if !drop.collected() {
+					can_pickup = true;
+				}
+			}
+		}
+		player.set_can_pickup(can_pickup);
 		//check collision between crates and player
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
@@ -570,7 +616,7 @@ impl ROGUELIKE {
 	}
 
 	// draw player projectiles
-	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player, fps_avg: f64)-> Result<(), String>  {
+	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player, mousestate: MouseState)-> Result<(), String>  {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				match projectile.p_type{
@@ -583,13 +629,20 @@ impl ROGUELIKE {
 						let col = 5;
 
 						let s = ROGUELIKE::display_animation(time, 4, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
-						
-						if player.facing_right == false && time == 0{
-							projectile.facing_right = false;
-						}else if player.facing_right == true && time == 0{
-							projectile.facing_right = true;
+						//println!("mouse: {}", mousestate.x());
+						//println!("player: {}", player.get_cam_pos().x());
+						if mousestate.x() > player.get_cam_pos().x() && time == 0{
+							projectile.facing_right = true;//face right
+						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
+							projectile.facing_right = false;//face left
 						}
-
+						/*
+						if player.facing_right == false && time == 0{
+							projectile.facing_right = false;//face left
+						}else if player.facing_right == true && time == 0{
+							projectile.facing_right = true;//face right
+						}
+						*/
 						projectile.elapsed += 1;
 						//self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
