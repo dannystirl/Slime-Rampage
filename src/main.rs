@@ -184,9 +184,25 @@ impl Game for ROGUELIKE  {
 								)
 							);
 							self.game_data.crates.push(c);
-						}
-						_ => {}
 					}
+					4 => {
+                    	let e = enemy::Enemy::new(
+                    		Rect::new(
+                    			w as i32 * TILE_SIZE as i32/*  - (player.x() % TILE_SIZE as f64) as i32 */ - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+                    			h as i32 * TILE_SIZE as i32/*  - (player.y() % TILE_SIZE as f64) as i32 */ - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+                    			TILE_SIZE,
+                    			TILE_SIZE
+                    		),
+                    		texture_creator.load_texture("images/enemies/Shield_skeleton.png")?,
+                    	    EnemyType::Skeleton,
+                    		enemy_count,
+                    	);
+                    	enemies.push(e);
+                    	rngt.push(rng.gen_range(1..5));
+                    	enemy_count += 1;
+                    }
+					_ => {}
+          }
 				}
 			}
 
@@ -550,7 +566,16 @@ impl ROGUELIKE {
 			// player melee collisions
 			if player.is_attacking {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
-					enemy.knockback(player.x().into(), player.y().into());
+					match enemy.enemy_type {
+						EnemyType::Melee =>{
+							enemy.knockback(player.x().into(), player.y().into());
+						}
+						EnemyType::Ranged =>{
+							enemy.knockback(player.x().into(), player.y().into());
+						}
+						EnemyType::Skeleton=>{}
+					}
+						
 					enemy.minus_hp(1);
 				}
 			}
