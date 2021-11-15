@@ -1,5 +1,5 @@
 pub const DEVELOP: bool = false; 
-pub const DEBUG: bool = false; 
+pub const DEBUG: bool = true; 
 
 use rand::Rng;
 use sdl2::rect::Rect;

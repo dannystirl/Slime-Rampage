@@ -273,12 +273,30 @@ impl<'a> Map<'a> {
 	// 4: connect the finished maze to the rooms
 	pub fn connect_maze(&mut self) {
 		let mut connectors = self.get_connectors(self.map);
-		
 		let mut new_map = self.map;
 
+		// create first door per room
 		while connectors.len() > 0 {
+			print!("\ndoor");
 			let rand_connection = rand::thread_rng().gen_range(0..connectors.len());
 			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 1;
+			// roll for second & third doors
+			if rand::thread_rng().gen_range(0..30) < 15 {
+				print!("\nextra door");
+				let rand_addition: usize; 
+				// attempt to make second door far from the first
+				if rand_connection > connectors.len()/2 {
+					rand_addition = rand::thread_rng().gen_range(0..connectors.len()/2);
+				} else {
+					rand_addition = rand::thread_rng().gen_range(connectors.len()/2..connectors.len());
+				}
+				new_map[connectors[rand_addition].0][connectors[rand_addition].1] = 1;
+				if rand::thread_rng().gen_range(0..30) < 5 {
+					print!("\nextra extra door");
+					let rand_addition = rand::thread_rng().gen_range(0..connectors.len());
+					new_map[connectors[rand_addition].0][connectors[rand_addition].1] = 1;
+				}
+			}
 			new_map = self.coalesce(connectors[rand_connection].2, connectors[rand_connection].3, new_map);
 			connectors = self.get_connectors(new_map);
 		}
@@ -570,7 +588,7 @@ impl<'a> Map<'a> {
 					print!(". ");
 				}
 				// Walls
-				else if map[h][w] == 2{
+				else if map[h][w] == 2 || map[h][w] == 5 {
 					print!("+ ");
 				}
 				// Upstairs

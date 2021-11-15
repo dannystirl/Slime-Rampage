@@ -81,7 +81,7 @@ impl Projectile {
 		return self.is_active;
 	}
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, xbounds:(i32,i32), ybounds: (i32,i32), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
@@ -95,59 +95,40 @@ impl Projectile {
 			}
 		}
 
-		if DEVELOP {
-			if self.x() <= xbounds.0 && self.is_active() {
-				self.set_x_vel( -self.x_vel() );
-				self.inc_bounce();
-			}
-			if self.x() >= xbounds.1 && self.is_active() {
-				self.set_x_vel( -self.x_vel() );
-				self.inc_bounce();
-			}
-			if self.y() <= ybounds.0 && self.is_active() {
-				self.set_y_vel( -self.y_vel() );
-				self.inc_bounce();
-			}
-			if self.y() >= ybounds.1 && self.is_active() {
-				self.set_y_vel( -self.y_vel() );
-				self.inc_bounce();
-			}
-		} else {
-			let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
-			let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
-			let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
-	
-			for h in 0..(CAM_H / TILE_SIZE) + 1 {
-				for w in 0..(CAM_W / TILE_SIZE) + 1 {
-					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
-										  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
-										  TILE_SIZE, TILE_SIZE);
-			
-					if h as i32 + h_bounds_offset < 0 ||
-					   w as i32 + w_bounds_offset < 0 ||
-					   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-					   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-					   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-						continue;
-					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-						let p_pos = self.pos();
-						if GameData::check_collision(&p_pos, &w_pos) {
-							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
-						}
+		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
+		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
+		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
+
+		for h in 0..(CAM_H / TILE_SIZE) + 1 {
+			for w in 0..(CAM_W / TILE_SIZE) + 1 {
+				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
+										(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
+										TILE_SIZE, TILE_SIZE);
+		
+				if h as i32 + h_bounds_offset < 0 ||
+				   w as i32 + w_bounds_offset < 0 ||
+				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					continue;
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+					let p_pos = self.pos();
+					if GameData::check_collision(&p_pos, &w_pos) {
+						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 					}
 				}
 			}
-
-			for c in crates {
-				/* let crate_pos = c.pos();
-				let p_pos =self.pos(); */
-				if GameData::check_collision(&self.pos(), &c.pos()) { //I hate collisions
-					//println!("welcome to hell");
-					collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
-				}
-			}
-			self.resolve_col(&collisions);
 		}
+
+		for c in crates {
+			/* let crate_pos = c.pos();
+			let p_pos =self.pos(); */
+			if GameData::check_collision(&self.pos(), &c.pos()) { //I hate collisions
+				//println!("welcome to hell");
+				collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
+			}
+		}
+		self.resolve_col(&collisions);
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
@@ -253,6 +234,16 @@ impl Projectile {
 			TILE_SIZE_CAM
 		);
 	}
+
+	pub fn set_cam_pos_large(&self, player:&Player)-> Rect{
+		return Rect::new(
+			self.x() as i32 + (CENTER_W - player.x() as i32) - (TILE_SIZE_CAM/2) as i32,
+			self.y() as i32 + (CENTER_H - player.y() as i32) - (TILE_SIZE_CAM/2) as i32,
+			TILE_SIZE_CAM*2,
+			TILE_SIZE_CAM*2
+		);
+	}
+
 	pub fn inc_bounce(&mut self) {
 		self.bounce_counter += 1;
 	}
