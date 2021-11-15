@@ -112,7 +112,6 @@ impl Game for ROGUELIKE  {
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
 			map_data.create_map();
-			if DEBUG { map_data.print_map(map_data.map); }
 
 			// set starting position
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
@@ -140,7 +139,6 @@ impl Game for ROGUELIKE  {
 					if map_data.enemy_and_object_spawns[h][w] == 0 {
 						continue;
 					}
-					if DEBUG { println!("{}, {}", w, h); }
 					match map_data.enemy_and_object_spawns[h][w] {
 						1 => {
 							let e = enemy::Enemy::new(
