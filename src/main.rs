@@ -93,7 +93,7 @@ impl Game for ROGUELIKE  {
 	
 
 		println!("query spec => {:?}", sdl2::mixer::query_spec());
-		let path = Path::new("./music/Rampage.mp3");
+		let path = Path::new("./music/Rampage.wav");
 
 		let music = sdl2::mixer::Music::from_file(path)?;
 		music.play(1);
