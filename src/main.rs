@@ -74,7 +74,7 @@ impl Game for ROGUELIKE  {
 
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
-		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
+		let fireball = texture_creator.load_texture("images/abilities/new_fireball.png")?;
 		
 		bullet_textures.push(bullet);
 		bullet_textures.push(fireball);
@@ -645,14 +645,15 @@ impl ROGUELIKE {
 			if projectile.is_active(){
 				match projectile.p_type{
 					ProjectileType::Bullet=>{
-						self.core.wincan.copy(&bullet_textures[0], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+						self.core.wincan.copy(&bullet_textures[0], projectile.src(), projectile.set_cam_pos(player, TILE_SIZE_CAM, TILE_SIZE_CAM)).unwrap();
 					}
 					ProjectileType::Fireball=>{
 						let time = projectile.elapsed;
-						let row = 6;
-						let col = 5;
+						let row = 5;
+						let col = 6;
 
-						let s = ROGUELIKE::display_animation(time, 4, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
+						let s = ROGUELIKE::display_animation(time, 3, row, col, TILE_SIZE_CAM*2, TILE_SIZE_CAM);//argument: starting time, how many time for each frame, row of the pic, col of the pic, width of each frame, height of each frame
+																												//return the frame that should be displayed
 						//println!("mouse: {}", mousestate.x());
 						//println!("player: {}", player.get_cam_pos().x());
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
@@ -660,16 +661,10 @@ impl ROGUELIKE {
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
 							projectile.facing_right = false;//face left
 						}
-						/*
-						if player.facing_right == false && time == 0{
-							projectile.facing_right = false;//face left
-						}else if player.facing_right == true && time == 0{
-							projectile.facing_right = true;//face right
-						}
-						*/
+						
 						projectile.elapsed += 1;
 						//self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.set_cam_pos(player)).unwrap();
-						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos(player, TILE_SIZE_CAM*2, TILE_SIZE_CAM), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
 				}	
 			}
@@ -706,24 +701,24 @@ impl ROGUELIKE {
 	pub fn draw_enemy_projectile(&mut self,bullet_textures: &Vec<Texture> , player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+				self.core.wincan.copy(&bullet_textures[2], projectile.src(), projectile.set_cam_pos(player, TILE_SIZE_CAM, TILE_SIZE_CAM)).unwrap();
 			}
 		}
 	}
 
-	pub fn display_animation(start_time: u128, frames: i32, row: i32, col: i32, size: u32) -> Rect {
-		let x = (start_time/frames as u128) as i32;
+	pub fn display_animation(start_time: u128, frames: i32, row: i32, col: i32, size_x: u32, size_y: u32) -> Rect {
+		let x = (start_time/frames as u128) as i32;//which frame should be displayed
 		let mut src_x = 0;
 		let mut src_y = 0;
 
-		for i in 0..row{
-			if x < col*(i+1) {//1st line
-				src_x = (x-i*col)*size as i32;
-				src_y = i*size as i32;
+		for i in 0..row{//check frame is on which row and col
+			if x < col*(i+1) {//check which row 
+				src_x = (x-i*col)*size_x as i32;
+				src_y = i*size_y as i32;
 				break
 			}
 		}
-		Rect::new(src_x as i32, src_y as i32, size, size)
+		Rect::new(src_x as i32, src_y as i32, size_x, size_y)
 	}
 
 }

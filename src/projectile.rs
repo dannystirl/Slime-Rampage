@@ -245,12 +245,12 @@ impl Projectile {
     }
 
 	// screen coordinates
-	pub fn set_cam_pos(&self, player:&Player)-> Rect{
+	pub fn set_cam_pos(&self, player:&Player, size_x: u32, size_y: u32)-> Rect{//customize width and height
 		return Rect::new(
 			self.x() as i32 + (CENTER_W - player.x() as i32),
 			self.y() as i32 + (CENTER_H - player.y() as i32),
-			TILE_SIZE_CAM,
-			TILE_SIZE_CAM
+			size_x,
+			size_y,
 		);
 	}
 	pub fn inc_bounce(&mut self) {
