@@ -240,7 +240,7 @@ impl Game for ROGUELIKE  {
 			// Should be switched to take in array of active fireballs, bullets, etc.
 			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 			ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
-			ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, fps_avg)?;	
+			ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, mousestate)?;	
 			ROGUELIKE::draw_weapon(self, &player,&sword);
 			
 			// UPDATE INTERACTABLES
@@ -609,7 +609,7 @@ impl ROGUELIKE {
 	}
 
 	// draw player projectiles
-	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player, fps_avg: f64)-> Result<(), String>  {
+	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player, mousestate: MouseState)-> Result<(), String>  {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				match projectile.p_type{
@@ -622,13 +622,20 @@ impl ROGUELIKE {
 						let col = 5;
 
 						let s = ROGUELIKE::display_animation(time, 4, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
-						
-						if player.facing_right == false && time == 0{
-							projectile.facing_right = false;
-						}else if player.facing_right == true && time == 0{
-							projectile.facing_right = true;
+						//println!("mouse: {}", mousestate.x());
+						//println!("player: {}", player.get_cam_pos().x());
+						if mousestate.x() > player.get_cam_pos().x() && time == 0{
+							projectile.facing_right = true;//face right
+						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
+							projectile.facing_right = false;//face left
 						}
-
+						/*
+						if player.facing_right == false && time == 0{
+							projectile.facing_right = false;//face left
+						}else if player.facing_right == true && time == 0{
+							projectile.facing_right = true;//face right
+						}
+						*/
 						projectile.elapsed += 1;
 						//self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
