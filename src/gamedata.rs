@@ -1,5 +1,5 @@
-pub const DEVELOP: bool = true; 
-pub const DEBUG: bool = false; 
+pub const DEVELOP: bool = false; 
+pub const DEBUG: bool = true; 
 
 use rand::Rng;
 use sdl2::rect::Rect;
@@ -15,17 +15,14 @@ use crate::crateobj::*;
 pub const TITLE: &str = "Roguelike";
 pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
-pub const TILE_SIZE: u32 = 64;
-pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;
-pub const TILE_SIZE_CAM: u32 = TILE_SIZE;
-pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM*4/5;
+pub const TILE_SIZE_64: u32 = 64;                       // tile sizes are all 64 px
+pub const TILE_SIZE: u32 = 32;                          // sprite sizes vary 
+pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;            // generic half tile size
+pub const TILE_SIZE_CAM: u32 = TILE_SIZE;               // cam position 
+pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM*4/5;    // hitboxes are slightly smaller than visual hitboxes
 
 pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;
 pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE_HALF) as i32;
-
-//background globals
-//pub const BG_W: u32 = 2400;
-//pub const BG_H: u32 = 1440;
 
 // room globals
 pub const MIN_ROOM_W: usize = 11;
@@ -53,15 +50,17 @@ pub const FIRE_COOLDOWN_E: u128 = 2500;
 
 pub struct GameData {
     pub frame_counter: Instant, 
+    speed_limit: f64,
+    accel_rate: f64,
+
     pub gold: Vec<Gold>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
+    pub crates: Vec<Crate>,
+    
     pub current_floor: i32, 
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,
-    pub crates: Vec<Crate>,
-    speed_limit: f64,
-    accel_rate: f64,
 }
 
 impl GameData {
@@ -86,8 +85,6 @@ impl GameData {
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
         let frame_counter = Instant::now();
-
-        // background
 
         GameData {
             current_floor, 

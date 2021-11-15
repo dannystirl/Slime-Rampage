@@ -88,7 +88,7 @@ impl Projectile {
 			}
 		}
 
-		if !DEVELOP {
+		if DEVELOP {
 			if self.x() <= xbounds.0 && self.is_active() {
 				self.set_x_vel( -self.x_vel() );
 				self.inc_bounce();
@@ -237,8 +237,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32,
 			self.y() as i32,
-			TILE_SIZE_PLAYER, 
-			TILE_SIZE_PLAYER
+			TILE_SIZE_CAM, 
+			TILE_SIZE_CAM
 		);
     }
 

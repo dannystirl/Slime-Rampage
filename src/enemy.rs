@@ -42,7 +42,7 @@ pub struct Enemy<'a> {
 	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, num: usize) -> Enemy<'a> {
 		let vel_x = 0.0;
 		let vel_y = 0.0;
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let knockback_vel = 0.0;
@@ -127,11 +127,12 @@ pub struct Enemy<'a> {
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
 	
 		// aggro / move
-		let distance = self.radius_from_point((x,y));
+		let distance = self.radius_from_point((x,y)) / TILE_SIZE as f64;
 		if self.get_stun_timer() > 1000 {
 			self.set_stunned(false);
 		} 
-		if distance > 300.0 {
+		// distance should be very close to number of tiles
+		if distance > 5.0 {
 			self.wander(rngt[i]);
 		} else {
 			match self.enemy_type {
@@ -152,8 +153,8 @@ pub struct Enemy<'a> {
 				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
 				TILE_SIZE, TILE_SIZE);
 
-				let _debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
+				let _debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,
 				TILE_SIZE, TILE_SIZE);
 				if h as i32 + h_bounds_offset < 0 ||
 				w as i32 + w_bounds_offset < 0 ||
@@ -185,7 +186,7 @@ pub struct Enemy<'a> {
 		}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
-						 TILE_SIZE, TILE_SIZE);
+						 TILE_SIZE_CAM, TILE_SIZE_CAM);
 	}
 
 	 pub fn got_squished(&mut self, w_pos: Rect, c_pos: Rect, c_xvel: f64, c_yvel: f64) -> bool{
@@ -396,8 +397,8 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE,
-									TILE_SIZE,
+									TILE_SIZE_CAM,
+									TILE_SIZE_CAM,
 								),
 								true,
 								vec![x,y],

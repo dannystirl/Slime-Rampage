@@ -77,14 +77,14 @@ impl<'a> Player<'a> {
 		let cam_pos = Rect::new(
 			0,
 			0,
-			TILE_SIZE_CAM,
-			TILE_SIZE_CAM,
+			TILE_SIZE,
+			TILE_SIZE,
 		);
 		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
-		let height = TILE_SIZE_CAM; 
-		let width = TILE_SIZE_CAM; 
+		let height = TILE_SIZE; 
+		let width = TILE_SIZE; 
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30;
 		let mana = 4;
@@ -136,7 +136,7 @@ impl<'a> Player<'a> {
 		// debug stuff
 		let tc = core.wincan.texture_creator();
 		let hitbox =tc.load_texture("images/objects/crate.png")?;
-		let src = Rect::new(0, 0, TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
+		let src = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let speed_limit_adj = game_data.get_speed_limit();
 
 		// Slow down to 0 vel if no input and non-zero velocity
@@ -154,19 +154,21 @@ impl<'a> Player<'a> {
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);
+									  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
+									   TILE_SIZE, TILE_SIZE);
 
-				let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);
+				let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,
+										  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,
+										   TILE_SIZE, TILE_SIZE);
+
 				if h as i32 + h_bounds_offset < 0 ||
 				w as i32 + w_bounds_offset < 0 ||
 				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
 				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 || 
+						  map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
 					let p_pos = self.pos();
 				
 					if GameData::check_collision(&p_pos, &w_pos) {
@@ -260,7 +262,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
-		self.src = Rect::new(x as i32, y as i32, TILE_SIZE, TILE_SIZE);
+		self.src = Rect::new(x as i32, y as i32, TILE_SIZE_64, TILE_SIZE_64);
 	}
 
 	pub fn src(&self) -> Rect {
@@ -278,8 +280,8 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x - (TILE_SIZE_CAM as i32- TILE_SIZE_PLAYER as i32).abs()/2,
-			self.y() as i32 - y - (TILE_SIZE_CAM as i32- TILE_SIZE_PLAYER as i32).abs()/2,
+			self.x() as i32 - x,
+			self.y() as i32 - y,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
