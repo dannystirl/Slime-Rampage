@@ -23,10 +23,13 @@ impl Rigidbody{
     pub fn point_vs_rect(&self,p : Point, r : &Rect) -> bool {
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }
-    pub fn ray_vs_rect(&self){
+
+    pub fn ray_vs_rect(&self, origin : Point , dir : Point, other : Rect, hit_near : f64){
+       let contact = Point::new(0,0);
+       let normal = Point::new(0,0);
         
     }
-    pub fn rect_vs_rect(&self, other :&Rect)->bool{// thanks Farnan
+    pub fn rect_vs_rect(&self, other :&Rect)->bool{// Stolen from farnans code
         
             if self.pos.bottom() < other.top()
                 || self.pos.top() > other.bottom()
@@ -39,6 +42,7 @@ impl Rigidbody{
                 true
             }
     }
+
     pub fn pos(&self) -> Rect{
         return self.pos;
     }

@@ -4,7 +4,7 @@ use sdl2::rect::Rect;
 
 pub struct SDLCore {
 	#[allow(dead_code)]
-	sdl_cxt: sdl2::Sdl,
+	pub sdl_cxt: sdl2::Sdl,
 	pub wincan: sdl2::render::WindowCanvas,
 	pub event_pump: sdl2::EventPump,
 	pub cam: Rect,
@@ -34,7 +34,7 @@ impl SDLCore {
 		else {
 			wincan
 		};
-		
+
 		let wincan = wincan.build()
 			.map_err(|e| e.to_string())?;
 
