@@ -32,10 +32,6 @@ use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
 use crate::power::*;
-//use crate::gold::*;
-//use crate::room::*;
-//use crate::ui::*;
-//use crate::crateobj::*;
 use crate::map::*;
 
 pub struct ROGUELIKE {
@@ -94,17 +90,6 @@ impl Game for ROGUELIKE  {
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
-		if DEVELOP {
-			// OBJECT GENERATION
-			let pos = Rect::new(
-				(CAM_W/2 - TILE_SIZE_HALF) as i32 -200 + rng.gen_range(1..10),
-				(CAM_H/2 - TILE_SIZE_HALF) as i32 -200 + rng.gen_range(0..10),
-				TILE_SIZE,
-				TILE_SIZE
-			);
-			self.game_data.crates.push(crateobj::Crate::new(pos));
-		}
-
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			// CREATE MAPs
@@ -127,11 +112,22 @@ impl Game for ROGUELIKE  {
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
 			map_data.create_map();
-			map_data.print_map(map_data.map);
+			if DEBUG { map_data.print_map(map_data.map); }
 
 			// set starting position
-			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE_CAM) as i32 / 2) as f64);
-			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE_CAM) as i32 / 2) as f64);
+			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
+			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
+
+			if DEVELOP {
+				// OBJECT GENERATION
+				let pos = Rect::new(
+					player.x() as i32 -200 + rng.gen_range(1..10),
+					player.y() as i32 -200 + rng.gen_range(0..10),
+					TILE_SIZE,
+					TILE_SIZE
+				);
+				self.game_data.crates.push(crateobj::Crate::new(pos));
+			}
 
 			let mut enemies: Vec<Enemy> = Vec::new();
 			let mut rngt = Vec::new();
@@ -151,8 +147,8 @@ impl Game for ROGUELIKE  {
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-									TILE_SIZE,
-									TILE_SIZE
+									TILE_SIZE_CAM,
+									TILE_SIZE_CAM
 								),
 								texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
 								EnemyType::Melee,
@@ -167,8 +163,8 @@ impl Game for ROGUELIKE  {
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-									TILE_SIZE,
-									TILE_SIZE
+									TILE_SIZE_CAM,
+									TILE_SIZE_CAM
 								),
 								texture_creator.load_texture("images/enemies/ranged_enemy_small.png")?,
 								EnemyType::Ranged,
@@ -183,8 +179,8 @@ impl Game for ROGUELIKE  {
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-									TILE_SIZE,
-									TILE_SIZE
+									TILE_SIZE_CAM,
+									TILE_SIZE_CAM
 								)
 							);
 							self.game_data.crates.push(c);
@@ -230,7 +226,7 @@ impl Game for ROGUELIKE  {
 					let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
 					map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
 					TILE_SIZE, TILE_SIZE);
-					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE, TILE_SIZE);
+					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 					if check_collision(&ppos, &mpos) {
 						println!("c: {} {}", player.x(), player.y());
 						println!("c: {} {}", mpos.x, mpos.y);

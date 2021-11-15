@@ -17,6 +17,7 @@ pub const TITLE: &str = "Roguelike";
 pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
 pub const TILE_SIZE_64: u32 = 64;                       // tile sizes are all 64 px
+
 pub const TILE_SIZE: u32 = 64;                          // sprite sizes vary 
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;            // generic half tile size
 pub const TILE_SIZE_CAM: u32 = TILE_SIZE_HALF;               // cam position 
@@ -34,8 +35,8 @@ pub const MAX_ROOM_H: usize = 21;
 pub const MAP_SIZE_H: usize = 51;
 
 // game globals
-pub const SPEED_LIMIT: f64 = 200.0;
-pub const ACCEL_RATE: f64 = 100.0;
+pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
+pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 //pub const STARTING_TIMER: u128 = 1000;
 
 // player globals
@@ -46,7 +47,7 @@ pub const FIRE_COOLDOWN_P: u128 = 300;
 pub const MANA_RESTORE_RATE: u128 = 1000;
 
 // enemy globals
-//pub const STUN_TIME: u32 = 2000;
+pub const STUN_TIME: u128 = 500;
 pub const FIRE_COOLDOWN_E: u128 = 2500;
 
 pub struct GameData {

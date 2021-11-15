@@ -80,14 +80,14 @@ impl<'a> Player<'a> {
 		let cam_pos = Rect::new(
 			0,
 			0,
-			TILE_SIZE,
-			TILE_SIZE,
+			TILE_SIZE_CAM,
+			TILE_SIZE_CAM,
 		);
 		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
-		let height = TILE_SIZE; 
-		let width = TILE_SIZE; 
+		let height = TILE_SIZE;
+		let width = TILE_SIZE;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let hp = 30;
 		let mana = 4;
@@ -95,7 +95,7 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing =false;
-		let attack_box = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
+		let attack_box = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let attack_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
@@ -182,7 +182,7 @@ impl<'a> Player<'a> {
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 || 
 						  map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
 					let p_pos = self.pos();
-				
+
 					if GameData::check_collision(&p_pos, &w_pos) {
 						if DEBUG {
 							core.wincan.copy(&hitbox, src, self.cam_pos)?;
