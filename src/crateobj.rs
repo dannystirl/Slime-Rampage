@@ -24,8 +24,8 @@ pub struct Crate{
 
 impl Crate {
     pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
         let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE, TILE_SIZE);
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
@@ -116,12 +116,9 @@ impl Crate {
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);
+									  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
+									  TILE_SIZE, TILE_SIZE);
 
-				/*let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32,// - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32,// - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);*/
 				if h as i32 + h_bounds_offset < 0 ||
 				w as i32 + w_bounds_offset < 0 ||
 				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
@@ -279,9 +276,9 @@ impl Crate {
 	}
 
 	pub fn offset_pos(&self, player:&Player)-> Rect{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE_HALF, TILE_SIZE_HALF);
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
+					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
+						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
 	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){

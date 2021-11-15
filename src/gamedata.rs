@@ -1,5 +1,5 @@
 pub const DEVELOP: bool = false; 
-pub const DEBUG: bool = false; 
+pub const DEBUG: bool = true; 
 
 use rand::Rng;
 use sdl2::rect::Rect;
@@ -17,9 +17,9 @@ pub const TITLE: &str = "Roguelike";
 pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
 pub const TILE_SIZE_64: u32 = 64;                       // tile sizes are all 64 px
-pub const TILE_SIZE: u32 = 32;                          // sprite sizes vary 
+pub const TILE_SIZE: u32 = 64;                          // sprite sizes vary 
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;            // generic half tile size
-pub const TILE_SIZE_CAM: u32 = TILE_SIZE;               // cam position 
+pub const TILE_SIZE_CAM: u32 = TILE_SIZE_HALF;               // cam position 
 pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;  // hitboxes are slightly smaller than visual hitboxes
 
 pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;

@@ -101,7 +101,12 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let invincible = true;
-		let power = PowerType::None;
+		let mut power = PowerType::None;
+		if DEBUG {
+			power = PowerType::Slimeball;
+		} else {
+			power = PowerType::None;
+		}
 		let can_pickup = false;
 		let weapon_frame=0;
 		let coins = 0;
