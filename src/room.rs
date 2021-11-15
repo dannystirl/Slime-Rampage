@@ -1,6 +1,5 @@
 use rand::Rng;
-
-const TILE_SIZE: u32 = 64;
+use crate::gamedata::*;
 
 pub struct Room{
     pub xwalls: (i32, i32), 
@@ -62,5 +61,4 @@ pub fn create_new_map(xwalls: (i32,i32), ywalls: (i32,i32), tiles: &mut Vec<(boo
         }
     }
     return obs;
-    
 }
