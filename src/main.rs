@@ -17,6 +17,7 @@ mod credits;
 mod enemy;
 mod gamedata;
 mod gold;
+mod power;
 mod player;
 mod projectile;
 mod room;
@@ -30,6 +31,11 @@ use crate::background::*;
 use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
+use crate::power::*;
+//use crate::gold::*;
+//use crate::room::*;
+//use crate::ui::*;
+//use crate::crateobj::*;
 use crate::map::*;
 
 pub struct ROGUELIKE {
@@ -80,6 +86,8 @@ impl Game for ROGUELIKE  {
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		crate_textures.push(crate_texture);
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
+		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
 		// OBJECT GENERATION
@@ -237,7 +245,7 @@ impl Game for ROGUELIKE  {
 			
 			// UPDATE INTERACTABLES
 			// function to check explosive barrels stuff like that should go here. placed for ordering.
-			ROGUELIKE::update_gold(self, &mut enemies, &mut player, &coin_texture);
+			ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
 			//for c in self.game_data.crates.iter_mut() {
 			//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
 			//}
@@ -357,12 +365,15 @@ impl ROGUELIKE {
 		}
 	}
 	
-	pub fn update_gold(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture) {
+	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture,
+						fireball_texture: &Texture, slimeball_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
 				let drop = enemy.drop_item();
+				let dropped_power = enemy.drop_power();
 				self.game_data.gold.push(drop);
+				self.game_data.dropped_powers.push(dropped_power);
 			}
 		}
 		// draw uncollected coins
@@ -372,6 +383,23 @@ impl ROGUELIKE {
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
+			}
+		}
+
+		for p in self.game_data.dropped_powers.iter_mut() {
+			if !p.collected() {
+				let pos = Rect::new(p.x() as i32 + (CENTER_W - player.x() as i32),
+									p.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+				match p.power_type() {
+					PowerType::Fireball => {
+						self.core.wincan.copy_ex(&fireball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					PowerType::Slimeball => {
+						self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					_ => {},
+				}
 			}
 		}
 	}
@@ -404,24 +432,46 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			if !player.is_firing && player.get_mana() > 0 {
-				let p_type = ProjectileType::Bullet;
-				
-				let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
-				self.game_data.player_projectiles.push(b);
-			}
-		}
-		//ability
-		if keystate.contains(&Keycode::F){
-			if !player.is_firing && player.get_mana() > 0 {
-				let now = Instant::now();
+			match player.get_power() {
+				PowerType::Fireball => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let now = Instant::now();
 				let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
 
 				let p_type = ProjectileType::Fireball;
 				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type, elapsed);
 				self.game_data.player_projectiles.push(bullet);
+					}
+				},
+				PowerType::Slimeball => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let p_type = ProjectileType::Bullet;
+						
+						let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
+						self.game_data.player_projectiles.push(b);
+					}
+				},
+				_ => {},
 			}
-			//println!("you found the easter egg");
+		}
+		// Absorb power
+		if keystate.contains(&Keycode::E) {
+			if player.can_pickup() {
+				for drop in self.game_data.dropped_powers.iter_mut() {
+					if check_collision(&player.pos(), &drop.pos()) {
+						drop.set_collected();
+						match drop.power_type() {
+							PowerType::Fireball => {
+								player.set_power(PowerType::Fireball);
+							},
+							PowerType::Slimeball => {
+								player.set_power(PowerType::Slimeball);
+							},
+							_ => {}
+						}
+					}
+				}
+			}
 		}
 		if keystate.contains(&Keycode::E){
 			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
@@ -524,6 +574,15 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		let mut can_pickup = false;
+		for drop in self.game_data.dropped_powers.iter_mut() {
+			if check_collision(&player.pos(), &drop.pos()) {
+				if !drop.collected() {
+					can_pickup = true;
+				}
+			}
+		}
+		player.set_can_pickup(can_pickup);
 		//check collision between crates and player
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
