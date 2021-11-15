@@ -22,6 +22,7 @@ pub struct Projectile{
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
 	pub elapsed: u128,
+	pub damage: i32, 
 }
 
 impl Projectile {
@@ -29,6 +30,11 @@ impl Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
+		let damage: i32; 
+		match p_type {
+			ProjectileType::Bullet => { damage = 5; }
+			ProjectileType::Fireball => { damage = 10; } 
+		}
 		Projectile {
 			src,
 			pos,
@@ -38,6 +44,7 @@ impl Projectile {
 			p_type,
 			bounce_counter,
 			elapsed,
+			damage, 
 		}
 	}
 	pub fn x(&self) -> i32 {

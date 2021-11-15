@@ -101,7 +101,7 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let invincible = true;
-		let mut power = PowerType::None;
+		let power: PowerType;
 		if DEBUG {
 			power = PowerType::Slimeball;
 		} else {
@@ -438,16 +438,17 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: u32) {
+		self.set_invincible(); 
 		if self.invincible {
 			return;
 		}
-		self.hp -= dmg;
 		self.damage_timer = Instant::now();
+		self.hp -= dmg;
 	}
 
 	pub fn set_invincible(&mut self){
 		if self.damage_timer.elapsed().as_millis() < DMG_COOLDOWN {
-			 self.invincible = true;
+			self.invincible = true;
 		} else {
 			self.invincible = false;
 		}
