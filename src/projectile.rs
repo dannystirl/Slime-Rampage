@@ -204,6 +204,11 @@ impl Projectile {
 		self.set_y(self.y() + self.vector[1] as i32);
 
 	}
+
+	
+	
+
+	
 	pub fn set_pos(&mut self, p:Rect){
 		self.pos = p;
 	}
@@ -252,3 +257,5 @@ impl Projectile {
 		return self.bounce_counter;
 	}
 }
+	
+

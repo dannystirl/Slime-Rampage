@@ -2,6 +2,23 @@ extern crate rogue_sdl;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 
+pub struct Pointf{
+    pub x: f64,
+    pub y: f64,
+}
+
+ impl Pointf{
+    pub fn new(x: f64, y: f64) -> Pointf {
+
+        Pointf{
+            x,
+            y,
+        }
+
+    }
+
+}
+
 pub struct Rigidbody{
     pos: Rect,
     vel: (f64, f64),
@@ -23,10 +40,16 @@ impl Rigidbody{
     pub fn point_vs_rect(&self,p : Point, r : &Rect) -> bool {
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }
-    pub fn ray_vs_rect(&self){
+
+    pub fn ray_vs_rect(&self, origin : Pointf , dir : Pointf, other : Rect, hit_near : f64){
+       let contact = Pointf::new(0.0,0.0);
+       let normal = Pointf::new(0.0,0.0);
+       let inverse_x = 1.0/ (dir.x as f64);
+       let inverse_y = 1.0/ (dir.y as f64);
+       let inverse_dir = Pointf::new(inverse_x, inverse_y);
         
     }
-    pub fn rect_vs_rect(&self, other :&Rect)->bool{// thanks Farnan
+    pub fn rect_vs_rect(&self, other :&Rect)->bool{// Stolen from farnans code
         
             if self.pos.bottom() < other.top()
                 || self.pos.top() > other.bottom()
@@ -39,6 +62,7 @@ impl Rigidbody{
                 true
             }
     }
+
     pub fn pos(&self) -> Rect{
         return self.pos;
     }

@@ -1,8 +1,12 @@
 extern crate rogue_sdl;
 use rogue_sdl::{Game, SDLCore};
-
+use sdl2::audio::AudioSpecDesired;
+use sdl2::audio::AudioSpecWAV;
+use sdl2::audio::AudioCVT;
 use std::time::Duration;
 use std::time::Instant;
+use sdl2::audio::AudioCallback;
+//use std::cmp;
 use std::collections::HashSet;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -11,7 +15,9 @@ use sdl2::rect::{Rect, Point};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
 use rand::Rng;
-
+use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
+use std::env;
+use std::path::Path;
 mod background;
 mod credits;
 mod enemy;
@@ -53,6 +59,46 @@ impl Game for ROGUELIKE  {
         let texture_creator = self.core.wincan.texture_creator();
 		let mut rng = rand::thread_rng();
 
+		let audio_subsystem = self.core.sdl_cxt.audio()?;
+		let mut timer = self.core.sdl_cxt.timer()?;
+
+		let frequency = 44_100;
+		let format = AUDIO_S16LSB; // signed 16 bit samples, in little-endian byte order
+		let channels = DEFAULT_CHANNELS; // Stereo
+		let chunk_size = 1_024;
+		sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
+		let _mixer_context =
+			sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
+	
+		    sdl2::mixer::allocate_channels(4);
+	
+		// Number of mixing channels available for sound effect `Chunk`s to play
+		// simultaneously.
+		sdl2::mixer::allocate_channels(4);
+	    {
+			let n = sdl2::mixer::get_chunk_decoders_number();
+			println!("available chunk(sample) decoders: {}", n);
+			for i in 0..n {
+				println!("  decoder {} => {}", i, sdl2::mixer::get_chunk_decoder(i));
+			}
+		}
+	
+		{
+			let n = sdl2::mixer::get_music_decoders_number();
+			println!("available music decoders: {}", n);
+			for i in 0..n {
+				println!("  decoder {} => {}", i, sdl2::mixer::get_music_decoder(i));
+			}
+		}
+	
+
+		println!("query spec => {:?}", sdl2::mixer::query_spec());
+		let path = Path::new("./music/Rampage.mp3");
+
+		let music = sdl2::mixer::Music::from_file(path)?;
+		music.play(1);
+
+		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
 		let mut player = player::Player::new(
 			(CENTER_W as f64, CENTER_H as f64),
@@ -533,7 +579,6 @@ impl ROGUELIKE {
 			}
 		}
 	}
-	
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
 		for enemy in enemies {
@@ -700,7 +745,7 @@ impl ROGUELIKE {
 		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
 	}
 
-	pub fn draw_enemy_projectile(&mut self,bullet_textures: &Vec<Texture> , player: &Player) {
+	pub fn draw_enemy_projectile(&mut self, bullet_textures: &Vec<Texture> , player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
 				self.core.wincan.copy(&bullet_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
