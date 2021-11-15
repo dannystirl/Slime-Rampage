@@ -103,7 +103,7 @@ impl<'a> Player<'a> {
 		let invincible = true;
 		let power: PowerType;
 		if DEBUG {
-			power = PowerType::Slimeball;
+			power = PowerType::Fireball;
 		} else {
 			power = PowerType::None;
 		}
@@ -174,10 +174,10 @@ impl<'a> Player<'a> {
 										   TILE_SIZE, TILE_SIZE);
 
 				if h as i32 + h_bounds_offset < 0 ||
-				w as i32 + w_bounds_offset < 0 ||
-				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+				   w as i32 + w_bounds_offset < 0 ||
+				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 || 
 						  map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
@@ -375,8 +375,8 @@ impl<'a> Player<'a> {
 			Rect::new(
 				self.x() as i32,
 				self.y() as i32,
-				TILE_SIZE,
-				TILE_SIZE,
+				TILE_SIZE_CAM,
+				TILE_SIZE_CAM,
 			),
 			false,
 			vec![x, y],

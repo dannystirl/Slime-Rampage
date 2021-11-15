@@ -92,7 +92,7 @@ impl Game for ROGUELIKE  {
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
-			// CREATE MAPs
+			// CREATE MAPS
 			let background = background::Background::new(
 				texture_creator.load_texture("images/background/bb.png")?,
 				texture_creator.load_texture("images/background/floor_tile_1.png")?,
@@ -128,6 +128,7 @@ impl Game for ROGUELIKE  {
 				self.game_data.crates.push(crateobj::Crate::new(pos));
 			}
 
+			// create enemies
 			let mut enemies: Vec<Enemy> = Vec::new();
 			let mut rngt = Vec::new();
 
@@ -462,19 +463,18 @@ impl ROGUELIKE {
 				PowerType::Fireball => {
 					if !player.is_firing && player.get_mana() > 0 {
 						let now = Instant::now();
-				let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
+						let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
 
-				let p_type = ProjectileType::Fireball;
-				let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type, elapsed);
-				self.game_data.player_projectiles.push(bullet);
+						let p_type = ProjectileType::Fireball;
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type, elapsed);
+						self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				PowerType::Slimeball => {
 					if !player.is_firing && player.get_mana() > 0 {
 						let p_type = ProjectileType::Bullet;
-						
-						let b = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
-						self.game_data.player_projectiles.push(b);
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
+						self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				_ => {},
@@ -499,6 +499,7 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		// Go to next level
 		if keystate.contains(&Keycode::E){
 			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
 								 map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
@@ -535,11 +536,6 @@ impl ROGUELIKE {
 	
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
-		let xbounds = self.game_data.rooms[0].xbounds;
-		let ybounds = self.game_data.rooms[0].ybounds;
-		/* let bounds1 = Rect::new(xbounds.0, ybounds.0, TILE_SIZE, TILE_SIZE);
-		let bounds2 = Rect::new(xbounds.1, ybounds.1, TILE_SIZE, TILE_SIZE); */
-
 		for enemy in enemies {
 			if !enemy.is_alive() {
 				continue;
@@ -556,13 +552,14 @@ impl ROGUELIKE {
 					match enemy.enemy_type {
 						EnemyType::Melee =>{
 							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+							enemy.minus_hp(projectile.damage);
 						}
 						EnemyType::Ranged =>{
 							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+							enemy.minus_hp(projectile.damage);
 						}
 						EnemyType::Skeleton=>{}
 					}
-					enemy.minus_hp(projectile.damage);
 					projectile.die();
 				}
 			}
@@ -592,10 +589,10 @@ impl ROGUELIKE {
 		}
 
 		for projectile in self.game_data.player_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, xbounds, ybounds, map);
+			projectile.check_bounce(&mut self.game_data.crates, map);
 		}
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, xbounds, ybounds, map);
+			projectile.check_bounce(&mut self.game_data.crates, map);
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
@@ -649,12 +646,13 @@ impl ROGUELIKE {
 					}
 					ProjectileType::Fireball=>{
 						let time = projectile.elapsed;
-						let row = 6;
-						let col = 5;
 
-						let s = ROGUELIKE::display_animation(time, 4, row, col, TILE_SIZE);//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
-						//println!("mouse: {}", mousestate.x());
-						//println!("player: {}", player.get_cam_pos().x());
+						let angle = 0.0;
+						//println!("{}", angle);
+						
+						//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
+						let s = ROGUELIKE::display_animation(time, 4, 6, 4, TILE_SIZE);
+
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
 							projectile.facing_right = true;//face right
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
@@ -668,8 +666,7 @@ impl ROGUELIKE {
 						}
 						*/
 						projectile.elapsed += 1;
-						//self.core.wincan.copy(&bullet_textures[1], projectile.src(), projectile.set_cam_pos(player)).unwrap();
-						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos_large(player), angle, None, !projectile.facing_right, false).unwrap();
 					}
 				}	
 			}
@@ -725,5 +722,4 @@ impl ROGUELIKE {
 		}
 		Rect::new(src_x as i32, src_y as i32, size, size)
 	}
-
 }
