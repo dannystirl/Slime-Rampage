@@ -130,11 +130,11 @@ pub struct Enemy<'a> {
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
 	
 		// aggro / move
-		let distance = self.radius_from_point((x,y));
-		if self.get_stun_timer() > 1000 {
+		if self.get_stun_timer() > STUN_TIME {
 			self.set_stunned(false);
 		} 
-		if distance > 300.0 {
+		// distance should be very close to number of tiles
+		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > 5.0 {
 			self.wander(rngt[i]);
 		} else {
 			match self.enemy_type {
@@ -155,8 +155,8 @@ pub struct Enemy<'a> {
 				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
 				TILE_SIZE, TILE_SIZE);
 
-				let _debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,// - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,// - (CENTER_H - self.y() as i32),
+				let _debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,
 				TILE_SIZE, TILE_SIZE);
 				if h as i32 + h_bounds_offset < 0 ||
 				w as i32 + w_bounds_offset < 0 ||
@@ -188,7 +188,7 @@ pub struct Enemy<'a> {
 		}
 		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
 						 self.y() as i32 + (CENTER_H - y as i32),
-						 TILE_SIZE, TILE_SIZE);
+						 TILE_SIZE_CAM, TILE_SIZE_CAM);
 	}
 
 	 pub fn got_squished(&mut self, w_pos: Rect, c_pos: Rect, c_xvel: f64, c_yvel: f64) -> bool{
@@ -212,7 +212,6 @@ pub struct Enemy<'a> {
 	 }
 
 	pub fn wander(&mut self, roll:i32) {
-
 		if self.is_stunned {
 			return;
 		}
@@ -223,17 +222,14 @@ pub struct Enemy<'a> {
 		if roll == 2 {
 			self.set_y_vel(-1.0);
 			self.set_x_vel(0.0);
-
 		}
 		if roll == 3 {
 			self.set_y_vel(1.0);
 			self.set_x_vel(0.0);
-
 		}
 		if roll == 4 {
 			self.set_x_vel(-1.0);
 			self.set_y_vel(0.0);
-
 		}
 	}
 
@@ -289,16 +285,15 @@ pub struct Enemy<'a> {
 		self.x_flipped = false;
 		self.y_flipped = false;
 		self.is_stunned = true;
-		self.knockback_vel = 40.0;
 		let vec = vec![player_pos_x - self.x(), player_pos_y - self.y()];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
 		self.angle = angle;
-		let mut x = -5.0 * angle.sin();
+		let mut x = -2.0 * angle.sin();
 		if vec[0] < 0.0 {
 			x *= -1.0;
 			self.x_flipped = true;
 		}
-		let mut y = -5.0 * angle.cos();
+		let mut y = -2.0 * angle.cos();
 		if vec[1] < 0.0 {
 			y *= -1.0;
 			self.y_flipped = true;
@@ -379,7 +374,7 @@ pub struct Enemy<'a> {
 		let mut rng = rand::thread_rng();
 		match self.enemy_type {
 			EnemyType::Ranged=>{
-				if self.radius_from_point((x,y)) < 500.0 {	// only fire if close enough
+				if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < 8.0 {	// only fire if close enough
 					if self.get_fire_timer() > self.get_fire_cooldown() {
 						self.set_fire_cooldown();
 						let fire_chance = rng.gen_range(1..60);
@@ -399,8 +394,8 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE,
-									TILE_SIZE,
+									TILE_SIZE_CAM,
+									TILE_SIZE_CAM,
 								),
 								true,
 								vec![x,y],

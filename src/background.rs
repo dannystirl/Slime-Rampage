@@ -19,7 +19,8 @@ pub struct Background<'a> {
 }
 
 impl<'a> Background<'a> {
-	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, upstairs: Texture<'a>, downstairs: Texture<'a>, x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
+	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, upstairs: Texture<'a>, downstairs: Texture<'a>, 
+			   x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
 		let tiles: Vec<(bool,i32)> = vec![(true,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize]; // (draw?, texture)
 		Background {
 			black,
