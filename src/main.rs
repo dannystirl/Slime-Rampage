@@ -65,10 +65,10 @@ impl Game for ROGUELIKE  {
 		// create ui
 		let mut ui = ui::UI::new(
 			Rect::new(
-				(10) as i32 *(TILE_SIZE as f64 *1.2) as i32,
-				(CAM_H-(TILE_SIZE as f64 *1.2) as u32) as i32,
-				(TILE_SIZE as f64 *1.2) as u32,
-				(TILE_SIZE as f64 *1.2) as u32,
+				(10) as i32 *(TILE_SIZE_64 as f64 *1.2) as i32,
+				(CAM_H-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
+				(TILE_SIZE_64 as f64 *1.2) as u32,
+				(TILE_SIZE_64 as f64 *1.2) as u32,
 			), 
 			texture_creator.load_texture("images/ui/heart.png")?,
 		);
@@ -206,63 +206,72 @@ impl Game for ROGUELIKE  {
 					}
 				}
 				// fps calculations
-			let mut fps_avg: f64 = 60.0; 
-			all_frames += 1;
-			let elapsed = last_time.elapsed();
-			if elapsed > Duration::from_secs(1) {
-				fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-				self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
-				self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
-			}
-			// reset frame values
-			player.set_x_delta(0);
-			player.set_y_delta(0);
-			self.core.wincan.copy(&map_data.background.black, None, None)?;
+				let mut fps_avg: f64 = 60.0; 
+				all_frames += 1;
+				let elapsed = last_time.elapsed();
+				if elapsed > Duration::from_secs(1) {
+					fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
+					self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
+					self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
+				}
+				// reset frame values
+				player.set_x_delta(0);
+				player.set_y_delta(0);
+				self.core.wincan.copy(&map_data.background.black, None, None)?;
 
-			// GET INPUT
-			let mousestate= self.core.event_pump.mouse_state();
-			let keystate: HashSet<Keycode> = self.core.event_pump
-				.keyboard_state()
-				.pressed_scancodes()
-				.filter_map(Keycode::from_scancode)
-				.collect();
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &map_data)?;
+				// GET INPUT
+				let mousestate= self.core.event_pump.mouse_state();
+				let keystate: HashSet<Keycode> = self.core.event_pump
+					.keyboard_state()
+					.pressed_scancodes()
+					.filter_map(Keycode::from_scancode)
+					.collect();
+				if keystate.contains(&Keycode::E){
+					let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
+					map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
+					TILE_SIZE, TILE_SIZE);
+					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE, TILE_SIZE);
+					if check_collision(&ppos, &mpos) {
+						println!("c: {} {}", player.x(), player.y());
+						println!("c: {} {}", mpos.x, mpos.y);
+						break 'level
+					}
+				}
+				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &map_data)?;
 
-			// UPDATE BACKGROUND
-			ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
+				// UPDATE BACKGROUND
+				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
 
-			// UPDATE PLAYER
-			player.update_player(&self.game_data, map_data.map, &mut self.core)?;
-			ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
+				// UPDATE PLAYER
+				player.update_player(&self.game_data, map_data.map, &mut self.core)?;
+				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
 
-			// UPDATE ENEMIES
-			if elapsed > Duration::from_secs(2) {
+				// UPDATE ENEMIES
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
-			}
-			//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
-			// UPDATE ATTACKS
-			// Should be switched to take in array of active fireballs, bullets, etc.
-			ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-			ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
-			ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, mousestate)?;	
-			ROGUELIKE::draw_weapon(self, &player,&sword);
-			
-			// UPDATE INTERACTABLES
-			// function to check explosive barrels stuff like that should go here. placed for ordering.
-			ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
-			//for c in self.game_data.crates.iter_mut() {
-			//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
-			//}
+				//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
+				// UPDATE ATTACKS
+				// Should be switched to take in array of active fireballs, bullets, etc.
+				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
+				ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
+				ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, mousestate)?;	
+				ROGUELIKE::draw_weapon(self, &player,&sword);
+				
+				// UPDATE INTERACTABLES
+				// function to check explosive barrels stuff like that should go here. placed for ordering.
+				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
+				//for c in self.game_data.crates.iter_mut() {
+				//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
+				//}
 
-			// CHECK COLLISIONS
-			ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
-			if player.is_dead(){break 'gameloop;}
+				// CHECK COLLISIONS
+				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
+				if player.is_dead(){break 'gameloop;}
 
-			// UPDATE UI
-			ui.update_ui( &player, &mut self.core)?;
-			
-			// UPDATE FRAME
-			self.core.wincan.present();
+				// UPDATE UI
+				ui.update_ui( &player, &mut self.core)?;
+				
+				// UPDATE FRAME
+				self.core.wincan.present();
 			}
 		}
 		self.game_data.current_floor += 1;
@@ -665,10 +674,14 @@ impl ROGUELIKE {
 		} else { angle = - 60.0; }
 		// display weapon
 		if player.facing_right{
-			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE as i32, player.get_cam_pos().y()+(TILE_SIZE_HALF) as i32, ATTACK_LENGTH, TILE_SIZE);
+			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
+							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+							ATTACK_LENGTH, TILE_SIZE_CAM);
 			rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 		} else{
-			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, player.get_cam_pos().y()+(TILE_SIZE_HALF) as i32, ATTACK_LENGTH, TILE_SIZE);
+			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
+							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+							ATTACK_LENGTH, TILE_SIZE_CAM);
 			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 			angle = -angle;
 		}

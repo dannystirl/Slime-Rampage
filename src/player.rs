@@ -287,8 +287,8 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x,
-			self.y() as i32 - y,
+			self.x() as i32 - x - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
+			self.y() as i32 - y - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
