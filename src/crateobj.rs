@@ -1,7 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
 use sdl2::rect::Rect;
-//use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use crate::player::*;
 use crate::rigidbody::*;
@@ -12,6 +11,9 @@ use sdl2::rect::Point;
 //use sdl2::pixels;
 use crate::SDLCore;
 
+pub const MAX_CRATE_SPEED: f64 = 2.0; 
+pub const MAX_CRATE_VEL: f64 = 6.0; 
+
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
@@ -21,11 +23,10 @@ pub struct Crate{
 	rb:  Rigidbody,
 }
 
-
 impl Crate {
     pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
-        let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE, TILE_SIZE);
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+        let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
@@ -41,7 +42,7 @@ impl Crate {
         }
     }
 	pub fn new(pos: Rect) -> Crate {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
@@ -80,8 +81,8 @@ impl Crate {
 		return self.velocity[1];
 	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
-		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-10.0, 10.0);
-		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-10.0, 10.0);
+		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn update_acceleration(&mut self, x: f64, y: f64){
 		self.acceleration[0] = x;
@@ -97,10 +98,10 @@ impl Crate {
 		self.pos.y = y;
 	}
 	pub fn set_x_vel(&mut self, x_vel: f64) {
-		self.velocity[0] = x_vel.clamp(-10.0, 10.0);
+		self.velocity[0] = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_y_vel(&mut self, y_vel: f64) {
-		self.velocity[1] = y_vel.clamp(-10.0, 10.0);
+		self.velocity[1] = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_rb(&mut self){
 		self.rb.set_pos(self.pos);
@@ -116,12 +117,9 @@ impl Crate {
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);
+									  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
+									  TILE_SIZE_CAM, TILE_SIZE_CAM);
 
-				/*let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32,// - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32,// - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);*/
 				if h as i32 + h_bounds_offset < 0 ||
 				w as i32 + w_bounds_offset < 0 ||
 				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
@@ -182,21 +180,21 @@ impl Crate {
 		if sorted_collisions.len() > 0 {
 			match sorted_collisions[0].dir {
 				Direction::Up=>{
-					self.set_y_vel(self.y_vel().clamp(0.0,100.0));
+					self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir {
 							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
+								self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
 							}
 							Direction::Down=>{
 								println!("I have no clue how this happened");
 							}
 							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
+								self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
 	
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
+								self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
 	
 							}
 							Direction::None=>{
@@ -206,20 +204,20 @@ impl Crate {
 					}
 				}
 				Direction::Down=>{
-					self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
+					self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir{
 							Direction::Up=>{
 								println!("I have no clue how this happened");
 							}
 							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
+								self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
 							}
 							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
+								self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
+								self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -228,20 +226,20 @@ impl Crate {
 					}
 				}
 				Direction::Right=>{
-					self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
+					self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir{
 							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
+								self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
 							}
 							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
+								self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
 							}
 							Direction::Left=>{
 								println!("I have no clue how this happened");
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100.0,0.0));
+								self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -250,17 +248,17 @@ impl Crate {
 					}
 				}
 				Direction::Left=>{
-					self.set_x_vel(self.x_vel().clamp(0.0,100.0));
+					self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[1].dir{
 							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0.0,100.0));
+								self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
 							}
 							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100.0,0.0));
+								self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
 							}
 							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0.0,100.0));
+								self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
 							}
 							Direction::Right=>{
 								println!("I have no clue how this happened");
@@ -279,9 +277,9 @@ impl Crate {
 	}
 
 	pub fn offset_pos(&self, player:&Player)-> Rect{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-		self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE_HALF, TILE_SIZE_HALF);
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
+					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
+						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
 	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){

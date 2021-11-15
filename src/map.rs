@@ -8,6 +8,7 @@ use crate::background::*;
 
 pub struct Map<'a> {
 	pub background: Background<'a>, 
+	pub current_floor: i32, 
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub numbered_map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub num_rooms: i32, 
@@ -19,7 +20,8 @@ pub struct Map<'a> {
 }
 
 impl<'a> Map<'a> {
-	pub fn new(background: Background<'a>) -> Map<'a> {
+	pub fn new(current_floor: i32, background: Background<'a>) -> Map<'a> {
+		let map_w = MAP_SIZE_W + (current_floor as usize - 1)*16; 
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let num_rooms=1; 
@@ -31,6 +33,7 @@ impl<'a> Map<'a> {
 
 		Map {
 			background, 
+			current_floor, 
 			map, 
 			numbered_map, 
 			num_rooms, 
@@ -45,7 +48,7 @@ impl<'a> Map<'a> {
 	// 1: create a new map
 	pub fn create_map(&mut self) {
 		self.map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
-		if !DEVELOP {
+		if DEVELOP {
 			return;
 		}
 
@@ -332,7 +335,6 @@ impl<'a> Map<'a> {
 				}
 			}
 		}
-
 		return new_map;
 	}
 
@@ -402,13 +404,6 @@ impl<'a> Map<'a> {
 		let mut new_map = self.map;
 		let mut stairs_added: i32 = 0;
 
-		/* for h in 0..MAP_SIZE_H {
-			for w in 0..MAP_SIZE_W {
-				if self.numbered_map[h][w] > self.num_rooms {
-					self.num_rooms = self.numbered_map[h][w];
-				}
-			}
-		} */
 		while stairs_added < 2 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
@@ -452,7 +447,10 @@ impl<'a> Map<'a> {
 				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
 				
 				//add wall
-				new_map[h][w] = 2;	
+				let moss = rng.gen_range(0..10);
+				if moss < 8 {
+					new_map[h][w] = 2;			// pilars
+				} else { new_map[h][w] = 5; }	// moss pilars
 			}
 		}
 

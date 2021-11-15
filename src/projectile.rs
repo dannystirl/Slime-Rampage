@@ -88,7 +88,7 @@ impl Projectile {
 			}
 		}
 
-		if !DEVELOP {
+		if DEVELOP {
 			if self.x() <= xbounds.0 && self.is_active() {
 				self.set_x_vel( -self.x_vel() );
 				self.inc_bounce();
@@ -112,22 +112,19 @@ impl Projectile {
 	
 			for h in 0..(CAM_H / TILE_SIZE) + 1 {
 				for w in 0..(CAM_W / TILE_SIZE) + 1 {
-	
-				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
-				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
-				TILE_SIZE, TILE_SIZE);
-		
-				if h as i32 + h_bounds_offset < 0 ||
-				   w as i32 + w_bounds_offset < 0 ||
-				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-				continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.pos();
-	
-					if GameData::check_collision(&p_pos, &w_pos) {
-							//println!("c");
+					let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as i32) as i32 - (CENTER_W - self.x() as i32),
+										  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as i32) as i32 - (CENTER_H - self.y() as i32),
+										  TILE_SIZE, TILE_SIZE);
+			
+					if h as i32 + h_bounds_offset < 0 ||
+					   w as i32 + w_bounds_offset < 0 ||
+					   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+					   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+					   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+						continue;
+					} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+						let p_pos = self.pos();
+						if GameData::check_collision(&p_pos, &w_pos) {
 							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 						}
 					}
@@ -142,10 +139,8 @@ impl Projectile {
 					collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
 				}
 			}
-
 			self.resolve_col(&collisions);
 		}
-		
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
@@ -237,8 +232,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32,
 			self.y() as i32,
-			TILE_SIZE_PLAYER, 
-			TILE_SIZE_PLAYER
+			TILE_SIZE_CAM, 
+			TILE_SIZE_CAM
 		);
     }
 
