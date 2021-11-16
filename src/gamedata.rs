@@ -50,7 +50,7 @@ pub const MANA_RESTORE_RATE: u128 = 1000;
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;
 
-pub struct GameData {
+pub struct GameData <'a>{
     pub frame_counter: Instant, 
     speed_limit: f64,
     accel_rate: f64,
@@ -66,11 +66,11 @@ pub struct GameData {
     pub rooms: Vec<Room>,
 
     // For rigid body collisions
-    pub rigid_bodies: Vec<Rigidbody>,
+    pub rigid_bodies: Vec<&'a Rigidbody>,
 }
 
-impl GameData {
-    pub fn new() -> GameData {
+impl <'a>  GameData <'_>{
+    pub fn new() -> GameData <'a> {
         // creating a level: room data
         let current_floor = 1; // starting floor
         let current_room = 0; // starting room
@@ -91,7 +91,7 @@ impl GameData {
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
-        let rigid_bodies: Vec<Rigidbody> = Vec::<Rigidbody>::with_capacity(69);
+        let rigid_bodies: Vec<&Rigidbody> = Vec::<&Rigidbody>::with_capacity(69);
         let frame_counter = Instant::now();
 
         GameData {

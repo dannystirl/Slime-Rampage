@@ -41,13 +41,13 @@ use crate::power::*;
 use crate::map::*;
 use crate::rigidbody::Rigidbody;
 
-pub struct ROGUELIKE {
+pub struct ROGUELIKE<'a> {
 	core: SDLCore,
-	game_data: GameData,
+	game_data: GameData<'a>,
 }
 
 // CREATE GAME
-impl Game for ROGUELIKE  {
+impl Game for ROGUELIKE <'_> {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
@@ -359,7 +359,7 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 }
 
 // Create map
-impl ROGUELIKE {
+impl ROGUELIKE <'_>{
 	// draw background
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
