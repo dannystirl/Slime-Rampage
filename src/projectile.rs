@@ -220,8 +220,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32,
 			self.y() as i32,
-			TILE_SIZE_CAM, 
-			TILE_SIZE_CAM
+			TILE_SIZE_PROJECTILE, 
+			TILE_SIZE_PROJECTILE
 		);
     }
 
@@ -230,8 +230,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32 + (CENTER_W - player.x() as i32),
 			self.y() as i32 + (CENTER_H - player.y() as i32),
-			TILE_SIZE_CAM,
-			TILE_SIZE_CAM
+			TILE_SIZE_PROJECTILE,
+			TILE_SIZE_PROJECTILE
 		);
 	}
 
@@ -239,8 +239,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32 + (CENTER_W - player.x() as i32) - (TILE_SIZE_CAM/2) as i32,
 			self.y() as i32 + (CENTER_H - player.y() as i32) - (TILE_SIZE_CAM/2) as i32,
-			TILE_SIZE_CAM*2,
-			TILE_SIZE_CAM*2
+			TILE_SIZE_PROJECTILE*2,
+			TILE_SIZE_PROJECTILE*2
 		);
 	}
 

@@ -375,8 +375,8 @@ impl<'a> Player<'a> {
 			Rect::new(
 				self.x() as i32,
 				self.y() as i32,
-				TILE_SIZE_CAM,
-				TILE_SIZE_CAM,
+				TILE_SIZE_PROJECTILE,
+				TILE_SIZE_PROJECTILE,
 			),
 			false,
 			vec![x, y],

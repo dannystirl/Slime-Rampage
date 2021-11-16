@@ -236,6 +236,7 @@ pub struct Enemy<'a> {
 		if roll == 1 {
 			self.set_y_vel(0.0);
 			self.set_x_vel(1.0);
+			self.facing_right = false;
 		}
 		if roll == 2 {
 			self.set_y_vel(-1.0);
@@ -248,6 +249,7 @@ pub struct Enemy<'a> {
 		if roll == 4 {
 			self.set_x_vel(-1.0);
 			self.set_y_vel(0.0);
+			self.facing_right = true;
 		}
 	}
 
@@ -261,7 +263,9 @@ pub struct Enemy<'a> {
 		let mut x = speed_limit_adj * angle.sin();
 		if vec[0] < 0.0 {
 			x *= -1.0;
+			self.facing_right = true; 
 		}
+		else { self.facing_right = false; }
 		let mut y = speed_limit_adj * angle.cos();
 		if vec[1] < 0.0  {
 			y *= -1.0;
@@ -270,7 +274,7 @@ pub struct Enemy<'a> {
 		self.set_y_vel(y );
 	}
 
-	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, /* x_bounds: (i32, i32), y_bounds: (i32, i32),  */speed_limit_adj: f64) {
+	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, speed_limit_adj: f64) {
 		if self.is_stunned {
 			return;
 		}
@@ -279,7 +283,9 @@ pub struct Enemy<'a> {
 		let mut x = speed_limit_adj / 1.5 as f64 * angle.sin();
 		if vec[0] >= 0.0 {
 			x *= -1.0;
+			self.facing_right = false;
 		}
+		else { self.facing_right = true; }
 		let mut y = speed_limit_adj / 1.5 as f64 * angle.cos();
 		if vec[1] >= 0.0  {
 			y *= -1.0;
@@ -398,8 +404,8 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE_CAM,
-									TILE_SIZE_CAM,
+									TILE_SIZE_PROJECTILE,
+									TILE_SIZE_PROJECTILE,
 								),
 								true,
 								vec![x,y],
