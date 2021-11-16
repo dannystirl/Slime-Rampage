@@ -101,12 +101,7 @@ impl<'a> Player<'a> {
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let invincible = true;
-		let power: PowerType;
-		if DEBUG {
-			power = PowerType::Fireball;
-		} else {
-			power = PowerType::None;
-		}
+		let power = PowerType::None;
 		let can_pickup = false;
 		let weapon_frame=0;
 		let coins = 0;

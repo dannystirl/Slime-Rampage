@@ -652,7 +652,12 @@ impl ROGUELIKE {
 		for drop in self.game_data.dropped_powers.iter_mut() {
 			if check_collision(&player.pos(), &drop.pos()) {
 				if !drop.collected() {
-					can_pickup = true;
+					match drop.power_type() {
+						PowerType::None => {},
+						_ => {
+							can_pickup = true;
+						}
+					}
 				}
 			}
 		}
