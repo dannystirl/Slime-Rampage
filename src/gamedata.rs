@@ -50,8 +50,8 @@ pub const MANA_RESTORE_RATE: u128 = 1000;
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;
 
-pub struct GameData <'a>{
-    pub frame_counter: Instant, 
+pub struct GameData {
+    pub frame_counter: Instant,
     speed_limit: f64,
     accel_rate: f64,
 
@@ -65,12 +65,21 @@ pub struct GameData <'a>{
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,
 
-    // For rigid body collisions
-    pub rigid_bodies: Vec<&'a Rigidbody>,
+    /* For rigid body collisions
+       Each tuple index:
+            0 = Rigidbody object
+            1 = Number representing type of body
+                0 = player
+                1 = enemy
+                2 = player projectile
+                3 = enemy projectile
+                4 = wall
+     */
+    pub rigid_bodies: Vec<(Rigidbody, i32)>,
 }
 
-impl <'a>  GameData <'_>{
-    pub fn new() -> GameData <'a> {
+impl GameData{
+    pub fn new() -> GameData{
         // creating a level: room data
         let current_floor = 1; // starting floor
         let current_room = 0; // starting room
@@ -91,12 +100,12 @@ impl <'a>  GameData <'_>{
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
-        let rigid_bodies: Vec<&Rigidbody> = Vec::<&Rigidbody>::with_capacity(69);
+        let rigid_bodies: Vec<(Rigidbody, i32)> = Vec::<(Rigidbody, i32)>::with_capacity(69);
         let frame_counter = Instant::now();
 
         GameData {
             current_floor, 
-            frame_counter, 
+            frame_counter,
             current_room,
             gold,
             dropped_powers,

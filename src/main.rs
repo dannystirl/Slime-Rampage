@@ -41,13 +41,13 @@ use crate::power::*;
 use crate::map::*;
 use crate::rigidbody::Rigidbody;
 
-pub struct ROGUELIKE<'a> {
+pub struct ROGUELIKE{
 	core: SDLCore,
-	game_data: GameData<'a>,
+	game_data: GameData,
 }
 
 // CREATE GAME
-impl Game for ROGUELIKE <'_> {
+impl Game for ROGUELIKE {
 
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
@@ -317,9 +317,9 @@ impl Game for ROGUELIKE <'_> {
 				// UPDATE INTERACTABLES
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
-				//for c in self.game_data.crates.iter_mut() {
-				//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
-				//}
+				for c in self.game_data.crates.iter_mut() {
+					self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
+				}
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
@@ -359,7 +359,7 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 }
 
 // Create map
-impl ROGUELIKE <'_>{
+impl ROGUELIKE {
 	// draw background
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
@@ -588,15 +588,69 @@ impl ROGUELIKE <'_>{
 			let (sp, other_bodies) = self.game_data.rigid_bodies.split_at_mut(i);
 			let (source, after) = other_bodies.split_first_mut().unwrap();
 			for target in sp.iter().chain(after.iter()){
-				println!("{}", target.pos().x());
+
+				// ensure not same body
+				if source == target{
+					continue;
+				}
 				// Dynamic vs Static
-				if source.dynamic() && !target.dynamic() && source.dynamic_vs_static(target){
+				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0){
 					println!("dynamic vs. static collision!!!");
 				}
 				// Dynamic vs Dynamic
-				else if source.dynamic() && target.dynamic() && source.dynamic_vs_dynamic(target){
+				else if source.0.dynamic() && target.0.dynamic() && source.0.dynamic_vs_dynamic(&target.0){
 					println!("dynamic vs. dynamic collision!!!");
 				}
+			}
+		}
+
+		// Resolve all collisions for dynamic bodies
+
+		// Send info back to every rigid body
+		// It would've been nice to update each body automatically but Rust doesn't like that
+		for body in self.game_data.rigid_bodies.iter_mut(){
+			match body.1{
+				// Player's Body
+				0 => {
+					println!("updating player rigid body");
+					//player.update_rb(body.0);
+				}
+				// Enemy's Body
+				1 => {
+					for enemy in enemies.iter_mut(){
+						if body.0.pos() == enemy.pos(){
+							println!("updating enemy rigid body");
+							//enemy.update_rb(body.0);
+						}
+					}
+				}
+				// Player's Projectile Body
+				2 => {
+					for pp in self.game_data.player_projectiles.iter_mut(){
+						if body.0.pos() == pp.pos(){
+							println!("updating player projectile rigid body");
+							//pp.update_rb(body.0);
+						}
+					}
+				}
+				// Enemy's Projectile Body
+				3 => {
+					for ep in self.game_data.enemy_projectiles.iter_mut() {
+						if body.0.pos() == ep.pos() {
+							println!("updating enemy projectile rigid body");
+							//ep.update_rb(body.0);
+						}
+					}
+				}
+				4 => {
+					for c in self.game_data.crates.iter_mut(){
+						if body.0.pos() == c.pos(){
+							println!("updating crate rigid body");
+							c.update_rb(body.0);
+						}
+					}
+				}
+				_ => {}
 			}
 		}
 

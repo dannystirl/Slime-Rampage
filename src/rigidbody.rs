@@ -20,6 +20,7 @@ pub struct Pointf{
  
 
 #[derive(Copy, Clone)]
+#[derive(PartialEq)]
 pub struct Rigidbody{
     pos: Rect,          //world position of the body
     vel: (f64, f64),    //velocity vector

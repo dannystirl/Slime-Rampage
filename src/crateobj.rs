@@ -81,6 +81,9 @@ impl Crate {
 	pub fn y_vel(&self) -> f64 {
 		return self.velocity[1];
 	}
+	pub fn update_rb(&mut self, new_rb: Rigidbody){
+		self.rb = new_rb;
+	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
 		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
