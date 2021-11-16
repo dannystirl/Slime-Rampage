@@ -123,7 +123,7 @@ impl Rigidbody{
         return false;
     }
 
-    pub fn rect_vs_rect(&mut self, other: &Rigidbody, time: i32)-> bool{// Stolen from farnans code
+    pub fn rect_vs_rect(&mut self, other: &Rigidbody, time: i32)-> bool{//time should be float?
             /*
             if self.pos.bottom() < other.top()
                 || self.pos.top() > other.bottom()
