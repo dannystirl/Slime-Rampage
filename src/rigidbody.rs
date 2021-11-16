@@ -1,7 +1,9 @@
 extern crate rogue_sdl;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
-
+use std::ops::Sub;
+use std::mem;
+use std::cmp;
 pub struct Pointf{
     pub x: f64,
     pub y: f64,
@@ -9,14 +11,11 @@ pub struct Pointf{
 
  impl Pointf{
     pub fn new(x: f64, y: f64) -> Pointf {
-
         Pointf{
             x,
             y,
         }
-
     }
-
 }
 
 pub struct Rigidbody{
@@ -41,12 +40,62 @@ impl Rigidbody{
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }
 
-    pub fn ray_vs_rect(&self, origin : Pointf , dir : Pointf, other : Rect, hit_near : f64){
-       let contact = Pointf::new(0.0,0.0);
-       let normal = Pointf::new(0.0,0.0);
+    pub fn ray_vs_rect(&self, origin : Point , dir : Point, other : Rect, mut time : i32)->bool{
+       let contact = Point::new(0,0);
        let inverse_x = 1.0/ (dir.x as f64);
        let inverse_y = 1.0/ (dir.y as f64);
-       let inverse_dir = Pointf::new(inverse_x, inverse_y);
+       let inverse_dir = Point::new(inverse_x as i32, inverse_y as i32);
+
+       let inter  = self.pos.intersect_line( origin, dir);
+       let mut intersection;
+       match inter {
+           None=> {return false;}
+           Some(inter)=> {intersection = inter;}
+       }
+       let mut near =intersection.0;
+       let mut far = intersection.1;
+       //sort distances
+       if near.x > far.x{mem::swap(&mut near.x,&mut far.x);}
+       if near.y > far.y{mem::swap(&mut near.y,&mut far.y);}
+       if near.x > far.y || near.y > near.x{return false;}
+       
+       //closest place on the line that will be the first contact
+       time = cmp::max(near.x, near.y);
+       let time_far = cmp::min(far.x, far.y);
+       if time_far < 0 { return false; }
+       let contact = Point::new(origin.x+time * dir.x,origin.y+time * dir.y );
+
+       let mut normal_contact;
+       if near.x >near.y {
+           if inverse_dir.x <0 {
+               normal_contact = Point::new(1,0);
+               //add set method here
+           }else{
+               normal_contact =  Point::new(-1,0);
+               //add set method here
+           }
+        }else if near.x <near.y {
+            if inverse_dir.y <0 {
+                normal_contact = Point::new(0,1);
+                //add set method here
+            }else{
+                normal_contact =  Point::new(0,-1);
+                //add set method here
+            }
+        }
+           
+     
+       //let mut other_near = other.top_left().sub(origin);
+       //other_near.x = other.x * inverse_x as i32;
+       //other_near.y= other.y * inverse_y as i32;
+       //let mut other_far = other.bottom_right().sub(origin);
+       //other_far = other.x * inverse_x as i32;
+       //other_far = other.y * inverse_y as i32;
+
+      // if(other_near.x  > other_far.y){
+           
+       //}
+      true
         
     }
     pub fn rect_vs_rect(&self, other :&Rect)->bool{// Stolen from farnans code
