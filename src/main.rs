@@ -585,16 +585,16 @@ impl ROGUELIKE <'_>{
 
 		// Check all dynamic moving bodies against all bodies (can be static/dynamic)
 		for i in 0 .. self.game_data.rigid_bodies.len(){
-			let (source, other_bodies) = self.game_data.rigid_bodies.split_at_mut(i);
-			let (sp, after) = other_bodies.split_first_mut().unwrap();
-			for target in source.iter().chain(after.iter()){
+			let (sp, other_bodies) = self.game_data.rigid_bodies.split_at_mut(i);
+			let (source, after) = other_bodies.split_first_mut().unwrap();
+			for target in sp.iter().chain(after.iter()){
 				println!("{}", target.pos().x());
 				// Dynamic vs Static
-				if sp.dynamic() && !target.dynamic() && sp.dynamic_vs_static(target){
+				if source.dynamic() && !target.dynamic() && source.dynamic_vs_static(target){
 					println!("dynamic vs. static collision!!!");
 				}
 				// Dynamic vs Dynamic
-				else if sp.dynamic() && target.dynamic() && sp.dynamic_vs_dynamic(target){
+				else if source.dynamic() && target.dynamic() && source.dynamic_vs_dynamic(target){
 					println!("dynamic vs. dynamic collision!!!");
 				}
 			}
