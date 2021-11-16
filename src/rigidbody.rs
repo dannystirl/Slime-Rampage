@@ -182,6 +182,9 @@ impl Rigidbody{
     pub fn vel(&self) -> Point{
         return self.vel;
     }
+    pub fn center(&self) -> Point{
+        return self.pos.center();
+    }
     pub fn set_pos(&mut self, pos: Rect){
         self.pos = pos;
     }

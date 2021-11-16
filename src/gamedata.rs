@@ -76,7 +76,7 @@ pub struct GameData {
                 4 = crate
             3 = Vector of rigidbodies it collided with
      */
-    pub rigid_bodies: Vec<(Rigidbody, i32, Vec<Rigidbody>)>,
+    pub rigid_bodies: Vec<(Rigidbody, i32, Vec<(Rigidbody, i32)>)>,
 }
 
 impl GameData{
@@ -101,7 +101,7 @@ impl GameData{
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
-        let rigid_bodies: Vec<(Rigidbody, i32, Vec<Rigidbody>)> = Vec::<(Rigidbody, i32, Vec<Rigidbody>)>::with_capacity(69);
+        let rigid_bodies: Vec<(Rigidbody, i32, Vec<(Rigidbody, i32)>)> = Vec::<(Rigidbody, i32, Vec<(Rigidbody, i32)>)>::with_capacity(69);
         let frame_counter = Instant::now();
 
         GameData {
