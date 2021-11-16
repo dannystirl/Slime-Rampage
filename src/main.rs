@@ -211,7 +211,7 @@ impl Game for ROGUELIKE  {
 									TILE_SIZE_CAM,
 									TILE_SIZE_CAM
 								),
-								texture_creator.load_texture("images/enemies/ranged_enemy_small.png")?,
+								texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
 								EnemyType::Ranged,
 								enemy_count,
 							);

@@ -49,7 +49,7 @@ pub struct Enemy<'a> {
 	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, enemy_number: usize) -> Enemy<'a> {
 		let vel_x = 0.0;
 		let vel_y = 0.0;
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
