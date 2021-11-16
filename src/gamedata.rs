@@ -11,6 +11,7 @@ use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
 use crate::crateobj::*;
+use crate::rigidbody::*;
 
 // window globals
 pub const TITLE: &str = "Roguelike";
@@ -63,6 +64,9 @@ pub struct GameData {
     pub current_floor: i32, 
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,
+
+    // For rigid body collisions
+    pub rigid_bodies: Vec<Rigidbody>,
 }
 
 impl GameData {
@@ -87,6 +91,7 @@ impl GameData {
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
+        let rigid_bodies: Vec<Rigidbody> = Vec::<Rigidbody>::with_capacity(69);
         let frame_counter = Instant::now();
 
         GameData {
@@ -101,6 +106,7 @@ impl GameData {
             speed_limit,
             accel_rate,
             crates,
+            rigid_bodies,
         }
     }
 

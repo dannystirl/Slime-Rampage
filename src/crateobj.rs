@@ -5,8 +5,9 @@ use sdl2::render::{Texture};
 use crate::player::*;
 use crate::rigidbody::*;
 use crate::player::Direction::{Down, Up, Left, Right};
-//use crate::rigidbody::*;
+use crate::rigidbody::*;
 use sdl2::rect::Point;
+use crate::gamedata::*;
 
 //use sdl2::pixels;
 use crate::SDLCore;

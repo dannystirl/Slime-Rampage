@@ -39,6 +39,7 @@ use crate::enemy::*;
 use crate::projectile::*;
 use crate::power::*;
 use crate::map::*;
+use crate::rigidbody::Rigidbody;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -581,6 +582,26 @@ impl ROGUELIKE {
 	}
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
+
+		// Check all dynamic moving bodies against all bodies (can be static/dynamic)
+		for i in 0 .. self.game_data.rigid_bodies.len(){
+			let (source, other_bodies) = self.game_data.rigid_bodies.split_at_mut(i);
+			let (sp, after) = other_bodies.split_first_mut().unwrap();
+			for target in source.iter().chain(after.iter()){
+				println!("{}", target.pos().x());
+				// Dynamic vs Static
+				if sp.dynamic() && !target.dynamic() && sp.dynamic_vs_static(target){
+					println!("dynamic vs. static collision!!!");
+				}
+				// Dynamic vs Dynamic
+				else if sp.dynamic() && target.dynamic() && sp.dynamic_vs_dynamic(target){
+					println!("dynamic vs. dynamic collision!!!");
+				}
+			}
+		}
+
+		// ******************** PRE RAYCASTING ******************
+		/*
 		for enemy in enemies {
 			if !enemy.is_alive() {
 				continue;
@@ -671,6 +692,7 @@ impl ROGUELIKE {
 		for c in self.game_data.crates.iter_mut(){
 			c.update_crates(&mut self.core, &crate_textures, player, map);
 		}
+		 */
 
 	}
 

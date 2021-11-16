@@ -21,6 +21,7 @@ pub struct Pointf{
 }
  */
 
+#[derive(Copy, Clone)]
 pub struct Rigidbody{
     pos: Rect,          //world position of the body
     vel: (f64, f64),    //velocity vector
@@ -53,6 +54,23 @@ impl Rigidbody{
         
     }
      */
+
+    // Check for collision of a moving body with static body
+    pub fn dynamic_vs_static(&self, target: &Rigidbody) -> bool{
+
+        // TODO: Check static vs. dynamic
+
+        return false;
+    }
+
+    // Check for collision of a moving body with dynamic body
+    pub fn dynamic_vs_dynamic(&self, target: &Rigidbody) -> bool{
+
+        //TODO: Check dynamic vs. dynamic
+
+        return false;
+    }
+
     pub fn rect_vs_rect(&self, other :&Rect)->bool{// Stolen from farnans code
         
             if self.pos.bottom() < other.top()
@@ -78,6 +96,9 @@ impl Rigidbody{
     }
     pub fn set_vel(&mut self, vel: (f64, f64)){
         self.vel = vel;
+    }
+    pub fn dynamic(&self) -> bool{
+        return self.dynamic;
     }
 
 }
