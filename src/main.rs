@@ -585,7 +585,10 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
 
-		// reset all collisions
+		// reset all current collisions
+		for body in self.game_data.rigid_bodies.iter_mut(){
+			body.2 = vec![];
+		}
 
 		// Check all dynamic moving bodies against all bodies (can be static/dynamic)
 		for i in 0 .. self.game_data.rigid_bodies.len(){
