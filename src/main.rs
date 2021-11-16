@@ -229,7 +229,9 @@ impl Game for ROGUELIKE {
 									TILE_SIZE_CAM
 								)
 							);
+							let mut rb = Rigidbody::new(c.pos(), true);
 							self.game_data.crates.push(c);
+							self.game_data.rigid_bodies.push((rb, 4, vec![]));
 						}
 						4 => {
 							let e = enemy::Enemy::new(
@@ -583,6 +585,8 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
 
+		// reset all collisions
+
 		// Check all dynamic moving bodies against all bodies (can be static/dynamic)
 		for i in 0 .. self.game_data.rigid_bodies.len(){
 			let (sp, other_bodies) = self.game_data.rigid_bodies.split_at_mut(i);
@@ -604,10 +608,15 @@ impl ROGUELIKE {
 			}
 		}
 
+		// sort all collisions
+
 		// Resolve all collisions for dynamic bodies
 
 		// Send info back to every rigid body
 		// It would've been nice to update each body automatically but Rust doesn't like that
+
+		// NOTE: IF CHECKING THE POSITION(POS) OF EACH PROJECTILE DOES NOT WORK, WE CAN JUST ASSIGN IDs
+		// to each rigid body
 		for body in self.game_data.rigid_bodies.iter_mut(){
 			match body.1{
 				// Player's Body
