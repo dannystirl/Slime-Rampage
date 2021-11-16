@@ -90,7 +90,7 @@ impl<'a> Player<'a> {
 		let delta = (0, 0);
 
 		// TODO: Replace pos, velocity values with rb params
-		let rb = Rigidbody::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64), true);
+		let rb = Rigidbody::new((0.0, 0.0), true);
 
 		let height = TILE_SIZE;
 		let width = TILE_SIZE;
