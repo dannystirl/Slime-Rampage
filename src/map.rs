@@ -280,12 +280,12 @@ impl<'a> Map<'a> {
 
 		// create first door per room
 		while connectors.len() > 0 {
-			print!("\ndoor");
+			if DEBUG { print!("\ndoor"); }
 			let rand_connection = rand::thread_rng().gen_range(0..connectors.len());
 			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 1;
 			// roll for second & third doors
 			if rand::thread_rng().gen_range(0..30) < 15 {
-				print!("\nextra door");
+				if DEBUG { print!("\nextra door"); }
 				let rand_addition: usize; 
 				// attempt to make second door far from the first
 				if rand_connection > connectors.len()/2 {
@@ -295,7 +295,7 @@ impl<'a> Map<'a> {
 				}
 				new_map[connectors[rand_addition].0][connectors[rand_addition].1] = 1;
 				if rand::thread_rng().gen_range(0..30) < 5 {
-					print!("\nextra extra door");
+					if DEBUG { print!("\nextra extra door"); }
 					let rand_addition = rand::thread_rng().gen_range(0..connectors.len());
 					new_map[connectors[rand_addition].0][connectors[rand_addition].1] = 1;
 				}

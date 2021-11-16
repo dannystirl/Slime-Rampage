@@ -178,12 +178,14 @@ impl<'a> Player<'a> {
 						  map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
 					let p_pos = self.pos();
 
-					if GameData::check_collision(&p_pos, &w_pos) {
-						if DEBUG {
-							core.wincan.copy(&hitbox, src, self.cam_pos)?;
-							core.wincan.copy(&hitbox, src, debug_pos)?;
+					if !DEBUG_NO_WALLS {
+						if GameData::check_collision(&p_pos, &w_pos) {
+							if DEBUG {
+								core.wincan.copy(&hitbox, src, self.cam_pos)?;
+								core.wincan.copy(&hitbox, src, debug_pos)?;
+							}
+							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 						}
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 					}
 				}
 			}
