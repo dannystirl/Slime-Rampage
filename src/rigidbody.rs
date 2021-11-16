@@ -22,14 +22,14 @@ pub struct Pointf{
 #[derive(Copy, Clone)]
 pub struct Rigidbody{
     pos: Rect,          //world position of the body
-    vel: (f64, f64),    //velocity vector
+    vel: Point,    //velocity vector
     dynamic: bool,      //can the body move
 }
 
 #[allow(dead_code)]
 impl Rigidbody{
     pub fn new(pos: Rect, dynamic: bool)->Rigidbody{
-        let vel = (0.0,0.0);
+        let vel = Point::new(0, 0);
         Rigidbody{
             pos,
             vel,
@@ -118,8 +118,8 @@ impl Rigidbody{
         return false;
     }
 
-    pub fn rect_vs_rect(&self, other :&Rect)->bool{// Stolen from farnans code
-        
+    pub fn rect_vs_rect(&self, other: &Rigidbody, time: i32)-> bool{// Stolen from farnans code
+            /*
             if self.pos.bottom() < other.top()
                 || self.pos.top() > other.bottom()
                 || self.pos.right() < other.left()
@@ -130,18 +130,54 @@ impl Rigidbody{
             else {
                 true
             }
+            */
+            //expand target collision by player dimensions
+            if self.vel.x == 0 && self.vel.y == 0 {
+                return false;
+            }
+            let expanded_pos = Rect::new(other.pos.x - self.pos.x / 2 as i32, other.pos.y + self.pos.y/2 as i32, (64 + self.pos.x) as u32, (64 + self.pos.y) as u32);
+            if self.ray_vs_rect(other.pos.center(), other.vel, expanded_pos, time) {
+                return (time >= 0 && time < 1);
+            }
+            else {
+                return false;
+            }
+                
+    }
+
+    pub fn resolve_dynamic_rects(&self, other: &Rigidbody, time: i32) -> bool {
+        let normal = Point::new(0, 0);
+        let time = 0;
+
+        if self.rect_vs_rect(other, time) {
+            if normal.y > 0 {
+                
+            }
+            if normal.x < 0 {
+
+            }
+            if normal.y < 0 {
+
+            }
+            if normal.x > 0 {
+
+            }
+           
+            return true;
+        }
+        return false; 
     }
 
     pub fn pos(&self) -> Rect{
         return self.pos;
     }
-    pub fn vel(&self) -> (f64, f64){
+    pub fn vel(&self) -> Point{
         return self.vel;
     }
     pub fn set_pos(&mut self, pos: Rect){
         self.pos = pos;
     }
-    pub fn set_vel(&mut self, vel: (f64, f64)){
+    pub fn set_vel(&mut self, vel: Point){
         self.vel = vel;
     }
     pub fn dynamic(&self) -> bool{
