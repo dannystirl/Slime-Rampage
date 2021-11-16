@@ -8,6 +8,7 @@ use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use crate::player::*;
 use crate::power::*;
+use crate::map::*;
 use sdl2::pixels::Color;
 
 pub struct UI<'a>{
@@ -44,7 +45,7 @@ impl<'a> UI<'a> {
 
 
 	//update background
-	pub fn update_ui(&mut self, player: &Player, core :&mut SDLCore) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map, game_data: &GameData) -> Result<(), String> {
 		// set ui bar
 		let texture_creator = core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE_64*2);
@@ -119,11 +120,21 @@ impl<'a> UI<'a> {
 		s += "/";
 		s += &a;
 
-		// Display helper text for absorption
-		if player.can_pickup() {
-			let absorb_help = get_font.render("[E]: Absorb Power").blended(Color::WHITE).unwrap();
+		let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
+		map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
+		TILE_SIZE, TILE_SIZE);
+		let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
+		if GameData::check_collision(&ppos, &mpos) {
+			let absorb_help = get_font.render("[E]: Descend Stairs").blended(Color::WHITE).unwrap();
 			let display_absorb_help = texture_creator.create_texture_from_surface( &absorb_help ).unwrap();
 			core.wincan.copy(&display_absorb_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+		} else {
+			// Display helper text for absorption
+			if player.can_pickup() {
+				let absorb_help = get_font.render("[E]: Absorb Power").blended(Color::WHITE).unwrap();
+				let display_absorb_help = texture_creator.create_texture_from_surface( &absorb_help ).unwrap();
+				core.wincan.copy(&display_absorb_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+			}
 		}
 
 		//display equipped weapon

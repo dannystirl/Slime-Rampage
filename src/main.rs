@@ -325,7 +325,7 @@ impl Game for ROGUELIKE  {
 				if player.is_dead(){break 'gameloop;}
 
 				// UPDATE UI
-				ui.update_ui( &player, &mut self.core)?;
+				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
 				
 				// UPDATE FRAME
 				self.core.wincan.present();
