@@ -310,7 +310,7 @@ impl Game for ROGUELIKE {
 
 				// UPDATE ENEMIES
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
-				//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
+				ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
 				// UPDATE ATTACKS
 				// Should be switched to take in array of active fireballs, bullets, etc.
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
