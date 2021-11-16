@@ -73,18 +73,18 @@ impl Rigidbody{
 
        if near.x >near.y {
            if inverse_dir.x <0 {
-               self.normal_contact = Point::new(1,0);
+               self.normal_contact = self.set_vec(1,0);//Point::new(1,0);
                //add set method here
            }else{
-               self.normal_contact =  Point::new(-1,0);
+               self.normal_contact =  self.set_vec(-1,0);//Point::new(-1,0);
                //add set method here
            }
         }else if near.x <near.y {
             if inverse_dir.y <0 {
-                self.normal_contact = Point::new(0,1);
+                self.normal_contact = self.set_vec(0,1);//Point::new(0,1);
                 //add set method here
             }else{
-                self.normal_contact =  Point::new(0,-1);
+                self.normal_contact = self.set_vec(0,-1);//Point::new(0,-1);
                 //add set method here
             }
         }
@@ -124,7 +124,7 @@ impl Rigidbody{
         return false;
     }
 
-    pub fn rect_vs_rect(&mut self, other: &Rigidbody, time: i32)-> bool{//time should be float?
+    pub fn rect_vs_rect(&mut self, other: &Rigidbody, contact_time: i32)-> bool{
             /*
             if self.pos.bottom() < other.top()
                 || self.pos.top() > other.bottom()
@@ -142,8 +142,8 @@ impl Rigidbody{
                 return false;
             }
             let expanded_pos = Rect::new(other.pos.x - self.pos.x / 2 as i32, other.pos.y + self.pos.y/2 as i32, (64 + self.pos.x) as u32, (64 + self.pos.y) as u32);
-            if self.ray_vs_rect(other.pos.center(), other.vel, expanded_pos, time) {
-                return (time >= 0 && time < 1);
+            if self.ray_vs_rect(other.pos.center(), other.vel, expanded_pos, contact_time) {
+                return (contact_time >= 0 && contact_time < 1);
             }
             else {
                 return false;
@@ -153,7 +153,7 @@ impl Rigidbody{
 
     pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time: i32) -> bool {
         let time = 0;
-
+        //
         if self.rect_vs_rect(other, time) {
             if self.normal_contact.y > 0 {
                 
@@ -167,7 +167,10 @@ impl Rigidbody{
             if self.normal_contact.x > 0 {
 
             }
-           
+
+            //r_dynamic->vel += contact_normal * olc::vf2d(std::abs(r_dynamic->vel.x), std::abs(r_dynamic->vel.y)) * (1 - contact_time);
+            //scalar: (1 - contact_time); contact_normal indicates the direction that vel should be (I believed)
+            let v = Point::new(self.vel.x, self.vel.y);
             return true;
         }
         return false; 
@@ -187,6 +190,9 @@ impl Rigidbody{
     }
     pub fn dynamic(&self) -> bool{
         return self.dynamic;
+    }
+    pub fn set_vec(&self, x: i32, y: i32) -> Point{
+        return Point::new(x, y);
     }
 
 }
