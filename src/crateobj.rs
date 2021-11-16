@@ -107,6 +107,9 @@ impl Crate {
 	pub fn set_y_vel(&mut self, y_vel: f64) {
 		self.velocity[1] = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
+	pub fn get_rb(&self) -> Rigidbody{
+		return self.rb;
+	}
 	pub fn set_rb(&mut self){
 		self.rb.set_pos(self.pos);
 		self.rb.set_vel(self.vel);
