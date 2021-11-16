@@ -506,6 +506,17 @@ pub struct Enemy<'a> {
 					PowerType::Slimeball,
 				);
 			},
+			EnemyType::Skeleton => {
+				power = power::Power::new(
+					Rect::new(
+						self.x() as i32,
+						self.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					PowerType::Shield,
+				);
+			},
 			_ => {
 				power = power::Power::new(
 					Rect::new(

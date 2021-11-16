@@ -8,6 +8,7 @@ pub enum PowerType {
     None,
     Fireball,
     Slimeball,
+    Shield,
 }
 
 pub struct Power {

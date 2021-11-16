@@ -121,10 +121,12 @@ impl Game for ROGUELIKE  {
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
+		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
 		
 		bullet_textures.push(bullet);
 		bullet_textures.push(fireball);
 		bullet_textures.push(enemy_bullet);
+		bullet_textures.push(shield);
 
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
@@ -134,6 +136,7 @@ impl Game for ROGUELIKE  {
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
+		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
 
 		// MAIN GAME LOOP
@@ -315,7 +318,8 @@ impl Game for ROGUELIKE  {
 				
 				// UPDATE INTERACTABLES
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
-				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture, &fireball_texture, &slimeball_texture);
+				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture,
+										&fireball_texture, &slimeball_texture, &shield_texture);
 				//for c in self.game_data.crates.iter_mut() {
 				//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
 				//}
@@ -439,7 +443,7 @@ impl ROGUELIKE {
 	}
 	
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture,
-						fireball_texture: &Texture, slimeball_texture: &Texture) {
+						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture) {
 		//add coins to gold vector
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
@@ -470,6 +474,9 @@ impl ROGUELIKE {
 					},
 					PowerType::Slimeball => {
 						self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+					},
+					PowerType::Shield => {
+						self.core.wincan.copy_ex(&shield_texture, p.src(), pos, 0.0, None, false, false).unwrap();
 					},
 					_ => {},
 				}
@@ -523,6 +530,13 @@ impl ROGUELIKE {
 						self.game_data.player_projectiles.push(bullet);
 					}
 				},
+				PowerType::Shield => {
+					if !player.is_firing && player.get_mana() > 0 {
+						let p_type = ProjectileType::Shield;
+						let bullet = player.fire(mousestate.x(), mousestate.y(), 0.0, p_type, 0);
+						self.game_data.player_projectiles.push(bullet);
+					}
+				},
 				_ => {},
 			}
 		}
@@ -539,6 +553,9 @@ impl ROGUELIKE {
 							PowerType::Slimeball => {
 								player.set_power(PowerType::Slimeball);
 							},
+							PowerType::Shield => {
+								player.set_power(PowerType::Shield);
+							}
 							_ => {}
 						}
 					}
@@ -718,6 +735,9 @@ impl ROGUELIKE {
 						*/
 						projectile.elapsed += 1;
 						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos_large(player), angle, None, !projectile.facing_right, false).unwrap();
+					}
+					ProjectileType::Shield => {
+						self.core.wincan.copy(&bullet_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
 				}	
 			}

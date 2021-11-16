@@ -11,6 +11,7 @@ use crate::crateobj::*;
 pub enum ProjectileType{
 	Bullet,
 	Fireball,
+	Shield,
 }
 
 pub struct Projectile{
@@ -34,6 +35,7 @@ impl Projectile {
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
 			ProjectileType::Fireball => { damage = 10; } 
+			ProjectileType::Shield => { damage = 0; }
 		}
 		Projectile {
 			src,
