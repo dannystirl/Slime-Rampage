@@ -24,16 +24,19 @@ pub struct Rigidbody{
     pos: Rect,          //world position of the body
     vel: Point,    //velocity vector
     dynamic: bool,      //can the body move
+    normal_contact: Point, //last contact point
 }
 
 #[allow(dead_code)]
 impl Rigidbody{
     pub fn new(pos: Rect, dynamic: bool)->Rigidbody{
         let vel = Point::new(0, 0);
+        let normal_contact = Point::new(0, 0);
         Rigidbody{
             pos,
             vel,
             dynamic,
+            normal_contact,
         }
     }
     
@@ -42,7 +45,7 @@ impl Rigidbody{
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }
 
-    pub fn ray_vs_rect(&self, origin : Point , dir : Point, other : Rect, mut time : i32)->bool{
+    pub fn ray_vs_rect(&mut self, origin : Point , dir : Point, other : Rect, mut time : i32)->bool{
        let contact = Point::new(0,0);
        let inverse_x = 1.0/ (dir.x as f64);
        let inverse_y = 1.0/ (dir.y as f64);
@@ -67,21 +70,20 @@ impl Rigidbody{
        if time_far < 0 { return false; }
        let contact = Point::new(origin.x+time * dir.x,origin.y+time * dir.y );
 
-       let mut normal_contact;
        if near.x >near.y {
            if inverse_dir.x <0 {
-               normal_contact = Point::new(1,0);
+               self.normal_contact = Point::new(1,0);
                //add set method here
            }else{
-               normal_contact =  Point::new(-1,0);
+               self.normal_contact =  Point::new(-1,0);
                //add set method here
            }
         }else if near.x <near.y {
             if inverse_dir.y <0 {
-                normal_contact = Point::new(0,1);
+                self.normal_contact = Point::new(0,1);
                 //add set method here
             }else{
-                normal_contact =  Point::new(0,-1);
+                self.normal_contact =  Point::new(0,-1);
                 //add set method here
             }
         }
@@ -118,7 +120,7 @@ impl Rigidbody{
         return false;
     }
 
-    pub fn rect_vs_rect(&self, other: &Rigidbody, time: i32)-> bool{// Stolen from farnans code
+    pub fn rect_vs_rect(&mut self, other: &Rigidbody, time: i32)-> bool{// Stolen from farnans code
             /*
             if self.pos.bottom() < other.top()
                 || self.pos.top() > other.bottom()
@@ -145,21 +147,20 @@ impl Rigidbody{
                 
     }
 
-    pub fn resolve_dynamic_rects(&self, other: &Rigidbody, time: i32) -> bool {
-        let normal = Point::new(0, 0);
+    pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time: i32) -> bool {
         let time = 0;
 
         if self.rect_vs_rect(other, time) {
-            if normal.y > 0 {
+            if self.normal_contact.y > 0 {
                 
             }
-            if normal.x < 0 {
+            if self.normal_contact.x < 0 {
 
             }
-            if normal.y < 0 {
+            if self.normal_contact.y < 0 {
 
             }
-            if normal.x > 0 {
+            if self.normal_contact.x > 0 {
 
             }
            
