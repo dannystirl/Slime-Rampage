@@ -18,7 +18,7 @@ pub const MAX_CRATE_VEL: f64 = 6.0;
 pub struct Crate{
 	pos: Rect,
 	src: Rect,
-	vel: (f64,f64),
+	vel: Point,
 	velocity: Vec<f64>,
 	acceleration: Vec<f64>,
 	rb:  Rigidbody,
@@ -28,7 +28,7 @@ impl Crate {
     pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
         let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
-		let vel = (0.0,0.0);
+		let vel = Point::new(0, 0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
 		let rb = Rigidbody::new(pos, true); //hitbox
@@ -44,7 +44,7 @@ impl Crate {
     }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let vel = (0.0,0.0);
+		let vel = Point::new(0, 0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
 		let rb = Rigidbody::new(pos, true);
