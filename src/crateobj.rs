@@ -5,8 +5,9 @@ use sdl2::render::{Texture};
 use crate::player::*;
 use crate::rigidbody::*;
 use crate::player::Direction::{Down, Up, Left, Right};
-//use crate::rigidbody::*;
+use crate::rigidbody::*;
 use sdl2::rect::Point;
+use crate::gamedata::*;
 
 //use sdl2::pixels;
 use crate::SDLCore;
@@ -30,7 +31,7 @@ impl Crate {
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos); //hitbox
+		let rb = Rigidbody::new(pos, true); //hitbox
 
         Crate{
             pos,
@@ -46,7 +47,7 @@ impl Crate {
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos);
+		let rb = Rigidbody::new(pos, true);
 		Crate{
 			pos,
 			src,
