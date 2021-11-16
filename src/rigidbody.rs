@@ -106,6 +106,9 @@ impl Rigidbody{
     pub fn dynamic_vs_static(&self, target: &Rigidbody) -> bool{
 
         // TODO: Check static vs. dynamic
+        //expanded_target.pos = r_static.pos - r_dynamic->size / 2;
+		//expanded_target.size = r_static.size + r_dynamic->size;
+
 
         return false;
     }
@@ -130,6 +133,7 @@ impl Rigidbody{
             else {
                 true
             }
+            
     }
 
     pub fn pos(&self) -> Rect{
