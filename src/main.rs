@@ -604,21 +604,22 @@ impl ROGUELIKE {
 				if source == target{
 					continue;
 				}
+				let distance = ((source.0.center().x() as f64 - target.0.center().x() as f64).powf(2.0) + (source.0.center().y() as f64 - target.0.center().y() as f64).powf(2.0)).sqrt();
 				// Dynamic vs Static
 				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0){
 					println!("!!!dynamic vs. static collision!!!");
-					source.2.push(target.0);
+					source.2.push((target.0, distance));
 				}
 				// Dynamic vs Dynamic
 				else if source.0.dynamic() && target.0.dynamic() && source.0.dynamic_vs_dynamic(&target.0){
 					println!("!!!dynamic vs. dynamic collision!!!");
-					source.2.push(target.0);
+					source.2.push((target.0, distance));
 				}
 			}
 		}
 
 		// sort all collisions
-
+		// sorted_collisions.sort_by_key(|x| x.dist);
 		// Resolve all collisions for dynamic bodies
 
 		// Send info back to every rigid body
