@@ -16,6 +16,7 @@ pub struct Map<'a> {
 	pub starting_position: (f64,f64), 
 	pub ending_room: i32, 
 	pub ending_position: (i32,i32), 
+	pub shop: i32,
 	pub enemy_and_object_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 }
 
@@ -29,6 +30,7 @@ impl<'a> Map<'a> {
 		let starting_position = (0.0,0.0);
 		let ending_room = 2;
 		let ending_position = (0,0);
+		let shop = 6;
 		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 
 		Map {
@@ -41,6 +43,7 @@ impl<'a> Map<'a> {
 			starting_position, 
 			ending_room, 
 			ending_position, 
+			shop,
 			enemy_and_object_spawns, 
 		}
 	}
@@ -452,6 +455,27 @@ impl<'a> Map<'a> {
 				}
 			}
 		}
+		//place shop
+		let mut shop_placed = 0;
+		while shop_placed == 0 {
+			let h = rng.gen_range(0..MAP_SIZE_H - 1);
+			let w = rng.gen_range(0..MAP_SIZE_W - 1);
+			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
+				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
+				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
+				new_map[h - 1][w - 1] != 2 && new_map[h - 1][w + 1] != 2 &&
+				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
+			
+				if self.num_rooms > 1 && (self.numbered_map[h][w] == self.starting_room || self.numbered_map[h][w] == self.ending_room){
+					continue; 
+				}
+				else {
+					new_map[h][w] = 6;
+					self.shop = self.numbered_map[h][w];
+					shop_placed = 1;
+				}
+			}
+		}
 
 		//add obstacles
 		let attempts: i32 = 50;
@@ -482,7 +506,7 @@ impl<'a> Map<'a> {
 		let mut spawn_positions: Vec<(usize, usize)>;
 
 		for i in 1..(self.num_rooms + 1) {
-			if i == self.starting_room || i == self.ending_room {
+			if i == self.starting_room || i == self.ending_room || i == self.shop {
 				continue;
 			}
 			spawn_positions = Vec::new();
@@ -536,7 +560,7 @@ impl<'a> Map<'a> {
 		let mut spawn_positions: Vec<(usize, usize)>;
 
 		for i in 1..(self.num_rooms + 1) {
-			if i == self.starting_room || i == self.ending_room {
+			if i == self.starting_room || i == self.ending_room || i == self.shop {
 				continue;
 			}
 			spawn_positions = Vec::new();
@@ -598,6 +622,9 @@ impl<'a> Map<'a> {
 				// Downstairs
 				else if map[h][w] == 4{
 					print!("D ");
+				}	
+				else if map[h][w] == 6{
+					print!("S ");
 				}				
 			}
 			println!("");
