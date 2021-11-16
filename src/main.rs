@@ -596,6 +596,8 @@ impl ROGUELIKE {
 			let (source, after) = other_bodies.split_first_mut().unwrap();
 			for target in sp.iter().chain(after.iter()){
 
+				//println!("Checking collision");
+
 				// ensure not same body
 				if source == target{
 					continue;
@@ -603,10 +605,12 @@ impl ROGUELIKE {
 				// Dynamic vs Static
 				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0){
 					println!("dynamic vs. static collision!!!");
+					source.2.push(target.0);
 				}
 				// Dynamic vs Dynamic
 				else if source.0.dynamic() && target.0.dynamic() && source.0.dynamic_vs_dynamic(&target.0){
 					println!("dynamic vs. dynamic collision!!!");
+					source.2.push(target.0);
 				}
 			}
 		}
