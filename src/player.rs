@@ -8,6 +8,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::rigidbody::*;
 use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
@@ -51,6 +52,7 @@ pub struct Player<'a> {
 	mass: f64,
 	vel: (i32, i32),
 	delta: (i32, i32),
+	rb: Rigidbody,
 	height: u32,
 	width: u32,
 	src: Rect,
@@ -86,6 +88,10 @@ impl<'a> Player<'a> {
 		let mass = 1.5;
 		let vel = (0, 0);
 		let delta = (0, 0);
+
+		// TODO: Replace pos, velocity values with rb params
+		let rb = Rigidbody::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64), true);
+
 		let height = TILE_SIZE;
 		let width = TILE_SIZE;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
@@ -118,6 +124,7 @@ impl<'a> Player<'a> {
 			mass,
 			vel,
 			delta,
+			rb,
 			height,
 			width,
 			src,
@@ -265,6 +272,12 @@ impl<'a> Player<'a> {
 	pub fn height(&self) -> u32 {
 		self.height
 	}
+
+	// rigid body operations
+	pub fn update_rb(&mut self, new_rb: Rigidbody){
+		self.rb = new_rb;
+	}
+	pub fn get_rb(&self) -> Rigidbody{ return self.rb; }
 
 	// update position
 	#[allow(unused_variables)]

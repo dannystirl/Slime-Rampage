@@ -105,6 +105,8 @@ impl Game for ROGUELIKE {
 			(CENTER_W as f64, CENTER_H as f64),
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
 		);
+		self.game_data.rigid_bodies.push((player.get_rb(), 0, vec![]));
+
 		// create ui
 		let mut ui = ui::UI::new(
 			Rect::new(
@@ -604,12 +606,12 @@ impl ROGUELIKE {
 				}
 				// Dynamic vs Static
 				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0){
-					println!("dynamic vs. static collision!!!");
+					println!("!!!dynamic vs. static collision!!!");
 					source.2.push(target.0);
 				}
 				// Dynamic vs Dynamic
 				else if source.0.dynamic() && target.0.dynamic() && source.0.dynamic_vs_dynamic(&target.0){
-					println!("dynamic vs. dynamic collision!!!");
+					println!("!!!dynamic vs. dynamic collision!!!");
 					source.2.push(target.0);
 				}
 			}
@@ -628,8 +630,8 @@ impl ROGUELIKE {
 			match body.1{
 				// Player's Body
 				0 => {
-					println!("updating player rigid body");
-					//player.update_rb(body.0);
+					// println!("updating player rigid body");
+					player.update_rb(body.0);
 				}
 				// Enemy's Body
 				1 => {
@@ -661,7 +663,7 @@ impl ROGUELIKE {
 				4 => {
 					for c in self.game_data.crates.iter_mut(){
 						if body.0.pos() == c.pos(){
-							println!("updating crate rigid body");
+							// println!("updating crate rigid body");
 							c.update_rb(body.0);
 						}
 					}

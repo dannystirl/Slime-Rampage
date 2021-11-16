@@ -113,7 +113,6 @@ impl Crate {
 	pub fn set_rb(&mut self){
 		self.rb.set_pos(self.pos);
 		self.rb.set_vel(self.vel);
-
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		// println!("{}, {}", c.velocity[0], c.velocity[1]);
