@@ -11,10 +11,11 @@ use std::f64;
 #[derive(PartialEq)]
 pub struct Rigidbody{
     pos: (f64, f64),          //world position of the body
-    vel: (f64,f64),    //velocity vector
+    vel: (f64, f64),    //velocity vector
     size: i32,
     dynamic: bool,      //can the body move
     normal_contact: (f64,f64), //last contact point
+    contact_point: (f64,f64), //last contact point
 }
 
 #[allow(dead_code)]
@@ -22,6 +23,7 @@ impl Rigidbody{
     pub fn new(pos: (f64,f64), dynamic: bool)->Rigidbody{
         let vel = (0.0,0.0);
         let normal_contact = (0.0,0.0);
+        let contact_point = (0.0,0.0);
         let size = 64;
         Rigidbody{
             pos,
@@ -29,6 +31,7 @@ impl Rigidbody{
             size,
             dynamic,
             normal_contact,
+            contact_point,
         }
     }
     
@@ -130,9 +133,9 @@ impl Rigidbody{
         return false;
     }
 
-    pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time: i32) -> bool {
+    pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time_step: f64) -> bool {
         let time = 0.0;
-        //
+        /*
         if self.rect_vs_rect(other.pos()) {
             if self.normal_contact.1 > 0.0 {
                 
@@ -150,9 +153,12 @@ impl Rigidbody{
             //r_dynamic->vel += contact_normal * olc::vf2d(std::abs(r_dynamic->vel.x), std::abs(r_dynamic->vel.y)) * (1 - contact_time);
             //scalar: (1 - contact_time); contact_normal indicates the direction that vel should be (I believed)
             let v = (self.vel.0, self.vel.1);
+         */
+            // Perform the dot product
+
             return true;
-        }
-        return false; 
+
+        //return false;
     }
 
     
