@@ -144,7 +144,7 @@ impl Rigidbody{
          */
             // Perform the 
             self.set_vel((self.normal_contact.0 * (self.vel.0.abs()+self.vel.0), self.normal_contact.1*(self.vel.1.abs() *((1.0 -time))+self.vel.1) ));
-            true
+            return true;
 
         //return false;
     }

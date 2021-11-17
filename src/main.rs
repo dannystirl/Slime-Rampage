@@ -604,27 +604,38 @@ impl ROGUELIKE {
 				if source == target{
 					continue;
 				}
-				//let distance = ((source.0.center().x() as f64 - target.0.center().x() as f64).powf(2.0) + (source.0.center().y() as f64 - target.0.center().y() as f64).powf(2.0)).sqrt();
+				let distance = ((source.0.pos().x() as f64 - target.0.pos().x() as f64).powf(2.0) + (source.0.pos().y() as f64 - target.0.pos().y() as f64).powf(2.0)).sqrt();
 				// Dynamic vs Static
-				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64, ){
+				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64){
 					println!("!!!dynamic vs. static collision!!!");
-				//	source.2.push((target.0, distance));
+					source.2.push((target.0, distance as i32));
 				}
-				// Dynamic vs Dynamic
+				/* Dynamic vs Dynamic
 				else if source.0.dynamic() && target.0.dynamic() && source.0.dynamic_vs_static(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64){
 					println!("!!!dynamic vs. dynamic collision!!!");
-			//		source.2.push((target.0, distance));
+					source.2.push((target.0, distance));
+				}
+				 */
+			}
+		}
+
+		// sort all collisions by distance from source
+		for body in self.game_data.rigid_bodies.iter_mut(){
+			body.2.sort_by_key(|x| x.1)
+		}
+
+		// Resolve all collisions for dynamic bodies
+		for body in self.game_data.rigid_bodies.iter_mut(){
+			if body.2.len() > 0{
+				for collision in body.2.iter_mut(){
+					body.0.resolve_dynamic_rects(&collision.0, self.game_data.frame_counter.elapsed().as_millis() as f64);
+					println!("Resolving a collision");
 				}
 			}
 		}
 
-		// sort all collisions
-		// sorted_collisions.sort_by_key(|x| x.dist);
-		// Resolve all collisions for dynamic bodies
-
 		// Send info back to every rigid body
 		// It would've been nice to update each body automatically but Rust doesn't like that
-
 		// NOTE: IF CHECKING THE POSITION(POS) OF EACH PROJECTILE DOES NOT WORK, WE CAN JUST ASSIGN IDs
 		// to each rigid body
 		for body in self.game_data.rigid_bodies.iter_mut(){
