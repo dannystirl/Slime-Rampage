@@ -531,7 +531,7 @@ impl ROGUELIKE {
 					}
 				},
 				PowerType::Shield => {
-					if !player.is_firing && player.get_mana() > 0 {
+					if !player.is_firing && player.get_mana() >= 4 {
 						let p_type = ProjectileType::Shield;
 						let bullet = player.fire(mousestate.x(), mousestate.y(), 0.0, p_type, 0);
 						self.game_data.player_projectiles.push(bullet);
@@ -544,8 +544,10 @@ impl ROGUELIKE {
 		if keystate.contains(&Keycode::E) {
 			if player.can_pickup() {
 				for drop in self.game_data.dropped_powers.iter_mut() {
-					if check_collision(&player.pos(), &drop.pos()) {
+					if check_collision(&player.pos(), &drop.pos()) &&
+					   !drop.collected() && player.get_pickup_timer() > 1000 {
 						drop.set_collected();
+						player.reset_pickup_timer();
 						match drop.power_type() {
 							PowerType::Fireball => {
 								player.set_power(PowerType::Fireball);
@@ -558,6 +560,7 @@ impl ROGUELIKE {
 							}
 							_ => {}
 						}
+						break;
 					}
 				}
 			}
@@ -644,7 +647,7 @@ impl ROGUELIKE {
 			}
 
 			// check crate collisions
-			for c in self.game_data.crates.iter_mut(){
+			for c in self.game_data.crates.iter_mut() {
 				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
 					enemy.projectile_knockback(c.x_vel(), c.y_vel());
 				}
@@ -652,10 +655,10 @@ impl ROGUELIKE {
 		}
 
 		for projectile in self.game_data.player_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, map);
+			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
 		}
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, map);
+			projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {

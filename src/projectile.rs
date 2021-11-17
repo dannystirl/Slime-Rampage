@@ -1,5 +1,7 @@
 extern crate rogue_sdl;
 
+use std::sync::Mutex;
+
 use crate::Player;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -83,13 +85,14 @@ impl Projectile {
 		return self.is_active;
 	}
 	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, projectiles: &mut Vec<Projectile>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
 					self.die();
 				}
 			}
+			ProjectileType::Shield => {}
 			_ => {
 				if self.get_bounce() >= 4 {
 					self.die();
@@ -130,6 +133,20 @@ impl Projectile {
 				collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
 			}
 		}
+
+		for p in 0..projectiles.len() {
+			if projectiles[p].is_active {
+				match projectiles[p].p_type {
+					ProjectileType::Shield => {},
+					_ => { continue; }
+				}
+				if GameData::check_collision(&self.pos(), &projectiles[p].pos()) {
+					collisions.push(self.collect_col(self.pos(), self.pos().center(), projectiles[p].pos()));
+					projectiles[p].die();
+				}
+			}
+		}
+
 		self.resolve_col(&collisions);
 	}
 
