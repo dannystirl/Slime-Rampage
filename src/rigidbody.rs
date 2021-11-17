@@ -142,9 +142,9 @@ impl Rigidbody{
             //scalar: (1 - contact_time); contact_normal indicates the direction that vel should be (I believed)
             let v = (self.vel.0, self.vel.1);
          */
-            // Perform the dot product
-
-            return true;
+            // Perform the 
+            self.set_vel((self.normal_contact.0 * (self.vel.0.abs()+self.vel.0), self.normal_contact.1*(self.vel.1.abs() *((1.0 -time))+self.vel.1) ));
+            true
 
         //return false;
     }
