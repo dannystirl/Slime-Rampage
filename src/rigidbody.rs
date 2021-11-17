@@ -174,6 +174,10 @@ impl Rigidbody{
     pub fn vel(&self) -> (f64,f64){
         return self.vel;
     }
+    pub fn set_rb(&mut self, rb: Rigidbody){
+        self.pos = rb.pos;
+        self.vel = rb.vel;
+    }
     pub fn set_pos(&mut self, pos: (f64,f64)){
         self.pos = pos;
     }

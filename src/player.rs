@@ -222,6 +222,7 @@ impl<'a> Player<'a> {
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
 			self.is_firing =false;
 		}
+		self.rb.set_pos((self.pos().x() as f64, self.pos().y() as f64));
 
 		self.restore_mana();
 		Ok(())

@@ -306,6 +306,13 @@ impl Game for ROGUELIKE {
 
 				// UPDATE PLAYER
 				player.update_player(&self.game_data, map_data.map, &mut self.core)?;
+				for body in self.game_data.rigid_bodies.iter_mut(){
+					if body.1 == 0{
+						body.0.set_rb(player.get_rb());
+						println!("Updated Player");
+					}
+				}
+
 				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
 
 				// UPDATE ENEMIES
@@ -587,6 +594,10 @@ impl ROGUELIKE {
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
 
+		for body in self.game_data.rigid_bodies.iter_mut(){
+			print!("Active body of type: {}, {} {} ", body.1, body.0.pos().x(), body.0.pos().y());
+		}
+
 		// reset all current collisions
 		for body in self.game_data.rigid_bodies.iter_mut(){
 			body.2 = vec![];
@@ -618,73 +629,64 @@ impl ROGUELIKE {
 				}
 				 */
 			}
-		}
+			// sort all collisions by distance from source
+			self.game_data.rigid_bodies[i].2.sort_by_key(|x| x.1);
 
-		// sort all collisions by distance from source
-		for body in self.game_data.rigid_bodies.iter_mut(){
-			body.2.sort_by_key(|x| x.1)
-		}
-
-		// Resolve all collisions for dynamic bodies
-		for body in self.game_data.rigid_bodies.iter_mut(){
-			if body.2.len() > 0{
-				for collision in body.2.iter_mut(){
-					body.0.resolve_dynamic_rects(&collision.0, self.game_data.frame_counter.elapsed().as_millis() as f64);
+			// Resolve all collisions for dynamic bodies
+			if self.game_data.rigid_bodies[i].2.len() > 0{
+				let (sp, other_bodies) = self.game_data.rigid_bodies.split_at_mut(i);
+				let (source, after) = other_bodies.split_first_mut().unwrap();
+				for target in sp.iter().chain(after.iter()){
+					source.0.resolve_dynamic_rects(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64);
 					println!("Resolving a collision");
 				}
 			}
-		}
 
-		// Send info back to every rigid body
-		// It would've been nice to update each body automatically but Rust doesn't like that
-		// NOTE: IF CHECKING THE POSITION(POS) OF EACH PROJECTILE DOES NOT WORK, WE CAN JUST ASSIGN IDs
-		// to each rigid body
-		for body in self.game_data.rigid_bodies.iter_mut(){
-			match body.1{
+			// Send updated rb to corresponding rb in object
+			match self.game_data.rigid_bodies[i].1{
 				// Player's Body
 				0 => {
 					println!("updating player rigid body");
-					player.update_rb(body.0);
+					//player.update_rb(body.0);
 				}
 				// Enemy's Body
 				1 => {
 					for enemy in enemies.iter_mut(){
-						if body.0.pos() == enemy.pos(){
+						if self.game_data.rigid_bodies[i].0.pos() == enemy.pos(){
 							println!("updating enemy rigid body");
-							//enemy.update_rb(body.0);
+							//enemy.update_rb(self.game_data.rigid_bodies[i].0);
 						}
 					}
 				}
 				// Player's Projectile Body
 				2 => {
 					for pp in self.game_data.player_projectiles.iter_mut(){
-						if body.0.pos() == pp.pos(){
+						if self.game_data.rigid_bodies[i].0.pos() == pp.pos(){
 							println!("updating player projectile rigid body");
-							//pp.update_rb(body.0);
+							//pp.update_rb(self.game_data.rigid_bodies[i].0);
 						}
 					}
 				}
 				// Enemy's Projectile Body
 				3 => {
 					for ep in self.game_data.enemy_projectiles.iter_mut() {
-						if body.0.pos() == ep.pos() {
+						if self.game_data.rigid_bodies[i].0.pos() == ep.pos() {
 							println!("updating enemy projectile rigid body");
-							//ep.update_rb(body.0);
+							//ep.update_rb(self.game_data.rigid_bodies[i].0);
 						}
 					}
 				}
 				4 => {
 					for c in self.game_data.crates.iter_mut(){
-						if body.0.pos() == c.pos(){
+						if self.game_data.rigid_bodies[i].0.pos() == c.pos(){
 							println!("updating crate rigid body");
-							c.update_rb(body.0);
+							c.update_rb(self.game_data.rigid_bodies[i].0);
 						}
 					}
 				}
 				_ => {}
 			}
 		}
-
 		// ******************** PRE RAYCASTING ******************
 		/*
 		for enemy in enemies {
