@@ -643,48 +643,50 @@ impl ROGUELIKE {
 			}
 
 			// Send updated rb to corresponding rb in object
-			match self.game_data.rigid_bodies[i].1{
-				// Player's Body
-				0 => {
-					println!("updating player rigid body");
-					//player.update_rb(body.0);
-				}
-				// Enemy's Body
-				1 => {
-					for enemy in enemies.iter_mut(){
-						if self.game_data.rigid_bodies[i].0.pos() == enemy.pos(){
-							println!("updating enemy rigid body");
-							//enemy.update_rb(self.game_data.rigid_bodies[i].0);
+			if self.game_data.rigid_bodies[i].2.len() > 0 {
+				match self.game_data.rigid_bodies[i].1 {
+					// Player's Body
+					0 => {
+						println!("updating player rigid body");
+						//player.update_rb(body.0);
+					}
+					// Enemy's Body
+					1 => {
+						for enemy in enemies.iter_mut() {
+							if self.game_data.rigid_bodies[i].0.pos() == enemy.pos() {
+								println!("updating enemy rigid body");
+								//enemy.update_rb(self.game_data.rigid_bodies[i].0);
+							}
 						}
 					}
-				}
-				// Player's Projectile Body
-				2 => {
-					for pp in self.game_data.player_projectiles.iter_mut(){
-						if self.game_data.rigid_bodies[i].0.pos() == pp.pos(){
-							println!("updating player projectile rigid body");
-							//pp.update_rb(self.game_data.rigid_bodies[i].0);
+					// Player's Projectile Body
+					2 => {
+						for pp in self.game_data.player_projectiles.iter_mut() {
+							if self.game_data.rigid_bodies[i].0.pos() == pp.pos() {
+								println!("updating player projectile rigid body");
+								//pp.update_rb(self.game_data.rigid_bodies[i].0);
+							}
 						}
 					}
-				}
-				// Enemy's Projectile Body
-				3 => {
-					for ep in self.game_data.enemy_projectiles.iter_mut() {
-						if self.game_data.rigid_bodies[i].0.pos() == ep.pos() {
-							println!("updating enemy projectile rigid body");
-							//ep.update_rb(self.game_data.rigid_bodies[i].0);
+					// Enemy's Projectile Body
+					3 => {
+						for ep in self.game_data.enemy_projectiles.iter_mut() {
+							if self.game_data.rigid_bodies[i].0.pos() == ep.pos() {
+								println!("updating enemy projectile rigid body");
+								//ep.update_rb(self.game_data.rigid_bodies[i].0);
+							}
 						}
 					}
-				}
-				4 => {
-					for c in self.game_data.crates.iter_mut(){
-						if self.game_data.rigid_bodies[i].0.pos() == c.pos(){
-							println!("updating crate rigid body");
-							c.update_rb(self.game_data.rigid_bodies[i].0);
+					4 => {
+						for c in self.game_data.crates.iter_mut() {
+							if self.game_data.rigid_bodies[i].0.pos() == c.pos() {
+								println!("updating crate rigid body");
+								c.update_rb(self.game_data.rigid_bodies[i].0);
+							}
 						}
 					}
+					_ => {}
 				}
-				_ => {}
 			}
 		}
 		// ******************** PRE RAYCASTING ******************
