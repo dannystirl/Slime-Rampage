@@ -91,18 +91,6 @@ impl Rigidbody{
                 //add set method here
             }
         }
-           
-     
-       //let mut other_near = other.top_left().sub(origin);
-       //other_near.x = other.x * inverse_x as i32;
-       //other_near.y= other.y * inverse_y as i32;
-       //let mut other_far = other.bottom_right().sub(origin);
-       //other_far = other.x * inverse_x as i32;
-       //other_far = other.y * inverse_y as i32;
-
-      // if(other_near.x  > other_far.y){
-           
-       //}
       true
         
     }
