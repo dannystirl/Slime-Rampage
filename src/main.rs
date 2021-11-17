@@ -61,6 +61,7 @@ impl Game for ROGUELIKE  {
         let texture_creator = self.core.wincan.texture_creator();
 		let mut rng = rand::thread_rng();
 
+		// AUDIO SYSTEM
 		let audio_subsystem = self.core.sdl_cxt.audio()?;
 		let mut timer = self.core.sdl_cxt.timer()?;
 
@@ -69,9 +70,8 @@ impl Game for ROGUELIKE  {
 		let channels = DEFAULT_CHANNELS; // Stereo
 		let chunk_size = 1_024;
 		sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
-		let _mixer_context =
+		let _mixer_context = 
 			sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
-	
 		    sdl2::mixer::allocate_channels(4);
 	
 		// Number of mixing channels available for sound effect `Chunk`s to play
