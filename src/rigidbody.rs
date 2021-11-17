@@ -11,10 +11,11 @@ use std::f64;
 #[derive(PartialEq)]
 pub struct Rigidbody{
     pos: (f64, f64),          //world position of the body
-    vel: (f64,f64),    //velocity vector
+    vel: (f64, f64),    //velocity vector
     size: i32,
     dynamic: bool,      //can the body move
     normal_contact: (f64,f64), //last contact point
+    contact_point: (f64,f64), //last contact point
 }
 
 #[allow(dead_code)]
@@ -22,6 +23,7 @@ impl Rigidbody{
     pub fn new(pos: (f64,f64), dynamic: bool)->Rigidbody{
         let vel = (0.0,0.0);
         let normal_contact = (0.0,0.0);
+        let contact_point = (0.0,0.0);
         let size = 64;
         Rigidbody{
             pos,
@@ -29,6 +31,7 @@ impl Rigidbody{
             size,
             dynamic,
             normal_contact,
+            contact_point,
         }
     }
     
@@ -94,40 +97,9 @@ impl Rigidbody{
       true
         
     }
-     
-
     // Check for collision of a moving body with static body
-    pub fn dynamic_vs_static(&self, target: &Rigidbody) -> bool{
+    pub fn dynamic_vs_static(&mut self, other: &Rigidbody, contact_time: f64)-> bool{
 
-        // TODO: Check static vs. dynamic
-        //expanded_target.pos = r_static.pos - r_dynamic->size / 2;
-		//expanded_target.size = r_static.size + r_dynamic->size;
-
-
-        return false;
-    }
-
-    // Check for collision of a moving body with dynamic body
-    pub fn dynamic_vs_dynamic(&self, target: &Rigidbody) -> bool{
-
-        //TODO: Check dynamic vs. dynamic
-
-        return false;
-    }
-
-    pub fn rect_vs_rect(&mut self, other: &Rigidbody, contact_time: f64)-> bool{
-            /*
-            if self.pos.bottom() < other.top()
-                || self.pos.top() > other.bottom()
-                || self.pos.right() < other.left()
-                || self.pos.left() > other.right()
-            {
-                false
-            }
-            else {
-                true
-            }
-            */
             //expand target collision by player dimensions
             if self.vel.0 == 0.0 && self.vel.1 == 0.0 {
                 return false;
@@ -139,13 +111,20 @@ impl Rigidbody{
             else {
                 return false;
             }
-                
     }
 
-    pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time: i32) -> bool {
+    // Check for collision of a moving body with dynamic body
+    pub fn dynamic_vs_dynamic(&self, target: &Rigidbody) -> bool{
+
+        //TODO: Check dynamic vs. dynamic
+
+        return false;
+    }
+
+    pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time_step: f64) -> bool {
         let time = 0.0;
-        //
-        if self.rect_vs_rect(other, time) {
+        /*
+        if self.rect_vs_rect(other.pos()) {
             if self.normal_contact.1 > 0.0 {
                 
             }
@@ -162,9 +141,12 @@ impl Rigidbody{
             //r_dynamic->vel += contact_normal * olc::vf2d(std::abs(r_dynamic->vel.x), std::abs(r_dynamic->vel.y)) * (1 - contact_time);
             //scalar: (1 - contact_time); contact_normal indicates the direction that vel should be (I believed)
             let v = (self.vel.0, self.vel.1);
+         */
+            // Perform the dot product
+
             return true;
-        }
-        return false; 
+
+        //return false;
     }
 
     
@@ -200,5 +182,17 @@ impl Rigidbody{
     }
     pub fn dynamic(&self) -> bool{
         return self.dynamic;
+    }
+    pub fn rect_vs_rect(&self, other: Rect) -> bool{
+        if self.pos().bottom() < other.top()
+            || self.pos().top() > other.bottom()
+            || self.pos().right() < other.left()
+            || self.pos().left() > other.right()
+        {
+            false
+        }
+        else {
+            true
+        }
     }
 }
