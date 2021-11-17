@@ -231,9 +231,9 @@ impl Game for ROGUELIKE {
 									TILE_SIZE_CAM
 								)
 							);
-							//let mut rb = Rigidbody::new((c.pos().x,c.pos().y), true);
+							let mut rb = Rigidbody::new((c.pos().x as f64,c.pos().y as f64), true);
 							self.game_data.crates.push(c);
-							//self.game_data.rigid_bodies.push((rb, 4, vec![]));
+							self.game_data.rigid_bodies.push((rb, 4, vec![]));
 						}
 						4 => {
 							let e = enemy::Enemy::new(
@@ -606,7 +606,8 @@ impl ROGUELIKE {
 				}
 				let distance = ((source.0.pos().x() as f64 - target.0.pos().x() as f64).powf(2.0) + (source.0.pos().y() as f64 - target.0.pos().y() as f64).powf(2.0)).sqrt();
 				// Dynamic vs Static
-				if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64){
+				//if source.0.dynamic() && !target.0.dynamic() && source.0.dynamic_vs_static(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64){
+				if source.0.dynamic_vs_static(&target.0, self.game_data.frame_counter.elapsed().as_millis() as f64){
 					println!("!!!dynamic vs. static collision!!!");
 					source.2.push((target.0, distance as i32));
 				}
@@ -642,7 +643,7 @@ impl ROGUELIKE {
 			match body.1{
 				// Player's Body
 				0 => {
-					// println!("updating player rigid body");
+					println!("updating player rigid body");
 					player.update_rb(body.0);
 				}
 				// Enemy's Body
@@ -675,7 +676,7 @@ impl ROGUELIKE {
 				4 => {
 					for c in self.game_data.crates.iter_mut(){
 						if body.0.pos() == c.pos(){
-							// println!("updating crate rigid body");
+							println!("updating crate rigid body");
 							c.update_rb(body.0);
 						}
 					}
