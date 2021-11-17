@@ -106,40 +106,9 @@ impl Rigidbody{
       true
         
     }
-     
-
     // Check for collision of a moving body with static body
-    pub fn dynamic_vs_static(&self, target: &Rigidbody) -> bool{
+    pub fn dynamic_vs_static(&mut self, other: &Rigidbody, contact_time: f64)-> bool{
 
-        // TODO: Check static vs. dynamic
-        //expanded_target.pos = r_static.pos - r_dynamic->size / 2;
-		//expanded_target.size = r_static.size + r_dynamic->size;
-
-
-        return false;
-    }
-
-    // Check for collision of a moving body with dynamic body
-    pub fn dynamic_vs_dynamic(&self, target: &Rigidbody) -> bool{
-
-        //TODO: Check dynamic vs. dynamic
-
-        return false;
-    }
-
-    pub fn rect_vs_rect(&mut self, other: &Rigidbody, contact_time: f64)-> bool{
-            /*
-            if self.pos.bottom() < other.top()
-                || self.pos.top() > other.bottom()
-                || self.pos.right() < other.left()
-                || self.pos.left() > other.right()
-            {
-                false
-            }
-            else {
-                true
-            }
-            */
             //expand target collision by player dimensions
             if self.vel.0 == 0.0 && self.vel.1 == 0.0 {
                 return false;
@@ -151,13 +120,20 @@ impl Rigidbody{
             else {
                 return false;
             }
-                
+    }
+
+    // Check for collision of a moving body with dynamic body
+    pub fn dynamic_vs_dynamic(&self, target: &Rigidbody) -> bool{
+
+        //TODO: Check dynamic vs. dynamic
+
+        return false;
     }
 
     pub fn resolve_dynamic_rects(&mut self, other: &Rigidbody, time: i32) -> bool {
         let time = 0.0;
         //
-        if self.rect_vs_rect(other, time) {
+        if self.rect_vs_rect(other.pos()) {
             if self.normal_contact.1 > 0.0 {
                 
             }
@@ -212,5 +188,17 @@ impl Rigidbody{
     }
     pub fn dynamic(&self) -> bool{
         return self.dynamic;
+    }
+    pub fn rect_vs_rect(&self, other: Rect) -> bool{
+        if self.pos().bottom() < other.top()
+            || self.pos().top() > other.bottom()
+            || self.pos().right() < other.left()
+            || self.pos().left() > other.right()
+        {
+            false
+        }
+        else {
+            true
+        }
     }
 }
