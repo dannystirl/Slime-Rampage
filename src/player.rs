@@ -59,6 +59,7 @@ pub struct Player<'a> {
 	fire_timer: Instant,
 	damage_timer: Instant,
 	mana_timer: Instant,
+	pickup_timer: Instant,
 	texture_all: Texture<'a>,
 	invincible: bool,
 	power: PowerType,
@@ -100,6 +101,7 @@ impl<'a> Player<'a> {
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
+		let pickup_timer = Instant::now();
 		let invincible = true;
 		let power = PowerType::None;
 		let can_pickup = false;
@@ -121,6 +123,7 @@ impl<'a> Player<'a> {
 			fire_timer,
 			damage_timer,
 			mana_timer,
+			pickup_timer,
 			invincible,
 			power,
 			can_pickup,
@@ -352,7 +355,16 @@ impl<'a> Player<'a> {
 
 	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType, elapsed: u128) -> Projectile {
 		self.is_firing = true;
-		self.use_mana();
+		match p_type {
+			ProjectileType::Shield => {
+				for i in 0..4 {
+					self.use_mana();
+				}
+			}
+			_ => {
+				self.use_mana();
+			}
+		}
 		self.fire_timer = Instant::now();
 
 		let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE_HALF) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE_HALF) as f64];
@@ -423,6 +435,14 @@ impl<'a> Player<'a> {
 
 	pub fn set_can_pickup(&mut self, can: bool) {
 		self.can_pickup = can;
+	}
+
+	pub fn get_pickup_timer(&self) -> u128 {
+		self.pickup_timer.elapsed().as_millis()
+	}
+
+	pub fn reset_pickup_timer(&mut self) {
+		self.pickup_timer = Instant::now();
 	}
 
 	// heatlh values
