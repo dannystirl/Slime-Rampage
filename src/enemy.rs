@@ -236,6 +236,7 @@ pub struct Enemy<'a> {
 		if roll == 1 {
 			self.set_y_vel(0.0);
 			self.set_x_vel(1.0);
+			self.facing_right = false;
 		}
 		if roll == 2 {
 			self.set_y_vel(-1.0);
@@ -248,6 +249,7 @@ pub struct Enemy<'a> {
 		if roll == 4 {
 			self.set_x_vel(-1.0);
 			self.set_y_vel(0.0);
+			self.facing_right = true;
 		}
 	}
 
@@ -261,7 +263,9 @@ pub struct Enemy<'a> {
 		let mut x = speed_limit_adj * angle.sin();
 		if vec[0] < 0.0 {
 			x *= -1.0;
+			self.facing_right = true; 
 		}
+		else { self.facing_right = false; }
 		let mut y = speed_limit_adj * angle.cos();
 		if vec[1] < 0.0  {
 			y *= -1.0;
@@ -279,7 +283,9 @@ pub struct Enemy<'a> {
 		let mut x = speed_limit_adj / 1.5 as f64 * angle.sin();
 		if vec[0] >= 0.0 {
 			x *= -1.0;
+			self.facing_right = false;
 		}
+		else { self.facing_right = true; }
 		let mut y = speed_limit_adj / 1.5 as f64 * angle.cos();
 		if vec[1] >= 0.0  {
 			y *= -1.0;
@@ -416,8 +422,8 @@ pub struct Enemy<'a> {
 								Rect::new(
 									self.pos().x(),
 									self.pos().y(),
-									TILE_SIZE_CAM,
-									TILE_SIZE_CAM,
+									TILE_SIZE_PROJECTILE,
+									TILE_SIZE_PROJECTILE,
 								),
 								true,
 								vec![x,y],

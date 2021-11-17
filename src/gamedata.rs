@@ -1,5 +1,6 @@
 pub const DEVELOP: bool = false; 
-pub const DEBUG: bool = true; 
+pub const DEBUG: bool = false; 
+pub const DEBUG_NO_WALLS: bool = false; 
 
 use rand::Rng;
 use sdl2::rect::Rect;
@@ -16,12 +17,13 @@ use crate::crateobj::*;
 pub const TITLE: &str = "Roguelike";
 pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
-pub const TILE_SIZE_64: u32 = 64;                       // tile sizes are all 64 px
+pub const TILE_SIZE_64: u32 = 64;                           // tile sizes are all 64 px
 
-pub const TILE_SIZE: u32 = 64;                          // sprite sizes vary 
-pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;            // generic half tile size
-pub const TILE_SIZE_CAM: u32 = TILE_SIZE_HALF;               // cam position 
-pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;  // hitboxes are slightly smaller than visual hitboxes
+pub const TILE_SIZE: u32 = 64;                              // sprite sizes vary 
+pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;                // generic half tile size
+pub const TILE_SIZE_CAM: u32 = TILE_SIZE*4/5;               // cam position 
+pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;      // hitboxes are slightly smaller than visual hitboxes
+pub const TILE_SIZE_PROJECTILE: u32 = TILE_SIZE_CAM * 2/3;  // hitboxes are slightly smaller than visual hitboxes
 
 pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;
 pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE_HALF) as i32;
@@ -29,10 +31,10 @@ pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE_HALF) as i32;
 // room globals
 pub const MIN_ROOM_W: usize = 11;
 pub const MAX_ROOM_W: usize = 21;
-pub const MAP_SIZE_W: usize = 51;
+pub const MAP_SIZE_W: usize = 61;
 pub const MIN_ROOM_H: usize = 11;
 pub const MAX_ROOM_H: usize = 21;
-pub const MAP_SIZE_H: usize = 51;
+pub const MAP_SIZE_H: usize = 61;
 
 // game globals
 pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;

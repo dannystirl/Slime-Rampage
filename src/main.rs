@@ -39,6 +39,8 @@ use crate::enemy::*;
 use crate::projectile::*;
 use crate::power::*;
 use crate::map::*;
+use crate::crateobj::*;
+use crate::gold::*;
 
 pub struct ROGUELIKE {
 	core: SDLCore,
@@ -166,8 +168,14 @@ impl Game for ROGUELIKE  {
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 
+			// reset arrays
+			self.game_data.crates = Vec::<Crate>::with_capacity(0);
+			self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
+			self.game_data.gold = Vec::<Gold>::with_capacity(0);
+			self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
+			self.game_data.enemy_projectiles = Vec::<Projectile>::with_capacity(0);
+			// OBJECT GENERATION
 			if DEVELOP {
-				// OBJECT GENERATION
 				let pos = Rect::new(
 					player.x() as i32 -200 + rng.gen_range(1..10),
 					player.y() as i32 -200 + rng.gen_range(0..10),
@@ -329,7 +337,7 @@ impl Game for ROGUELIKE  {
 				if player.is_dead(){break 'gameloop;}
 
 				// UPDATE UI
-				ui.update_ui( &player, &mut self.core)?;
+				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
 				
 				// UPDATE FRAME
 				self.core.wincan.present();
@@ -367,6 +375,7 @@ impl ROGUELIKE {
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+		let shop = texture_creator.load_texture("images/background/floor_tile_maroon.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
 		let moss_tile = texture_creator.load_texture("images/background/moss_tile.png")?;
 		let upstairs = texture_creator.load_texture("images/background/upstairs.png")?;
@@ -395,6 +404,7 @@ impl ROGUELIKE {
 							1 => { self.core.wincan.copy_ex(&floor, src, pos, 0.0, None, false, false).unwrap(); }, 		// floor tiles
 							2 => { self.core.wincan.copy_ex(&tile, src, pos, 0.0, None, false, false).unwrap(); },  		// tile tiles
 							5 => { self.core.wincan.copy_ex(&moss_tile, src, pos, 0.0, None, false, false).unwrap(); },  		// tile tiles
+							6 => { self.core.wincan.copy_ex(&shop, src, pos, 0.0, None, false, false).unwrap(); },  	// shop tile
 							3 => { self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// upstairs tile
 							_ => { self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// downstairs tile
 						}
@@ -428,7 +438,7 @@ impl ROGUELIKE {
 					rngt[i] = rand::thread_rng().gen_range(1..5);
 				}
 				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
-				self.core.wincan.copy(enemy.txtre(), enemy.src(), t).unwrap();
+				self.core.wincan.copy_ex(enemy.txtre(), enemy.src(), t, 0.0, None, enemy.facing_right, false).unwrap();
 				i += 1;
 			}
 		}
@@ -709,7 +719,7 @@ impl ROGUELIKE {
 			if projectile.is_active(){
 				match projectile.p_type{
 					ProjectileType::Bullet=>{
-						self.core.wincan.copy(&bullet_textures[0], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+						self.core.wincan.copy_ex(&bullet_textures[0], projectile.src(), projectile.set_cam_pos_large(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Fireball=>{
 						let time = projectile.elapsed;
