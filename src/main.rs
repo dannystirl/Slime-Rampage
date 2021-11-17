@@ -424,8 +424,7 @@ impl ROGUELIKE {
 			if enemy.is_alive(){
 				enemy.check_attack(&mut self.game_data, (player.x(), player.y()));
 				// direction changer
-				if self.game_data.frame_counter.elapsed().as_millis() % 120 as u128 == 0 as u128 /* || 
-				   enemy.force_move(&self.game_data) */ { // keep comment. this check will stop enemies from running into walls
+				if self.game_data.frame_counter.elapsed().as_millis() % 120 as u128 == 0 as u128 || enemy.force_move(map) { 
 					rngt[i] = rand::thread_rng().gen_range(1..5);
 				}
 				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);

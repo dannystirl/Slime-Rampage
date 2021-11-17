@@ -270,7 +270,7 @@ pub struct Enemy<'a> {
 		self.set_y_vel(y );
 	}
 
-	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, /* x_bounds: (i32, i32), y_bounds: (i32, i32),  */speed_limit_adj: f64) {
+	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, speed_limit_adj: f64) {
 		if self.is_stunned {
 			return;
 		}
@@ -288,15 +288,33 @@ pub struct Enemy<'a> {
 		self.set_y_vel(y);
 	}
 
-	pub fn force_move(&mut self, game_data: &GameData) -> bool{
-		let xbounds = game_data.rooms[game_data.current_room].xbounds;
-		let ybounds = game_data.rooms[game_data.current_room].ybounds;
-		if  self.x() <= xbounds.0 as f64 ||
-		self.x() >=  xbounds.1 as f64 ||
-		self.y() <= ybounds.0 as f64||
-		self.y() >= ybounds.1 as f64
-		{return true;}
-		else {return false;}
+	pub fn force_move(&mut self, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> bool{
+		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
+		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
+		for h in 0..(CAM_H / TILE_SIZE) + 1 {
+			for w in 0..(CAM_W / TILE_SIZE) + 1 {
+				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
+				TILE_SIZE, TILE_SIZE);
+
+				let _debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,
+				(h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,
+				TILE_SIZE, TILE_SIZE);
+				if h as i32 + h_bounds_offset < 0 ||
+				w as i32 + w_bounds_offset < 0 ||
+				h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					continue;
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+					let p_pos = self.pos();
+					if GameData::check_collision(&p_pos, &w_pos) {
+						return true; 
+					}
+				}
+			}
+		}
+		return false; 
 	}
 
 	pub fn knockback(&mut self, player_pos_x: f64, player_pos_y: f64) {
