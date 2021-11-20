@@ -46,6 +46,7 @@ pub enum Weapon{
 }
 
 pub struct Player<'a> {
+	// position values
 	pos: (f64, f64),
 	cam_pos: Rect,
 	mass: f64,
@@ -54,6 +55,7 @@ pub struct Player<'a> {
 	height: u32,
 	width: u32,
 	src: Rect,
+	// gameplay values
 	attack_box: Rect,
 	attack_timer: Instant,
 	fire_timer: Instant,
@@ -64,11 +66,11 @@ pub struct Player<'a> {
 	invincible: bool,
 	power: PowerType,
 	can_pickup: bool,
-	pub facing_right: bool,
-	pub hp: u32,
-	pub mana: i32,
-	pub max_mana: i32,
-	pub is_attacking: bool,
+	facing_right: bool,
+	hp: u32,
+	mana: i32,
+	max_mana: i32,
+	is_attacking: bool,
 	pub weapon_frame: i32,
 	pub is_firing: bool,
 	pub coins: u32,
@@ -109,6 +111,7 @@ impl<'a> Player<'a> {
 		let coins = 0;
 		let weapon = Weapon::Sword;
 		let ability = Ability::Bullet;
+
 		Player {
 			pos,
 			cam_pos,
@@ -357,12 +360,13 @@ impl<'a> Player<'a> {
 		self.is_firing = true;
 		match p_type {
 			ProjectileType::Shield => {
-				for i in 0..4 {
-					self.use_mana();
-				}
+				self.use_mana(4);
+			}
+			ProjectileType::Bullet => {
+				self.use_mana(2);
 			}
 			_ => {
-				self.use_mana();
+				self.use_mana(1);
 			}
 		}
 		self.fire_timer = Instant::now();
@@ -408,7 +412,7 @@ impl<'a> Player<'a> {
 		self.mana_timer.elapsed().as_millis()
 	}
 
-	pub fn use_mana(&mut self) {
+	pub fn use_mana(&mut self, x: i32) {
 		self.mana -= 1;
 	}
 

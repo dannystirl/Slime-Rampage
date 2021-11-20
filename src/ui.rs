@@ -78,16 +78,16 @@ impl<'a> UI<'a> {
 		if  player.get_hp()%10 != 0  {
 			texture = texture_creator.load_texture("images/ui/half_heart.png")?;
 		}
-			let half_heart = UI::new(
-				Rect::new(
-					(i/10) as i32 * (TILE_SIZE_64 as f64 *1.2) as i32,
-					(CAM_H-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
-					(TILE_SIZE_64 as f64 *1.2) as u32,
-					(TILE_SIZE_64 as f64 *1.2) as u32,
-				),
-				texture,
-			);
-			core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
+		let half_heart = UI::new(
+			Rect::new(
+				(i/10) as i32 * (TILE_SIZE_64 as f64 *1.2) as i32,
+				(CAM_H-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
+				(TILE_SIZE_64 as f64 *1.2) as u32,
+				(TILE_SIZE_64 as f64 *1.2) as u32,
+			),
+			texture,
+		);
+		core.wincan.copy(half_heart.texture(), half_heart.src(), half_heart.pos())?;
 
 		//display mana
 		let mut mana = UI::new(
@@ -112,17 +112,9 @@ impl<'a> UI<'a> {
 		mana.set_src(mana_src);
 		core.wincan.copy(mana.texture(), mana.src(), mana.pos())?;
 
-		//get current mana as a string
-		let mana = player.get_mana();
-		let max_mana = player.get_max_mana();
-		let mut s: String = mana.to_string();
-		let a: String = max_mana.to_string();
-		s += "/";
-		s += &a;
-
 		let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
-		map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
-		TILE_SIZE, TILE_SIZE);
+							 map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
+							 TILE_SIZE, TILE_SIZE);
 		let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		if GameData::check_collision(&ppos, &mpos) {
 			let absorb_help = get_font.render("[E]: Descend Stairs").blended(Color::WHITE).unwrap();
@@ -160,9 +152,9 @@ impl<'a> UI<'a> {
 				let ui_ability = UI::new(
 					Rect::new(
 						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*6) as i32,
-						(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
-						(TILE_SIZE_64 as f64 * 1.2) as u32,
-						(TILE_SIZE_64 as f64 * 1.2) as u32,
+						(CAM_H-(TILE_SIZE_64 as u32)) as i32,
+						TILE_SIZE_64 as u32,
+						TILE_SIZE_64 as u32,
 					),
 					texture_creator.load_texture("images/abilities/fireball_pickup.png")?,
 				);
@@ -172,9 +164,9 @@ impl<'a> UI<'a> {
 				let ui_ability = UI::new(
 					Rect::new(
 						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*6) as i32,
-						(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
-						(TILE_SIZE_64 as f64 * 1.2) as u32,
-						(TILE_SIZE_64 as f64 * 1.2) as u32,
+						(CAM_H-(TILE_SIZE_64 as u32)) as i32,
+						TILE_SIZE_64 as u32,
+						TILE_SIZE_64 as u32,
 					),
 					texture_creator.load_texture("images/abilities/slimeball_pickup.png")?,
 				);
@@ -184,9 +176,9 @@ impl<'a> UI<'a> {
 				let ui_ability = UI::new(
 					Rect::new(
 						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*6) as i32,
-						(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
-						(TILE_SIZE_64 as f64 * 1.2) as u32,
-						(TILE_SIZE_64 as f64 * 1.2) as u32,
+						(CAM_H-(TILE_SIZE_64 as u32)) as i32,
+						TILE_SIZE_64 as u32,
+						TILE_SIZE_64 as u32,
 					),
 					texture_creator.load_texture("images/abilities/shield_pickup.png")?,
 				);

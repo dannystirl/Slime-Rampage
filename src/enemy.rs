@@ -26,14 +26,15 @@ pub struct Enemy<'a> {
 	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
-	pub stun_time: u128, 
+	stun_time: u128, 
 	stun_timer: Instant,
 	fire_timer: Instant,
 	damage_timer: Instant,
 	invincible: bool,
 	knockback_vel: f64,
 	angle: f64,
-	pub has_money: bool,
+	has_money: bool,
+	has_power: bool,
 	pub x_flipped: bool,
 	pub y_flipped: bool,
 	pub facing_right: bool,
@@ -58,6 +59,7 @@ pub struct Enemy<'a> {
 		let angle = 0.0;
 		let x_flipped = false;
 		let has_money = true;
+		let has_power = true;
 		let y_flipped = false;
 		let facing_right = false;
 		let is_stunned = false;
@@ -86,6 +88,7 @@ pub struct Enemy<'a> {
 			knockback_vel,
 			angle,
 			has_money,
+			has_power, 
 			x_flipped,
 			y_flipped,
 			facing_right,
@@ -491,8 +494,20 @@ pub struct Enemy<'a> {
 		}
 	}
 
+	// Set death animation when created
+	pub fn die(&mut self){
+		self.alive = false;
+	}
 
-	pub fn drop_item(&mut self) -> Gold {
+	pub fn is_alive(&mut self) -> bool{
+		return self.alive;
+	}
+
+	// items
+	pub fn has_coin(&self) -> bool {
+		return self.has_money; 
+	}
+	pub fn drop_coin(&mut self) -> Gold {
 		let coin = gold::Gold::new(
 			Rect::new(
 				self.x() as i32,
@@ -501,11 +516,22 @@ pub struct Enemy<'a> {
 				TILE_SIZE,
 			),
 		);
-		self.set_no_gold();
+		self.has_money = false;
 		return coin;
 	}
 
 	pub fn drop_power(&mut self) -> Power {
+		if !self.has_power {
+			return power::Power::new(
+				Rect::new(
+					self.x() as i32,
+					self.y() as i32,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				PowerType::None,
+			);
+		}
 		let power;
 		match self.enemy_type {
 			EnemyType::Melee => {
@@ -553,25 +579,18 @@ pub struct Enemy<'a> {
 				);
 			}
 		}
+		self.has_power = false;
 		return power;
 	}
 
-	pub fn die(&mut self){
-		// Set death animation when created
-		self.alive = false;
+	pub fn has_item(&mut self) -> bool{
+		if self.has_money || self.has_power {
+			return true; 
+		}
+		return false; 
 	}
 
-	pub fn is_alive(&mut self) -> bool{
-		return self.alive;
-	}
-
-	pub fn has_gold(&mut self) -> bool{
-		return self.has_money;
-	}
-
-	pub fn set_no_gold(&mut self) {
-		self.has_money = false;
-	}
+	// collision
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
 		let distance = ((p_center.x() as f64 - other_pos.center().x() as f64).powf(2.0) + (p_center.y() as f64 - other_pos.center().y() as f64).powf(2.0)).sqrt();
 
@@ -596,6 +615,7 @@ pub struct Enemy<'a> {
 			 return resolution;
 		}
 	}
+
 	pub fn resolve_col(&mut self, collisions : &Vec<CollisionDecider>){
 		// Sort vect of collisions by distance
 		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();

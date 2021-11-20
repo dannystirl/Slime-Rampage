@@ -84,7 +84,8 @@ impl Projectile {
 	pub fn is_active(&self) -> bool{
 		return self.is_active;
 	}
-	// the frames aren't calculating right so the fireball image doesnt look right, but the logic is there.
+	
+	// check object bouncing 
 	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, projectiles: &mut Vec<Projectile>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.p_type {
 			ProjectileType::Fireball => {
@@ -92,7 +93,6 @@ impl Projectile {
 					self.die();
 				}
 			}
-			ProjectileType::Shield => {}
 			_ => {
 				if self.get_bounce() >= 4 {
 					self.die();
@@ -126,8 +126,6 @@ impl Projectile {
 		}
 
 		for c in crates {
-			/* let crate_pos = c.pos();
-			let p_pos =self.pos(); */
 			if GameData::check_collision(&self.pos(), &c.pos()) { //I hate collisions
 				//println!("welcome to hell");
 				collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
@@ -136,10 +134,6 @@ impl Projectile {
 
 		for p in 0..projectiles.len() {
 			if projectiles[p].is_active {
-				match projectiles[p].p_type {
-					ProjectileType::Shield => {},
-					_ => { continue; }
-				}
 				if GameData::check_collision(&self.pos(), &projectiles[p].pos()) {
 					collisions.push(self.collect_col(self.pos(), self.pos().center(), projectiles[p].pos()));
 					projectiles[p].die();

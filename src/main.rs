@@ -118,17 +118,17 @@ impl Game for ROGUELIKE  {
 		);
 		// LOAD TEXTURES
 		// projectile textures
-		let mut bullet_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
+		let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
 		
-		bullet_textures.push(bullet);
-		bullet_textures.push(fireball);
-		bullet_textures.push(enemy_bullet);
-		bullet_textures.push(shield);
+		ability_textures.push(bullet);
+		ability_textures.push(fireball);
+		ability_textures.push(enemy_bullet);
+		ability_textures.push(shield);
 
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
@@ -320,8 +320,8 @@ impl Game for ROGUELIKE  {
 				// UPDATE ATTACKS
 				// Should be switched to take in array of active fireballs, bullets, etc.
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-				ROGUELIKE::draw_enemy_projectile(self, &bullet_textures, &player);	
-				ROGUELIKE::draw_player_projectile(self, &bullet_textures,  &player, mousestate)?;	
+				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
+				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
 				ROGUELIKE::draw_weapon(self, &player,&sword);
 				
 				// UPDATE INTERACTABLES
@@ -453,13 +453,11 @@ impl ROGUELIKE {
 	
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture) {
-		//add coins to gold vector
+		//add enemy drops to game
 		for enemy in enemies {
-			if !enemy.is_alive() && enemy.has_gold(){	// Should be changed to has_drop() when more drops
-				let drop = enemy.drop_item();
-				let dropped_power = enemy.drop_power();
-				self.game_data.gold.push(drop);
-				self.game_data.dropped_powers.push(dropped_power);
+			if !enemy.is_alive() && enemy.has_item() {
+				if enemy.has_coin() { self.game_data.gold.push(enemy.drop_coin()); }
+				self.game_data.dropped_powers.push(enemy.drop_power());
 			}
 		}
 		// draw uncollected coins
@@ -533,7 +531,7 @@ impl ROGUELIKE {
 					}
 				},
 				PowerType::Slimeball => {
-					if !player.is_firing && player.get_mana() > 0 {
+					if !player.is_firing && player.get_mana() > 1 {
 						let p_type = ProjectileType::Bullet;
 						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
 						self.game_data.player_projectiles.push(bullet);
@@ -542,7 +540,8 @@ impl ROGUELIKE {
 				PowerType::Shield => {
 					if !player.is_firing && player.get_mana() >= 4 {
 						let p_type = ProjectileType::Shield;
-						let bullet = player.fire(mousestate.x(), mousestate.y(), 0.0, p_type, 0);
+						let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, p_type, 0);
+						self.game_data.player_projectiles.push(bullet);
 						self.game_data.player_projectiles.push(bullet);
 					}
 				},
@@ -717,12 +716,12 @@ impl ROGUELIKE {
 	}
 
 	// draw player projectiles
-	pub fn draw_player_projectile(&mut self, bullet_textures: &Vec<Texture>, player: &Player, mousestate: MouseState)-> Result<(), String>  {
+	pub fn draw_player_projectile(&mut self, ability_textures: &Vec<Texture>, player: &Player, mousestate: MouseState)-> Result<(), String>  {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				match projectile.p_type{
 					ProjectileType::Bullet=>{
-						self.core.wincan.copy_ex(&bullet_textures[0], projectile.src(), projectile.set_cam_pos_large(player), 0.0, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos_large(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Fireball=>{
 						let time = projectile.elapsed;
@@ -746,10 +745,10 @@ impl ROGUELIKE {
 						}
 						*/
 						projectile.elapsed += 1;
-						self.core.wincan.copy_ex(&bullet_textures[1], s, projectile.set_cam_pos_large(player), angle, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), angle, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Shield => {
-						self.core.wincan.copy(&bullet_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
 				}	
 			}
@@ -783,10 +782,10 @@ impl ROGUELIKE {
 		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
 	}
 
-	pub fn draw_enemy_projectile(&mut self,bullet_textures: &Vec<Texture> , player: &Player) {
+	pub fn draw_enemy_projectile(&mut self,ability_textures: &Vec<Texture> , player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if projectile.is_active(){
-				self.core.wincan.copy(&bullet_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+				self.core.wincan.copy(&ability_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 			}
 		}
 	}
