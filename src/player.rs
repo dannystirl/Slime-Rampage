@@ -37,10 +37,6 @@ impl CollisionDecider{
 	}
 }
 
-pub enum Ability{
-	Bullet,
-}
-
 pub enum Weapon{
 	Sword,
 }
@@ -54,32 +50,36 @@ pub struct Player<'a> {
 	delta: (i32, i32),
 	height: u32,
 	width: u32,
+	// display values
 	src: Rect,
-	// gameplay values
 	attack_box: Rect,
+	texture_all: Texture<'a>,
+	// timers
 	attack_timer: Instant,
 	fire_timer: Instant,
 	damage_timer: Instant,
 	mana_timer: Instant,
 	pickup_timer: Instant,
-	texture_all: Texture<'a>,
-	invincible: bool,
-	power: PowerType,
-	can_pickup: bool,
-	facing_right: bool,
+	shield_timer: Instant,
+	// player attributes
 	hp: u32,
 	mana: i32,
-	max_mana: i32,
-	is_attacking: bool,
-	pub weapon_frame: i32,
-	pub is_firing: bool,
-	pub coins: u32,
 	pub weapon: Weapon,
-	pub ability: Ability,
+	power: PowerType,
+	coins: u32,
+	// check values
+	max_mana: i32,
+	invincible: bool,
+	shielded: bool,
+	pub can_pickup: bool,
+	pub facing_right: bool,
+	is_attacking: bool,
+	pub is_firing: bool,
 }
 
 impl<'a> Player<'a> {
 	pub fn new(pos: (f64, f64), texture_all: Texture<'a>) -> Player<'a> {
+		// position values
 		let cam_pos = Rect::new(
 			0,
 			0,
@@ -91,28 +91,35 @@ impl<'a> Player<'a> {
 		let delta = (0, 0);
 		let height = TILE_SIZE;
 		let width = TILE_SIZE;
+		// display values
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
-		let hp = 30;
-		let mana = 4;
-		let max_mana = 4;
-		let facing_right = false;
-		let is_attacking = false;
-		let is_firing =false;
 		let attack_box = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
+		// timers
 		let attack_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let mana_timer = Instant::now();
 		let pickup_timer = Instant::now();
-		let invincible = true;
-		let power = PowerType::None;
-		let can_pickup = false;
-		let weapon_frame=0;
-		let coins = 0;
+		let shield_timer = Instant::now();
+		// player attributes
+		let hp = 30;
+		let mana = 4;
 		let weapon = Weapon::Sword;
-		let ability = Ability::Bullet;
+		let power: PowerType;
+		if DEBUG {power = PowerType::Shield; }
+		else { power = PowerType::None; }
+		let coins = 0;
+		// check values
+		let max_mana = 4;
+		let invincible = true;
+		let shielded = false; 
+		let can_pickup = false;
+		let facing_right = false;
+		let is_attacking = false;
+		let is_firing = false;
 
 		Player {
+			// position values
 			pos,
 			cam_pos,
 			mass,
@@ -120,27 +127,31 @@ impl<'a> Player<'a> {
 			delta,
 			height,
 			width,
+			// display values
 			src,
 			attack_box,
+			texture_all,
+			// timers
 			attack_timer,
 			fire_timer,
 			damage_timer,
 			mana_timer,
 			pickup_timer,
-			invincible,
-			power,
-			can_pickup,
-			texture_all,
-			facing_right,
+			shield_timer, 
+			// player attributes
 			hp,
 			mana,
-			max_mana,
-			is_attacking,
-			weapon_frame,
-			is_firing,
-			coins,
 			weapon,
-			ability,
+			power,
+			coins,
+			// check values
+			max_mana,
+			invincible,
+			shielded,
+			can_pickup,
+			facing_right,
+			is_attacking,
+			is_firing,
 		}
 	}
 
@@ -217,6 +228,10 @@ impl<'a> Player<'a> {
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
 			self.is_firing =false;
+		}
+		// should the player be shielded
+		if self.shield_timer.elapsed().as_millis() > SHIELD_TIME {
+			self.shielded =false;
 		}
 
 		self.restore_mana();
@@ -360,7 +375,7 @@ impl<'a> Player<'a> {
 		self.is_firing = true;
 		match p_type {
 			ProjectileType::Shield => {
-				self.use_mana(4);
+				self.use_mana(3);
 			}
 			ProjectileType::Bullet => {
 				self.use_mana(2);
@@ -399,13 +414,13 @@ impl<'a> Player<'a> {
 		return bullet;
 	}
 
+	pub fn get_attacking(&self) -> bool {
+		return self.is_attacking
+	}
+
 	//mana values
 	pub fn get_mana(&self) -> i32 {
 		return self.mana
-	}
-
-	pub fn get_max_mana(&self) -> i32 {
-		self.max_mana
 	}
 
 	pub fn get_mana_timer(&self) -> u128 {
@@ -425,6 +440,7 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
+	// power functions
 	pub fn get_power(&self) -> &PowerType {
 		&self.power
 	}
@@ -449,6 +465,16 @@ impl<'a> Player<'a> {
 		self.pickup_timer = Instant::now();
 	}
 
+	pub fn set_shielded(&mut self, b: bool){
+		self.shield_timer = Instant::now();
+		self.mana -= 3; 
+		self.shielded = b; 
+	}
+
+	pub fn get_shielded(&self) -> bool {
+		self.shielded
+	}
+
 	// heatlh values
 	pub fn get_hp(&self) -> u32 {
 		return self.hp
@@ -459,20 +485,26 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: u32) {
-		self.set_invincible(); 
-		if self.invincible {
+		if self.set_get_invincible() {
 			return;
 		}
+		let adjusted_dmg: u32; 
+		if self.get_shielded() { 
+			adjusted_dmg = dmg-5; 
+			self.set_shielded(false);
+		}
+		else { adjusted_dmg = dmg;  }
 		self.damage_timer = Instant::now();
-		self.hp -= dmg;
+		self.hp -= adjusted_dmg;
 	}
 
-	pub fn set_invincible(&mut self){
+	pub fn set_get_invincible(&mut self) -> bool {
 		if self.damage_timer.elapsed().as_millis() < DMG_COOLDOWN {
 			self.invincible = true;
 		} else {
 			self.invincible = false;
 		}
+		return self.invincible; 
 	}
 
 	//coin values
@@ -512,6 +544,7 @@ impl<'a> Player<'a> {
 			 return resolution;
 		}
 	}
+
 	pub fn resolve_col(&mut self, collisions : &Vec<CollisionDecider>){
 		// Sort vect of collisions by distance
 		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();

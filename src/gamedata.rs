@@ -1,5 +1,5 @@
 pub const DEVELOP: bool = false; 
-pub const DEBUG: bool = false; 
+pub const DEBUG: bool = true; 
 pub const DEBUG_NO_WALLS: bool = false; 
 
 use rand::Rng;
@@ -19,11 +19,11 @@ pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
 pub const TILE_SIZE_64: u32 = 64;                           // tile sizes are all 64 px
 
-pub const TILE_SIZE: u32 = 64;                              // sprite sizes vary 
+pub const TILE_SIZE: u32 = 64;                              // overall tile size 
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;                // generic half tile size
-pub const TILE_SIZE_CAM: u32 = TILE_SIZE*4/5;               // cam position 
-pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;      // hitboxes are slightly smaller than visual hitboxes
-pub const TILE_SIZE_PROJECTILE: u32 = TILE_SIZE_CAM * 2/3;  // hitboxes are slightly smaller than visual hitboxes
+pub const TILE_SIZE_CAM: u32 = TILE_SIZE*4/5;               // overal visual tile size
+pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;      // player (and generally entity) tile size (slightly smaller than visual hitbox)
+pub const TILE_SIZE_PROJECTILE: u32 = TILE_SIZE_CAM * 2/3;  // projectile hitboxes are slightly smaller than visual hitboxes
 
 pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;
 pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE_HALF) as i32;
@@ -39,17 +39,17 @@ pub const MAP_SIZE_H: usize = 61;
 // game globals
 pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
-//pub const STARTING_TIMER: u128 = 1000;
 
 // player globals
-pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3 / 2;
-pub const ATTK_COOLDOWN: u128 = 300;
-pub const DMG_COOLDOWN: u128 = 800;
-pub const FIRE_COOLDOWN_P: u128 = 300;
-pub const MANA_RESTORE_RATE: u128 = 1000;
+pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3 / 2;   // length of sword
+pub const ATTK_COOLDOWN: u128 = 300;        // how often player can attack
+pub const DMG_COOLDOWN: u128 = 800;         // how often player can take damage
+pub const FIRE_COOLDOWN_P: u128 = 300;      // how often player can shoot projectile
+pub const SHIELD_TIME: u128 = 1800;         // how long player shield lastsa
+pub const MANA_RESTORE_RATE: u128 = 1000;   // how quickly mana is restored
 
 // enemy globals
-pub const FIRE_COOLDOWN_E: u128 = 2500;
+pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
 
 pub struct GameData {
     pub frame_counter: Instant, 

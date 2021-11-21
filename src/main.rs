@@ -513,7 +513,7 @@ impl ROGUELIKE {
 		}
 		// basic attack
 		if keystate.contains(&Keycode::Space) {
-			if !(player.is_attacking) {
+			if !(player.get_attacking()) {
 				player.attack();
 			}
 		}
@@ -521,28 +521,26 @@ impl ROGUELIKE {
 		if mousestate.left(){
 			match player.get_power() {
 				PowerType::Fireball => {
-					if !player.is_firing && player.get_mana() > 0 {
+					if !player.is_firing && player.get_mana() >= 1 {
 						let now = Instant::now();
 						let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
 
-						let p_type = ProjectileType::Fireball;
-						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), p_type, elapsed);
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Fireball, elapsed);
 						self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				PowerType::Slimeball => {
-					if !player.is_firing && player.get_mana() > 1 {
-						let p_type = ProjectileType::Bullet;
-						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(),p_type, 0);
+					if !player.is_firing && player.get_mana() >= 2 {
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
 						self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				PowerType::Shield => {
-					if !player.is_firing && player.get_mana() >= 4 {
-						let p_type = ProjectileType::Shield;
-						let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, p_type, 0);
-						self.game_data.player_projectiles.push(bullet);
-						self.game_data.player_projectiles.push(bullet);
+					if !player.get_shielded() && player.get_mana() >= 3 {
+						player.set_shielded(true);
+						// code for placeable shield. 
+						//let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, ProjectileType::Shield, 0);
+						//self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				_ => {},
@@ -639,7 +637,7 @@ impl ROGUELIKE {
 			}
 
 			// player melee collisions
-			if player.is_attacking {
+			if player.get_attacking() {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into());
 					enemy.minus_hp(2);
@@ -710,9 +708,21 @@ impl ROGUELIKE {
 
 	// draw player
 	pub fn draw_player(&mut self, fps_avg: f64, player: &mut Player, curr_bg: Rect) {
+		// draw player
 		player.set_cam_pos(curr_bg.x(), curr_bg.y());
 		player.get_frame_display(&mut self.game_data, fps_avg);
 		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
+		// draw shield outline on player
+		if player.get_shielded() { 
+			let texture_creator = self.core.wincan.texture_creator();
+			let shield_outline = texture_creator.load_texture("images/abilities/shield_outline.png").unwrap();
+			let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+			let pos = Rect::new(if player.facing_right { player.get_cam_pos().x-(TILE_SIZE_CAM/8) as i32 } else { player.get_cam_pos().x-(TILE_SIZE_CAM/4) as i32 }, 
+								player.get_cam_pos().y-(TILE_SIZE_CAM/4) as i32, 
+								TILE_SIZE_64+TILE_SIZE_CAM/4, 
+								TILE_SIZE_64+TILE_SIZE_CAM/4);
+			self.core.wincan.copy_ex(&shield_outline, src, pos, 0.0, None, !player.facing_right, false).unwrap(); 
+		}
 	}
 
 	// draw player projectiles
@@ -763,7 +773,7 @@ impl ROGUELIKE {
 		let mut angle;
 
 		// weapon animation
-		if player.is_attacking {
+		if player.get_attacking() {
 			angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
 		} else { angle = - 60.0; }
 		// display weapon
