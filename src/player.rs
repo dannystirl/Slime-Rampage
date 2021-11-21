@@ -428,7 +428,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn use_mana(&mut self, x: i32) {
-		self.mana -= 1;
+		self.mana -= x;
 	}
 
 	pub fn restore_mana(&mut self) {

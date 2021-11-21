@@ -24,6 +24,7 @@ impl Rigidbody{
         return p.x() >= r.left() && p.y() >= r.top() && p.x() < r.right() && p.y() < r.bottom();
     }
 
+    #[allow(unused_variables)]
     pub fn ray_vs_rect(&self, origin : Point , dir : Point, other : Rect, hit_near : f64){
        let contact = Point::new(0,0);
        let normal = Point::new(0,0);

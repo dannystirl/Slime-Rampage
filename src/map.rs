@@ -22,8 +22,7 @@ pub struct Map<'a> {
 }
 
 impl<'a> Map<'a> {
-	pub fn new(current_floor: i32, background: Background<'a>) -> Map<'a> {
-		let map_w = MAP_SIZE_W + (current_floor as usize - 1)*16; 
+	pub fn new(current_floor: i32, background: Background<'a>) -> Map<'a> { 
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let room_sizes: Vec<(usize,usize,usize,usize)> = Vec::with_capacity(0);
@@ -484,8 +483,7 @@ impl<'a> Map<'a> {
 		}
 
 		//add pillars
-		let attempts: i32 = 50;
-		for _i in 1..attempts {
+		for _i in 1..75 {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 

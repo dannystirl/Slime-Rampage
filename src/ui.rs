@@ -45,7 +45,7 @@ impl<'a> UI<'a> {
 
 
 	//update background
-	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map, game_data: &GameData) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map) -> Result<(), String> {
 		// set ui bar
 		let texture_creator = core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE_64*2);

@@ -1,11 +1,11 @@
 extern crate rogue_sdl;
 use rogue_sdl::{Game, SDLCore};
-use sdl2::audio::AudioSpecDesired;
-use sdl2::audio::AudioSpecWAV;
-use sdl2::audio::AudioCVT;
+//use sdl2::audio::AudioSpecDesired;
+//use sdl2::audio::AudioSpecWAV;
+//use sdl2::audio::AudioCVT;
+//use sdl2::audio::AudioCallback;
 use std::time::Duration;
 use std::time::Instant;
-use sdl2::audio::AudioCallback;
 //use std::cmp;
 use std::collections::HashSet;
 use sdl2::event::Event;
@@ -16,7 +16,7 @@ use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};//,TextureCreator};
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
-use std::env;
+//use std::env;
 use std::path::Path;
 mod background;
 mod credits;
@@ -62,43 +62,32 @@ impl Game for ROGUELIKE  {
 		let mut rng = rand::thread_rng();
 
 		// AUDIO SYSTEM
-		let audio_subsystem = self.core.sdl_cxt.audio()?;
-		let mut timer = self.core.sdl_cxt.timer()?;
-
 		let frequency = 44_100;
 		let format = AUDIO_S16LSB; // signed 16 bit samples, in little-endian byte order
 		let channels = DEFAULT_CHANNELS; // Stereo
 		let chunk_size = 1_024;
 		sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
-		let _mixer_context = 
-			sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
-		    sdl2::mixer::allocate_channels(4);
-	
-		// Number of mixing channels available for sound effect `Chunk`s to play
-		// simultaneously.
+		let _mixer_context = sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
+		// Number of mixing channels available for sound effect `Chunk`s to play simultaneously.
 		sdl2::mixer::allocate_channels(4);
-	    {
+	
+		if DEBUG {
 			let n = sdl2::mixer::get_chunk_decoders_number();
 			println!("available chunk(sample) decoders: {}", n);
 			for i in 0..n {
 				println!("  decoder {} => {}", i, sdl2::mixer::get_chunk_decoder(i));
 			}
-		}
-	
-		{
-			let n = sdl2::mixer::get_music_decoders_number();
 			println!("available music decoders: {}", n);
+			let n = sdl2::mixer::get_music_decoders_number();
 			for i in 0..n {
 				println!("  decoder {} => {}", i, sdl2::mixer::get_music_decoder(i));
 			}
+			println!("query spec => {:?}", sdl2::mixer::query_spec());
 		}
-	
 
-		println!("query spec => {:?}", sdl2::mixer::query_spec());
 		let path = Path::new("./music/Rampage.wav");
-
 		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(1);
+		music.play(1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -337,7 +326,7 @@ impl Game for ROGUELIKE  {
 				if player.is_dead(){break 'gameloop;}
 
 				// UPDATE UI
-				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
+				ui.update_ui(&player, &mut self.core, &map_data)?;
 				
 				// UPDATE FRAME
 				self.core.wincan.present();
