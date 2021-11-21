@@ -11,6 +11,7 @@ pub struct Map<'a> {
 	pub current_floor: i32, 
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub numbered_map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
+	pub room_sizes: Vec<(usize,usize,usize,usize)>,
 	pub num_rooms: i32, 
 	pub starting_room: i32, 
 	pub starting_position: (f64,f64), 
@@ -25,6 +26,7 @@ impl<'a> Map<'a> {
 		let map_w = MAP_SIZE_W + (current_floor as usize - 1)*16; 
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+		let room_sizes: Vec<(usize,usize,usize,usize)> = Vec::with_capacity(0);
 		let num_rooms=1; 
 		let starting_room = 1;
 		let starting_position = (0.0,0.0);
@@ -38,6 +40,7 @@ impl<'a> Map<'a> {
 			current_floor, 
 			map, 
 			numbered_map, 
+			room_sizes, 
 			num_rooms, 
 			starting_room, 
 			starting_position, 
@@ -77,7 +80,7 @@ impl<'a> Map<'a> {
 		let mut rng = rand::thread_rng();
 		let mut new_map = self.map;
 
-		let mut count = 0;
+		let mut count: i32 = 0;
 		while count < 300 {
 			let y = rng.gen_range(0..MAP_SIZE_H);
 			let x = rng.gen_range(0..MAP_SIZE_W);
@@ -116,6 +119,7 @@ impl<'a> Map<'a> {
 							new_map[y + h][x + w] = self.num_rooms;
 						}
 					}
+					self.room_sizes.push((x, y, width, height)); 
 					self.num_rooms += 1;
 				}
 				count += 1;
@@ -280,12 +284,10 @@ impl<'a> Map<'a> {
 
 		// create first door per room
 		while connectors.len() > 0 {
-			if DEBUG { print!("\ndoor"); }
 			let rand_connection = rand::thread_rng().gen_range(0..connectors.len());
 			new_map[connectors[rand_connection].0][connectors[rand_connection].1] = 1;
 			// roll for second & third doors
 			if rand::thread_rng().gen_range(0..30) < 15 {
-				if DEBUG { print!("\nextra door"); }
 				let rand_addition: usize; 
 				// attempt to make second door far from the first
 				if rand_connection > connectors.len()/2 {
@@ -295,7 +297,6 @@ impl<'a> Map<'a> {
 				}
 				new_map[connectors[rand_addition].0][connectors[rand_addition].1] = 1;
 				if rand::thread_rng().gen_range(0..30) < 5 {
-					if DEBUG { print!("\nextra extra door"); }
 					let rand_addition = rand::thread_rng().gen_range(0..connectors.len());
 					new_map[connectors[rand_addition].0][connectors[rand_addition].1] = 1;
 				}
@@ -423,11 +424,15 @@ impl<'a> Map<'a> {
 	pub fn create_obstacles(&mut self, corridors: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let mut rng = rand::thread_rng();
 		let mut new_map = self.map;
-		let mut stairs_added: i32 = 0;
+		let mut special_rooms: usize = 0;
+		self.room_sizes.sort_by(|a, b| (a.2*a.3).cmp(&(b.2*b.3)) ); 
 
-		while stairs_added < 2 {
-			let h = rng.gen_range(0..MAP_SIZE_H - 1);
-			let w = rng.gen_range(0..MAP_SIZE_W - 1);
+		while special_rooms < 2 {
+			// set stairs in smaller rooms
+			let w = rng.gen_range(self.room_sizes[special_rooms].0..
+								  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);
+			let h = rng.gen_range(self.room_sizes[special_rooms].1..
+								  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);	
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
 				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
 				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
@@ -435,14 +440,14 @@ impl<'a> Map<'a> {
 				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
 
 				// Add upstairs (3)
-				if stairs_added == 0 {			
+				if special_rooms == 0 {			
 					new_map[h][w] = 3;
 					self.starting_position = (w as f64, h as f64);
 					self.starting_room = self.numbered_map[h][w];
-					stairs_added += 1;
+					special_rooms += 1;
 				}
 				// Add downstairs (4)
-				else if stairs_added == 1 {
+				else if special_rooms == 1 {
 					if self.num_rooms > 1 && self.numbered_map[h][w] == self.starting_room {
 						continue; 
 					}
@@ -450,16 +455,17 @@ impl<'a> Map<'a> {
 						new_map[h][w] = 4;
 						self.ending_position = (w as i32, h as i32);
 						self.ending_room = self.numbered_map[h][w];
-						stairs_added += 1;
+						special_rooms += 1;
 					}
 				}
 			}
 		}
 		//place shop
-		let mut shop_placed = 0;
-		while shop_placed == 0 {
-			let h = rng.gen_range(0..MAP_SIZE_H - 1);
-			let w = rng.gen_range(0..MAP_SIZE_W - 1);
+		while special_rooms < 4 {
+			let w = rng.gen_range(self.room_sizes[special_rooms].0..
+								  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);
+			let h = rng.gen_range(self.room_sizes[special_rooms].1..
+								  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);	
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
 				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
 				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
@@ -472,12 +478,12 @@ impl<'a> Map<'a> {
 				else {
 					new_map[h][w] = 6;
 					self.shop = self.numbered_map[h][w];
-					shop_placed = 1;
+					special_rooms += 1;
 				}
 			}
 		}
 
-		//add obstacles
+		//add pillars
 		let attempts: i32 = 50;
 		for _i in 1..attempts {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
@@ -554,6 +560,7 @@ impl<'a> Map<'a> {
 		self.enemy_and_object_spawns = enemy_and_object_spawns;
 	}
 
+	// create objects
 	pub fn create_objects(&mut self) {
 		let mut rng = rand::thread_rng();
 		let mut enemy_and_object_spawns = self.enemy_and_object_spawns;
