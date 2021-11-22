@@ -295,7 +295,7 @@ impl Game for ROGUELIKE  {
 						break 'level
 					}
 				}
-				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &map_data)?;
+				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
 
 				// UPDATE BACKGROUND
 				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
@@ -507,7 +507,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &Map)-> Result<(), String>  {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
@@ -589,7 +589,8 @@ impl ROGUELIKE {
 					let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 										(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 										TILE_SIZE, TILE_SIZE);
-					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 && player.get_coins() >= map_data.shop_items[i].2 {
+					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 && 
+					   (player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
 						player.reset_pickup_timer();
 						if !map_data.shop_items[i].1 { 
 							player.sub_coins(map_data.shop_items[i].2); 
@@ -597,16 +598,22 @@ impl ROGUELIKE {
 						match map_data.shop_items[i].0 {
 							ShopItems::Fireball => {
 								player.set_power(PowerType::Fireball);
+								map_data.shop_items[i].1 = true; 
 							},
 							ShopItems::Slimeball => {
 								player.set_power(PowerType::Slimeball);
+								map_data.shop_items[i].1 = true; 
 							},
 							ShopItems::Shield => {
 								player.set_power(PowerType::Shield);
+								map_data.shop_items[i].1 = true; 
 							}
 							ShopItems::HealthUpgrade => {
-								player.upgrade_hp(10); 
-								player.plus_hp(10); 
+								if map_data.shop_items[i].1 == false {
+									player.upgrade_hp(10); 
+									player.plus_hp(10); 
+									map_data.shop_items[i].1 = true; 
+								} 
 							}
 							ShopItems::Health => {
 								player.plus_hp(10); 

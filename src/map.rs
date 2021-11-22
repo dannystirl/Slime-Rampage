@@ -487,7 +487,6 @@ impl<'a> Map<'a> {
 					self.shop = self.numbered_map[h][w];
 					self.shop_spawns.push((h,w)); 
 					self.shop_items.push((ShopItems::None, true, 0)); 
-					self.starting_position = (w as f64, h as f64);
 					while self.shop_spawns.len() <= 2 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..
 											  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
@@ -497,7 +496,7 @@ impl<'a> Map<'a> {
 							if !self.shop_spawns.contains(&(h,w)) {
 								new_map[h][w] = 6;
 								self.shop_spawns.push((h,w)); 
-								let item = rng.gen_range(1..8);
+								let item = rng.gen_range(1..6);
 								// should ensure no duplicate powers at some point
 								match item {
 									1 => {
