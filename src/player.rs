@@ -69,6 +69,7 @@ pub struct Player<'a> {
 	coins: u32,
 	// check values
 	max_mana: i32,
+	max_hp: u32, 
 	invincible: bool,
 	shielded: bool,
 	pub can_pickup: bool,
@@ -111,6 +112,7 @@ impl<'a> Player<'a> {
 		let coins = 0;
 		// check values
 		let max_mana = 4;
+		let max_hp = 30; 
 		let invincible = true;
 		let shielded = false; 
 		let can_pickup = false;
@@ -146,6 +148,7 @@ impl<'a> Player<'a> {
 			coins,
 			// check values
 			max_mana,
+			max_hp, 
 			invincible,
 			shielded,
 			can_pickup,
@@ -496,6 +499,17 @@ impl<'a> Player<'a> {
 		else { adjusted_dmg = dmg;  }
 		self.damage_timer = Instant::now();
 		self.hp -= adjusted_dmg;
+	}
+
+	pub fn plus_hp(&mut self, health: u32) {
+		if self.hp+health >= self.max_hp {
+			self.hp = self.max_hp; 
+		}
+		else { self.hp += health; }
+	}
+
+	pub fn upgrade_hp(&mut self, health: u32) {
+		self.max_hp += health; 
 	}
 
 	pub fn set_get_invincible(&mut self) -> bool {

@@ -1,5 +1,4 @@
 extern crate rogue_sdl;
-//use sdl2::render::Texture;
 use std::cmp;
 use rand::Rng;
 
@@ -19,13 +18,24 @@ pub struct Map<'a> {
 	pub ending_position: (i32,i32), 
 	pub shop: i32,
 	pub enemy_and_object_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
+	pub shop_spawns: Vec<(usize, usize)>, 
+	pub shop_items: Vec<(ShopItems, bool, u32)>, // item type, bought, cost
+}
+
+pub enum ShopItems{
+	Fireball, 
+	Slimeball,
+	Shield,
+	HealthUpgrade, 
+	Health, 
+	None, 
 }
 
 impl<'a> Map<'a> {
 	pub fn new(current_floor: i32, background: Background<'a>) -> Map<'a> { 
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
-		let room_sizes: Vec<(usize,usize,usize,usize)> = Vec::with_capacity(0);
+		let room_sizes = Vec::with_capacity(0);
 		let num_rooms=1; 
 		let starting_room = 1;
 		let starting_position = (0.0,0.0);
@@ -33,6 +43,8 @@ impl<'a> Map<'a> {
 		let ending_position = (0,0);
 		let shop = 6;
 		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+		let shop_spawns = Vec::with_capacity(0);
+		let shop_items = Vec::with_capacity(0);
 
 		Map {
 			background, 
@@ -47,6 +59,8 @@ impl<'a> Map<'a> {
 			ending_position, 
 			shop,
 			enemy_and_object_spawns, 
+			shop_spawns, 
+			shop_items, 
 		}
 	}
 
@@ -118,7 +132,7 @@ impl<'a> Map<'a> {
 							new_map[y + h][x + w] = self.num_rooms;
 						}
 					}
-					self.room_sizes.push((x, y, width, height)); 
+					self.room_sizes.push((y, x, height, width)); 
 					self.num_rooms += 1;
 				}
 				count += 1;
@@ -426,17 +440,15 @@ impl<'a> Map<'a> {
 		let mut special_rooms: usize = 0;
 		self.room_sizes.sort_by(|a, b| (a.2*a.3).cmp(&(b.2*b.3)) ); 
 
+		// place stairs
 		while special_rooms < 2 {
 			// set stairs in smaller rooms
-			let w = rng.gen_range(self.room_sizes[special_rooms].0..
-								  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);
-			let h = rng.gen_range(self.room_sizes[special_rooms].1..
-								  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);	
+			let h = rng.gen_range(self.room_sizes[special_rooms].0..
+								  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
+			let w = rng.gen_range(self.room_sizes[special_rooms].1..
+								  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
-				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
-				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
-				new_map[h - 1][w - 1] != 2 && new_map[h - 1][w + 1] != 2 &&
-				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
+			   self.surroundings_clear(w, h, vec![2], new_map) {
 
 				// Add upstairs (3)
 				if special_rooms == 0 {			
@@ -459,17 +471,13 @@ impl<'a> Map<'a> {
 				}
 			}
 		}
-		//place shop
-		while special_rooms < 4 {
-			let w = rng.gen_range(self.room_sizes[special_rooms].0..
-								  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);
-			let h = rng.gen_range(self.room_sizes[special_rooms].1..
-								  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);	
-			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
-				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
-				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
-				new_map[h - 1][w - 1] != 2 && new_map[h - 1][w + 1] != 2 &&
-				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
+		// place shop
+		while special_rooms < 3 {
+			let h = rng.gen_range(self.room_sizes[special_rooms].0..
+								  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
+			let w = rng.gen_range(self.room_sizes[special_rooms].1..
+								  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);
+			if new_map[h][w] == 1 && corridors[h][w] != 1 && self.surroundings_clear(w, h, vec![2], new_map) {
 			
 				if self.num_rooms > 1 && (self.numbered_map[h][w] == self.starting_room || self.numbered_map[h][w] == self.ending_room){
 					continue; 
@@ -477,6 +485,40 @@ impl<'a> Map<'a> {
 				else {
 					new_map[h][w] = 6;
 					self.shop = self.numbered_map[h][w];
+					self.shop_spawns.push((h,w)); 
+					self.shop_items.push((ShopItems::None, true, 0)); 
+					self.starting_position = (w as f64, h as f64);
+					while self.shop_spawns.len() <= 2 {
+						let h = rng.gen_range(self.room_sizes[special_rooms].0..
+											  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
+						let w = rng.gen_range(self.room_sizes[special_rooms].1..
+											  self.room_sizes[special_rooms].1+self.room_sizes[special_rooms].3-1);
+						if corridors[h][w] != 1 && self.surroundings_clear(w, h, vec![2, 6], new_map) {
+							if !self.shop_spawns.contains(&(h,w)) {
+								new_map[h][w] = 6;
+								self.shop_spawns.push((h,w)); 
+								let item = rng.gen_range(1..8);
+								// should ensure no duplicate powers at some point
+								match item {
+									1 => {
+										self.shop_items.push((ShopItems::Fireball, false, 3)); 
+									}
+									2 => {
+										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
+									}
+									3 => {
+										self.shop_items.push((ShopItems::Shield, false, 4)); 
+									}
+									4 => {
+										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
+									}
+									_ => {
+										self.shop_items.push((ShopItems::Health, false, 2)); 
+									}
+								}
+							}
+						}
+					}
 					special_rooms += 1;
 				}
 			}
@@ -487,11 +529,7 @@ impl<'a> Map<'a> {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
-				new_map[h - 1][w] != 2 && new_map[h + 1][w] != 2 && 
-				new_map[h][w - 1] != 2 && new_map[h][w + 1] != 2 &&
-				new_map[h - 1][w - 1] != 2 && new_map[h - 1][w + 1] != 2 &&
-				new_map[h + 1][w - 1] != 2 && new_map[h + 1][w + 1] != 2 {
-				
+			   self.surroundings_clear(w, h, vec![2], new_map) {
 				//add wall
 				let moss = rng.gen_range(0..10);
 				if moss < 8 {
@@ -589,6 +627,19 @@ impl<'a> Map<'a> {
 			}
 		}
 		self.enemy_and_object_spawns = enemy_and_object_spawns;
+	}
+
+	// check blocks around (w,h) for tile number
+	pub fn surroundings_clear(&self, w: usize, h: usize, tiles: Vec<i32>, new_map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> bool {
+		for tile in tiles {
+			if new_map[h - 1][w] == tile || new_map[h + 1][w] == tile || 
+			   new_map[h][w - 1] == tile || new_map[h][w + 1] == tile ||
+			   new_map[h - 1][w - 1] == tile || new_map[h - 1][w + 1] == tile ||
+			   new_map[h + 1][w - 1] == tile || new_map[h + 1][w + 1] == tile {
+			   return false; 
+			}
+		}
+		return true; 
 	}
 
 	// print the current map

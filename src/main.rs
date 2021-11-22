@@ -108,7 +108,6 @@ impl Game for ROGUELIKE  {
 		// LOAD TEXTURES
 		// projectile textures
 		let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
-
 		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
@@ -128,7 +127,9 @@ impl Game for ROGUELIKE  {
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
-		let sword = texture_creator.load_texture("images/player/sword_l.png")?;
+		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
+		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
+		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -305,24 +306,21 @@ impl Game for ROGUELIKE  {
 
 				// UPDATE ENEMIES
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
-				//ROGUELIKE::update_crates(self, &crate_textures, &player, map_data.map);
 				// UPDATE ATTACKS
 				// Should be switched to take in array of active fireballs, bullets, etc.
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
 				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
-				ROGUELIKE::draw_weapon(self, &player,&sword);
+				ROGUELIKE::draw_weapon(self, &player, &sword_texture);
 				
 				// UPDATE INTERACTABLES
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
-				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &coin_texture,
-										&fireball_texture, &slimeball_texture, &shield_texture);
-				//for c in self.game_data.crates.iter_mut() {
-				//	self.core.wincan.copy(&crate_textures[0],c.src(),c.offset_pos(&player))?;
-				//}
+				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
+										&fireball_texture, &slimeball_texture, &shield_texture, 
+										&health_texture, &health_upgrade_texture);
 
 				// CHECK COLLISIONS
-				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, map_data.map, &crate_textures);
+				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
 				if player.is_dead(){break 'gameloop;}
 
 				// UPDATE UI
@@ -440,8 +438,9 @@ impl ROGUELIKE {
 		}
 	}
 	
-	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, coin_texture: &Texture,
-						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture) {
+	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
+						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture, 
+						health_texture: &Texture, health_upgrade_texture: &Texture) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -458,25 +457,52 @@ impl ROGUELIKE {
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
 			}
 		}
-
-		for p in self.game_data.dropped_powers.iter_mut() {
-			if !p.collected() {
-				let pos = Rect::new(p.x() as i32 + (CENTER_W - player.x() as i32),
-									p.y() as i32 + (CENTER_H - player.y() as i32),
+		// draw powers
+		for power in self.game_data.dropped_powers.iter_mut() {
+			if !power.collected() {
+				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32),
+									power.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
-				match p.power_type() {
+				match power.power_type() {
 					PowerType::Fireball => {
-						self.core.wincan.copy_ex(&fireball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+						self.core.wincan.copy_ex(&fireball_texture, power.src(), pos, 0.0, None, false, false).unwrap();
 					},
 					PowerType::Slimeball => {
-						self.core.wincan.copy_ex(&slimeball_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+						self.core.wincan.copy_ex(&slimeball_texture, power.src(), pos, 0.0, None, false, false).unwrap();
 					},
 					PowerType::Shield => {
-						self.core.wincan.copy_ex(&shield_texture, p.src(), pos, 0.0, None, false, false).unwrap();
+						self.core.wincan.copy_ex(&shield_texture, power.src(), pos, 0.0, None, false, false).unwrap();
 					},
 					_ => {},
 				}
 			}
+		}
+		// draw shop items
+		let mut i=0; 
+		while i< map_data.shop_spawns.len() {
+			let src = Rect::new(0,0,TILE_SIZE_64,TILE_SIZE_64); 
+			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32,
+								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32,
+								TILE_SIZE, TILE_SIZE);
+			match map_data.shop_items[i].0 {
+				ShopItems::Fireball => {
+					self.core.wincan.copy_ex(&fireball_texture, src, pos, 0.0, None, false, false).unwrap();
+				},
+				ShopItems::Slimeball => {
+					self.core.wincan.copy_ex(&slimeball_texture, src, pos, 0.0, None, false, false).unwrap();
+				},
+				ShopItems::Shield => {
+					self.core.wincan.copy_ex(&shield_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::HealthUpgrade => {
+					self.core.wincan.copy_ex(&health_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::Health => {
+					self.core.wincan.copy_ex(&health_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				_ => {}
+			}
+			i+=1; 
 		}
 	}
 
@@ -558,6 +584,39 @@ impl ROGUELIKE {
 						break;
 					}
 				}
+				let mut i=0; 
+				while i< map_data.shop_spawns.len() {
+					let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+										(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+										TILE_SIZE, TILE_SIZE);
+					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 && player.get_coins() >= map_data.shop_items[i].2 {
+						player.reset_pickup_timer();
+						if !map_data.shop_items[i].1 { 
+							player.sub_coins(map_data.shop_items[i].2); 
+						}
+						match map_data.shop_items[i].0 {
+							ShopItems::Fireball => {
+								player.set_power(PowerType::Fireball);
+							},
+							ShopItems::Slimeball => {
+								player.set_power(PowerType::Slimeball);
+							},
+							ShopItems::Shield => {
+								player.set_power(PowerType::Shield);
+							}
+							ShopItems::HealthUpgrade => {
+								player.upgrade_hp(10); 
+								player.plus_hp(10); 
+							}
+							ShopItems::Health => {
+								player.plus_hp(10); 
+							}
+							_ => { }
+						}
+						break;
+					}
+					i+=1; 
+				}
 			}
 		}
 		// Go to next level
@@ -576,6 +635,12 @@ impl ROGUELIKE {
 			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
 			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 			println!("{} {}", player.x(), player.y());	
+			for item in map_data.shop_spawns.iter() {
+				let pos = Rect::new((item.1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+									(item.0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+									TILE_SIZE, TILE_SIZE);
+				println!("{},{}", pos.x, pos.y);
+			}
 		}
 		Ok(())	
 	}
@@ -596,7 +661,8 @@ impl ROGUELIKE {
 	}
 	
 	// check collisions
-	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], crate_textures: &Vec<Texture>) {
+	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, crate_textures: &Vec<Texture>) {
+		let map = map_data.map; 	
 		for enemy in enemies {
 			if !enemy.is_alive() {
 				continue;
@@ -676,14 +742,26 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		let mut i=0; 
+		while i< map_data.shop_spawns.len() {
+			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+								TILE_SIZE, TILE_SIZE);
+			if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 {
+				match map_data.shop_items[i].0 {
+					ShopItems::None => { }
+					_ => { can_pickup = true; }
+				}
+				break;
+			}
+			i += 1; 
+		}
 		player.set_can_pickup(can_pickup);
 		//check collision between crates and player
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
 				// provide impulse
 				c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
-				//player.set_x_vel(0);
-				//player.set_y_vel(0);
 			} else {
 				c.friction();
 			}
@@ -692,7 +770,6 @@ impl ROGUELIKE {
 		for c in self.game_data.crates.iter_mut(){
 			c.update_crates(&mut self.core, &crate_textures, player, map);
 		}
-
 	}
 
 	// draw player
