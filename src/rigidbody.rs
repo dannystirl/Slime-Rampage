@@ -16,7 +16,16 @@ pub struct Rigidbody{
     
     //mass: f64,
 }
+
 impl Rigidbody{
+    fn new(rect : Rect)->Rigidbody{
+        let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
+        let vel = Vector2D {x: 0.0, y : 0.0};
+        Rigidbody{
+            hitbox,
+            vel,
+        }
+    }
     //work in progress
     fn swept(self, other: Rigidbody)-> f64{//moving self and other is static
        let inv_entry_x : f64;
