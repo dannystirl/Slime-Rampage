@@ -27,8 +27,6 @@ impl ops::Mul<Vector2D> for Vector2D{//enables *
         Vector2D{x: self.x * other.x, y: self.y * other.y}
     }
 }
-
-ad
 impl ops::Neg for Vector2D{
     type Output = Vector2D;
     fn neg(self){

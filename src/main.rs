@@ -295,6 +295,7 @@ impl Game for ROGUELIKE  {
 						break 'level
 					}
 				}
+				//println!("helpsadas");
 				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
 
 				// UPDATE BACKGROUND
