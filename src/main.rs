@@ -4,6 +4,7 @@ use rogue_sdl::{Game, SDLCore};
 //use sdl2::audio::AudioSpecWAV;
 //use sdl2::audio::AudioCVT;
 //use sdl2::audio::AudioCallback;
+
 use std::time::Duration;
 use std::time::Instant;
 //use std::cmp;
@@ -18,6 +19,7 @@ use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
 //use std::env;
 use std::path::Path;
+mod vector;
 mod background;
 mod credits;
 mod enemy;
