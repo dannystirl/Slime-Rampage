@@ -1,5 +1,7 @@
 extern crate rogue_sdl;
+use rigidbody::Rigidbody;
 use rogue_sdl::{Game, SDLCore};
+use vector::Vector2D;
 //use sdl2::audio::AudioSpecDesired;
 //use sdl2::audio::AudioSpecWAV;
 //use sdl2::audio::AudioCVT;
@@ -132,10 +134,21 @@ impl Game for ROGUELIKE  {
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
+		let physics_debug_stage =true;
+		
+			let mut all_frames = 0;
+			let last_time = Instant::now();
+			let test = Rect::new(500, 200, 64, 64);
+			let test1 = Rect::new(0, 0, 64, 64);
+
+			let mut rb = Rigidbody::new(test1, 0.0, 0.0);
+			let mut rb1 = Rigidbody::new(test, 0.0, 0.0);
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			// CREATE MAPS
+	
+		if !physics_debug_stage {
 			let background = background::Background::new(
 				texture_creator.load_texture("images/background/bb.png")?,
 				texture_creator.load_texture("images/background/floor_tile_1.png")?,
@@ -298,7 +311,7 @@ impl Game for ROGUELIKE  {
 					}
 				}
 				//println!("helpsadas");
-				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
+				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data,&mut rb)?;
 
 				// UPDATE BACKGROUND
 				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
@@ -332,9 +345,84 @@ impl Game for ROGUELIKE  {
 				// UPDATE FRAME
 				self.core.wincan.present();
 			}
+		}else{
+			let b =texture_creator.load_texture("images/background/bb.png")?;
+
+			for event in self.core.event_pump.poll_iter() {
+				match event {
+					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
+					_ => {},
+				}
+			}
+			// fps calculations
+			let mut fps_avg: f64 = 60.0; 
+			all_frames += 1;
+			let elapsed = last_time.elapsed();
+			if elapsed > Duration::from_secs(1) {
+				fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
+				self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
+				self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
+			}
+			// reset frame values
+			player.set_x_delta(0);
+			player.set_y_delta(0);
+
+			// GET INPUT
+			let mousestate= self.core.event_pump.mouse_state();
+			let keystate: HashSet<Keycode> = self.core.event_pump
+				.keyboard_state()
+				.pressed_scancodes()
+				.filter_map(Keycode::from_scancode)
+				.collect();
+			if keystate.contains(&Keycode::E){
+			
+			}
+			let background = background::Background::new(
+				texture_creator.load_texture("images/background/bb.png")?,
+				texture_creator.load_texture("images/background/floor_tile_1.png")?,
+				texture_creator.load_texture("images/background/floor_tile_2.png")?,
+				texture_creator.load_texture("images/background/tile.png")?,
+				texture_creator.load_texture("images/background/skull.png")?,
+				texture_creator.load_texture("images/background/upstairs.png")?,
+				texture_creator.load_texture("images/background/downstairs.png")?,
+				self.game_data.rooms[self.game_data.current_room].xwalls,
+				self.game_data.rooms[self.game_data.current_room].ywalls,
+				Rect::new(
+					(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_W / 2) as i32),
+					(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_H / 2) as i32),
+					CAM_W,
+					CAM_H,
+				),
+			);
+			let mut map_data = map::Map::new(self.game_data.current_floor, background);
+
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data, &mut rb)?;
+
+		
+			self.core.wincan.copy(&b, None,Rect::new(
+				0 ,
+				0 ,
+				CAM_W,
+				CAM_H,)
+			);
+			if rb.check_rect_col(rb1){
+				rb.resolve_col(&mut rb1);
+				println!("Epic ");
+			}	
+			rb.update_pos();
+			rb1.update_pos();
+
+			self.core.wincan.copy(&crate_textures[0], None, rb1.draw_pos());
+
+			self.core.wincan.copy(&crate_textures[0], None, rb.draw_pos());
+			
+
+			self.core.wincan.present();
+
 		}
 		self.game_data.current_floor += 1;
 		// Out of game loop, return Ok
+	}
 		Ok(()) 
 	}
 }
@@ -510,7 +598,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map)-> Result<(), String>  {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map, r: &mut Rigidbody)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
@@ -528,6 +616,20 @@ impl ROGUELIKE {
 		if keystate.contains(&Keycode::D) {
 			player.set_x_delta(player.x_delta() + self.game_data.get_accel_rate() as i32);
 			player.facing_right = true;
+		}
+		if keystate.contains(&Keycode::Up){
+			r.change_velocity(Vector2D{x: 0.0,y: -4.0});
+			
+		}	
+		if keystate.contains(&Keycode::Down){
+			r.change_velocity(Vector2D{x: 0.0,y: 4.0});
+			
+		}	
+		if keystate.contains(&Keycode::Left){
+			r.change_velocity(Vector2D{x: -4.0,y: 0.0});
+		}	
+		if keystate.contains(&Keycode::Right){
+			r.change_velocity(Vector2D{x: 4.0,y: 0.0});
 		}
 		// basic attack
 		if keystate.contains(&Keycode::Space) {
