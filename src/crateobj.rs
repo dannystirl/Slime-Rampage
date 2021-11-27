@@ -30,7 +30,7 @@ impl Crate {
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos, 0.0, 0.0); //hitbox
+		let rb = Rigidbody::new(pos); //hitbox
 
         Crate{
             pos,
@@ -46,7 +46,7 @@ impl Crate {
 		let vel = (0.0,0.0);
 		let velocity = vec![0.0,0.0];
 		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos, 0.0, 0.0);
+		let rb = Rigidbody::new(pos);
 		Crate{
 			pos,
 			src,
@@ -104,8 +104,8 @@ impl Crate {
 		self.velocity[1] = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_rb(&mut self){
-		//self.rb.set_pos(self.pos);
-		//self.rb.set_vel(self.vel);
+		self.rb.set_pos(self.pos);
+		self.rb.set_vel(self.vel);
 
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
