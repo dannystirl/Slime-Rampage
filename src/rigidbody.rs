@@ -41,11 +41,10 @@ impl Clone for Rigidbody {
     }
 }
 impl Rigidbody{
-    pub fn new(rect : Rect, x:f64,y:f64  )->Rigidbody{
+    pub fn new(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
         let vel = Vector2D {x, y};
         let elasticity  =1.0;
-        let mass =1.0;
         Rigidbody{
             hitbox,
             vel,
