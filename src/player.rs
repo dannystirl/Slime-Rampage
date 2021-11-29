@@ -384,7 +384,7 @@ impl<'a> Player<'a> {
 		self.is_firing = true;
 		match p_type {
 			ProjectileType::Shield => {
-				self.use_mana(3);
+				self.use_mana(4);
 			}
 			ProjectileType::Bullet => {
 				self.use_mana(2);
