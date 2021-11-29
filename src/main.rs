@@ -627,7 +627,7 @@ impl ROGUELIKE {
 			}
 		}
 		// Go to next level
-		if keystate.contains(&Keycode::E){
+		if keystate.contains(&Keycode::E) {
 			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
 								 map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
 								 TILE_SIZE, TILE_SIZE);
@@ -635,6 +635,13 @@ impl ROGUELIKE {
 			if check_collision(&ppos, &mpos) {
 				println!("c: {} {}", player.x(), player.y());
 				println!("c: {} {}", mpos.x, mpos.y);
+			}
+		}
+		// Toggle god mode
+		if keystate.contains(&Keycode::G) {
+			if player.get_god_mode_timer() > 250 {
+				player.god_mode = !player.god_mode;
+				player.set_god_mode_timer();
 			}
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES

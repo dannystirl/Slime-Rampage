@@ -76,6 +76,8 @@ pub struct Player<'a> {
 	pub facing_right: bool,
 	is_attacking: bool,
 	pub is_firing: bool,
+	pub god_mode_timer: Instant,
+	pub god_mode: bool,
 }
 
 impl<'a> Player<'a> {
@@ -119,6 +121,8 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
+		let god_mode_timer = Instant::now();
+		let god_mode = false;
 
 		Player {
 			// position values
@@ -155,6 +159,8 @@ impl<'a> Player<'a> {
 			facing_right,
 			is_attacking,
 			is_firing,
+			god_mode_timer,
+			god_mode,
 		}
 	}
 
@@ -488,7 +494,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: u32) {
-		if self.set_get_invincible() {
+		if self.set_get_invincible() || self.god_mode {
 			return;
 		}
 		let adjusted_dmg: u32; 
@@ -666,6 +672,14 @@ impl<'a> Player<'a> {
 				}
 			}
 		}
+	}
+
+	pub fn get_god_mode_timer(&self) -> u128 {
+		self.god_mode_timer.elapsed().as_millis()
+	}
+
+	pub fn set_god_mode_timer(&mut self) {
+		self.god_mode_timer = Instant::now();
 	}
 }
 
