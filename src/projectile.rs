@@ -116,7 +116,8 @@ impl Projectile {
 				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
+							map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
 					let p_pos = self.pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
 						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
@@ -133,10 +134,12 @@ impl Projectile {
 		}
 
 		for p in 0..projectiles.len() {
-			if projectiles[p].is_active {
+			if projectiles[p].is_active() {
 				if GameData::check_collision(&self.pos(), &projectiles[p].pos()) {
 					collisions.push(self.collect_col(self.pos(), self.pos().center(), projectiles[p].pos()));
+					println!("Collided with another projectile");
 					projectiles[p].die();
+					self.die();
 				}
 			}
 		}
@@ -252,8 +255,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32 + (CENTER_W - player.x() as i32) - (TILE_SIZE_CAM/2) as i32,
 			self.y() as i32 + (CENTER_H - player.y() as i32) - (TILE_SIZE_CAM/2) as i32,
-			TILE_SIZE_PROJECTILE*2,
-			TILE_SIZE_PROJECTILE*2
+			TILE_SIZE_PROJECTILE,
+			TILE_SIZE_PROJECTILE
 		);
 	}
 

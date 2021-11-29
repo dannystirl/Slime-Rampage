@@ -23,7 +23,8 @@ pub const TILE_SIZE: u32 = 64;                              // overall tile size
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;                // generic half tile size
 pub const TILE_SIZE_CAM: u32 = TILE_SIZE*4/5;               // overal visual tile size
 pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;      // player (and generally entity) tile size (slightly smaller than visual hitbox)
-pub const TILE_SIZE_PROJECTILE: u32 = TILE_SIZE_CAM * 2/3;  // projectile hitboxes are slightly smaller than visual hitboxes
+pub const TILE_SIZE_PROJECTILE: u32 = TILE_SIZE * 2/3;      // projectile hitboxes are slightly smaller than visual hitboxes
+pub const TILE_SIZE_POWER: u32 = TILE_SIZE / 2;
 
 pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;
 pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE_HALF) as i32;

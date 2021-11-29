@@ -460,9 +460,9 @@ impl ROGUELIKE {
 		// draw powers
 		for power in self.game_data.dropped_powers.iter_mut() {
 			if !power.collected() {
-				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32),
-									power.y() as i32 + (CENTER_H - player.y() as i32),
-									TILE_SIZE, TILE_SIZE);
+				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32) + TILE_SIZE as i32 / 4,
+									power.y() as i32 + (CENTER_H - player.y() as i32) + TILE_SIZE as i32 / 4,
+									TILE_SIZE_POWER, TILE_SIZE_POWER);
 				match power.power_type() {
 					PowerType::Fireball => {
 						self.core.wincan.copy_ex(&fireball_texture, power.src(), pos, 0.0, None, false, false).unwrap();
@@ -701,6 +701,7 @@ impl ROGUELIKE {
 						}
 						EnemyType::Skeleton=>{}
 					}
+					println!("Hit an enemy");
 					projectile.die();
 				}
 			}
@@ -730,10 +731,14 @@ impl ROGUELIKE {
 		}
 
 		for projectile in self.game_data.player_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
+			if projectile.is_active() {
+				projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
+			}
 		}
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
+			if projectile.is_active() {
+				projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
+			}
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
