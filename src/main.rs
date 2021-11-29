@@ -410,7 +410,9 @@ impl Game for ROGUELIKE  {
 			if rb.check_rect_col(rb1){
 				rb.resolve_col(&mut rb1);
 			}	
-		
+			if rb1.check_rect_col(rb){
+				rb1.resolve_col(&mut rb);
+			}	
 			rb.update_pos();
 			rb1.update_pos();
 
