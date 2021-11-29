@@ -196,7 +196,9 @@ pub struct Enemy<'a> {
 		for c in &game_data.crates{
 			if GameData::check_collision(&self.pos,&c.pos()){
 				// crate squishes enemy
-				if c.get_magnitude() > 0.0{
+
+				if c.get_magnitude() > 1.0 {
+					println!("MAG: {}", c.get_magnitude());
 					self.die();
 				}
 				collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
