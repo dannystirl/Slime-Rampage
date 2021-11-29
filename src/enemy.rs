@@ -528,8 +528,8 @@ pub struct Enemy<'a> {
 				Rect::new(
 					self.x() as i32,
 					self.y() as i32,
-					TILE_SIZE,
-					TILE_SIZE,
+					TILE_SIZE_POWER,
+					TILE_SIZE_POWER,
 				),
 				PowerType::None,
 			);
@@ -541,8 +541,8 @@ pub struct Enemy<'a> {
 					Rect::new(
 						self.x() as i32,
 						self.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
+						TILE_SIZE_POWER,
+						TILE_SIZE_POWER,
 					),
 					PowerType::Fireball,
 				);
@@ -552,8 +552,8 @@ pub struct Enemy<'a> {
 					Rect::new(
 						self.x() as i32,
 						self.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
+						TILE_SIZE_POWER,
+						TILE_SIZE_POWER,
 					),
 					PowerType::Slimeball,
 				);
@@ -563,8 +563,8 @@ pub struct Enemy<'a> {
 					Rect::new(
 						self.x() as i32,
 						self.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
+						TILE_SIZE_POWER,
+						TILE_SIZE_POWER,
 					),
 					PowerType::Shield,
 				);

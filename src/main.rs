@@ -460,9 +460,9 @@ impl ROGUELIKE {
 		// draw powers
 		for power in self.game_data.dropped_powers.iter_mut() {
 			if !power.collected() {
-				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32),
-									power.y() as i32 + (CENTER_H - player.y() as i32),
-									TILE_SIZE, TILE_SIZE);
+				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32) + TILE_SIZE as i32 / 4,
+									power.y() as i32 + (CENTER_H - player.y() as i32) + TILE_SIZE as i32 / 4,
+									TILE_SIZE_POWER, TILE_SIZE_POWER);
 				match power.power_type() {
 					PowerType::Fireball => {
 						self.core.wincan.copy_ex(&fireball_texture, power.src(), pos, 0.0, None, false, false).unwrap();
