@@ -201,6 +201,21 @@ impl<'a> UI<'a> {
 		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
 		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) )?;
+
+		if player.god_mode {
+			let offset = 10;
+			let god_mode = UI::new(
+				Rect::new(
+					(CAM_W - TILE_SIZE) as i32 - offset,
+					0 + offset,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				texture_creator.load_texture("images/ui/god_mode_icon.png")?,
+			);
+			core.wincan.copy(god_mode.texture(), god_mode.src(), god_mode.pos())?;
+		}
+
 		Ok(())
 	}
 }
