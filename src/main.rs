@@ -478,12 +478,12 @@ impl ROGUELIKE {
 			}
 		}
 		// draw shop items
-		let mut i=0; 
-		while i< map_data.shop_spawns.len() {
+		let mut i = 0; 
+		while i < map_data.shop_spawns.len() {
 			let src = Rect::new(0,0,TILE_SIZE_64,TILE_SIZE_64); 
-			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32,
-								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32,
-								TILE_SIZE, TILE_SIZE);
+			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32 + (TILE_SIZE as i32 / 4),
+								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32 + (TILE_SIZE as i32 / 4),
+								TILE_SIZE_POWER, TILE_SIZE_POWER);
 			match map_data.shop_items[i].0 {
 				ShopItems::Fireball => {
 					self.core.wincan.copy_ex(&fireball_texture, src, pos, 0.0, None, false, false).unwrap();
@@ -589,16 +589,16 @@ impl ROGUELIKE {
 					let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 										(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 										TILE_SIZE, TILE_SIZE);
-					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 && 
+					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 &&
 					   (player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
 						player.reset_pickup_timer();
 						if !map_data.shop_items[i].1 { 
-							player.sub_coins(map_data.shop_items[i].2); 
+							player.sub_coins(map_data.shop_items[i].2);
 						}
 						match map_data.shop_items[i].0 {
 							ShopItems::Fireball => {
 								player.set_power(PowerType::Fireball);
-								map_data.shop_items[i].1 = true; 
+								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Slimeball => {
 								player.set_power(PowerType::Slimeball);
