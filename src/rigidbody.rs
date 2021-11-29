@@ -71,10 +71,11 @@ impl Rigidbody{
         }
     }
     pub fn resolve_col(&mut self, other: &mut Rigidbody){
-        
-        let normal_vel = (other.vel - self.vel) *(self.vel ).normalize();
+
+        let normal_collision = self.vel;//this is wrong it should be the intersection vector
+
+        let normal_vel = (other.vel - self.vel) * (normal_collision).normalize();
         if normal_vel > 0.0{
-            println!("nothin");
             return;
         }
         let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel)/(1.0/self.mass +1.0/other.mass);

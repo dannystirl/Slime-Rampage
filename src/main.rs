@@ -143,7 +143,7 @@ impl Game for ROGUELIKE  {
 			let test2 = Rect::new(600, 600, 64, 64);
 
 			let mut rb = Rigidbody::new(test1, 0.0, 0.0,2.0);
-			let mut rb1 = Rigidbody::new(test, 0.0, 0.0, 1.0);
+			let mut rb1 = Rigidbody::new(test, -1.0, -1.0, 1.0);
 			let mut rb2 = Rigidbody::new(test2, 0.0, 0.0, 10.0);
 
 		// MAIN GAME LOOP
@@ -410,6 +410,7 @@ impl Game for ROGUELIKE  {
 			if rb.check_rect_col(rb1){
 				rb.resolve_col(&mut rb1);
 			}	
+		
 			rb.update_pos();
 			rb1.update_pos();
 
