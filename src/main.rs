@@ -701,6 +701,7 @@ impl ROGUELIKE {
 						}
 						EnemyType::Skeleton=>{}
 					}
+					println!("Hit an enemy");
 					projectile.die();
 				}
 			}
@@ -730,10 +731,14 @@ impl ROGUELIKE {
 		}
 
 		for projectile in self.game_data.player_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
+			if projectile.is_active() {
+				projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
+			}
 		}
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
+			if projectile.is_active() {
+				projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
+			}
 		}
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
