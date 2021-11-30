@@ -26,9 +26,9 @@ pub enum ShopItems{
 	Fireball, 
 	Slimeball,
 	Shield,
+	Dash,
 	HealthUpgrade, 
 	Health,
-	Laser,
 	None, 
 }
 
@@ -510,10 +510,10 @@ impl<'a> Map<'a> {
 										self.shop_items.push((ShopItems::Shield, false, 4)); 
 									}
 									4 => {
-										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
+										self.shop_items.push((ShopItems::Dash, false, 4));
 									}
 									5 => {
-										self.shop_items.push((ShopItems::Laser, false, 4));
+										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
 									}
 									_ => {
 										self.shop_items.push((ShopItems::Health, false, 2)); 

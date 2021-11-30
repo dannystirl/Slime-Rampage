@@ -9,7 +9,7 @@ pub enum PowerType {
     Fireball,
     Slimeball,
     Shield,
-    Laser,
+    Dash,
 }
 
 pub struct Power {

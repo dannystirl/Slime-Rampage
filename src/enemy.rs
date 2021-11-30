@@ -592,7 +592,7 @@ pub struct Enemy<'a> {
 						TILE_SIZE,
 						TILE_SIZE,
 					),
-					PowerType::Laser,
+					PowerType::Dash,
 				);
 			},
 		}

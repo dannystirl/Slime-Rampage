@@ -112,12 +112,10 @@ impl Game for ROGUELIKE  {
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
-		let laser = texture_creator.load_texture("images/abilities/laser.png")?;
 		ability_textures.push(bullet);
 		ability_textures.push(fireball);
 		ability_textures.push(enemy_bullet);
 		ability_textures.push(shield);
-        ability_textures.push(laser);
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
@@ -127,7 +125,7 @@ impl Game for ROGUELIKE  {
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
-		let laser_texture = texture_creator.load_texture("images/abilities/laser_pickup.png")?;
+		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
@@ -335,7 +333,7 @@ impl Game for ROGUELIKE  {
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
-										&laser_texture, &health_texture, &health_upgrade_texture);
+										&dash_texture, &health_texture, &health_upgrade_texture);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
@@ -458,7 +456,7 @@ impl ROGUELIKE {
 	
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
-						laser_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture) {
+						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -495,8 +493,8 @@ impl ROGUELIKE {
 					PowerType::Shield => {
 						self.core.wincan.copy_ex(&shield_texture, power.src(), pos, 0.0, None, false, false).unwrap();
 					},
-					PowerType::Laser => {
-                    	self.core.wincan.copy_ex(&laser_texture, power.src(), pos, 0.0, None, false, false).unwrap();
+					PowerType::Dash => {
+                    	self.core.wincan.copy_ex(&dash_texture, power.src(), pos, 0.0, None, false, false).unwrap();
                     },
 					_ => {},
 				}
@@ -523,8 +521,8 @@ impl ROGUELIKE {
 				ShopItems::Shield => {
 					self.core.wincan.copy_ex(&shield_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
-				ShopItems::Laser => {
-					self.core.wincan.copy_ex(&laser_texture, src, pos, 0.0, None, false, false).unwrap();
+				ShopItems::Dash => {
+					self.core.wincan.copy_ex(&dash_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
 				ShopItems::HealthUpgrade => {
 					self.core.wincan.copy_ex(&health_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
@@ -590,7 +588,7 @@ impl ROGUELIKE {
 						//self.game_data.player_projectiles.push(bullet);
 					}
 				},
-				PowerType::Laser => {
+				PowerType::Dash => {
                     if !player.is_firing && player.get_mana() >= 1 {
                         let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
                         self.game_data.player_projectiles.push(bullet);
@@ -612,15 +610,15 @@ impl ROGUELIKE {
 							PowerType::Fireball => {
 								player.set_power(PowerType::Fireball);
 							},
-							PowerType::Laser => {
-                                player.set_power(PowerType::Laser);
-                            },
 							PowerType::Slimeball => {
 								player.set_power(PowerType::Slimeball);
 							},
 							PowerType::Shield => {
 								player.set_power(PowerType::Shield);
-							}
+							},
+							PowerType::Dash => {
+                                player.set_power(PowerType::Dash);
+                            },
 							_ => {}
 						}
 						break;
@@ -652,8 +650,8 @@ impl ROGUELIKE {
 								player.set_power(PowerType::Shield);
 								map_data.shop_items[i].1 = true; 
 							}
-							ShopItems::Laser => {
-                                player.set_power(PowerType::Laser);
+							ShopItems::Dash => {
+                                player.set_power(PowerType::Dash);
                                 map_data.shop_items[i].1 = true;
                             }
 							ShopItems::HealthUpgrade => {
