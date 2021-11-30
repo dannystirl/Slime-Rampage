@@ -514,6 +514,7 @@ pub struct Enemy<'a> {
 	pub fn has_coin(&self) -> bool {
 		return self.has_money; 
 	}
+
 	pub fn drop_coin(&mut self) -> Gold {
 		let coin = gold::Gold::new(
 			Rect::new(
@@ -527,14 +528,23 @@ pub struct Enemy<'a> {
 		return coin;
 	}
 
+	// Powers
+	pub fn has_power(&self) -> bool {
+		self.has_power
+	}
+
 	pub fn drop_power(&mut self) -> Power {
-		if !self.has_power {
+		let mut rng = rand::thread_rng();
+
+		let drop_roll = rng.gen_range(1..4);
+		if !self.has_power || drop_roll < 3 {
+			self.has_power = false;
 			return power::Power::new(
 				Rect::new(
 					self.x() as i32,
 					self.y() as i32,
-					TILE_SIZE,
-					TILE_SIZE,
+					TILE_SIZE_POWER,
+					TILE_SIZE_POWER,
 				),
 				PowerType::None,
 			);
@@ -546,8 +556,8 @@ pub struct Enemy<'a> {
 					Rect::new(
 						self.x() as i32,
 						self.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
+						TILE_SIZE_POWER,
+						TILE_SIZE_POWER,
 					),
 					PowerType::Fireball,
 				);
@@ -557,8 +567,8 @@ pub struct Enemy<'a> {
 					Rect::new(
 						self.x() as i32,
 						self.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
+						TILE_SIZE_POWER,
+						TILE_SIZE_POWER,
 					),
 					PowerType::Slimeball,
 				);
@@ -568,8 +578,8 @@ pub struct Enemy<'a> {
 					Rect::new(
 						self.x() as i32,
 						self.y() as i32,
-						TILE_SIZE,
-						TILE_SIZE,
+						TILE_SIZE_POWER,
+						TILE_SIZE_POWER,
 					),
 					PowerType::Shield,
 				);
