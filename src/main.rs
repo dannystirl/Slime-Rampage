@@ -599,7 +599,7 @@ impl ROGUELIKE {
 		}
 		// Absorb power
 		if keystate.contains(&Keycode::E) {
-			if player.can_pickup() {
+			if player.can_pickup() || player.can_pickup_shop() {
 				let mut picked_up = false;
 				for drop in self.game_data.dropped_powers.iter_mut() {
 					if check_collision(&player.pos(), &drop.pos()) &&
