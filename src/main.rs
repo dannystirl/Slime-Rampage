@@ -411,7 +411,7 @@ impl Game for ROGUELIKE  {
 			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let mut pen = &mut 0.0;
 			if rb.check_rect_col(rb1){
-				rb.normal_collision_calc(rb1, normal_collision, pen);
+				rb.rect_vs_rect(rb1, normal_collision, pen);
 				rb.resolve_col(&mut rb1, *normal_collision, *pen);
 			}	
 		

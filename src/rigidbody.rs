@@ -77,7 +77,7 @@ impl Rigidbody{
             true
         }
     }
-    pub fn normal_collision_calc(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
+    pub fn rect_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
         
         let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
         let a = self.hitbox;
