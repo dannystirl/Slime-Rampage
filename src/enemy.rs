@@ -71,9 +71,9 @@ pub struct Enemy<'a> {
 		let stun_time: u128; 
 		match enemy_type {
 			EnemyType::Melee => { stun_time = 500; hp = 15; knockback_vel = 20.0; }
-			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; } 
-			EnemyType::Skeleton => { stun_time = 100; hp = 30;knockback_vel = 3.0;  }
-			EnemyType::Eyeball => { stun_time = 250 ; hp = 20;knockback_vel = 10.0;  }
+			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; }
+			EnemyType::Skeleton => { stun_time = 100; hp = 30; knockback_vel = 3.0; }
+			EnemyType::Eyeball => { stun_time = 200; hp = 10; knockback_vel = 10.0; }
 		}
 
 		Enemy {
@@ -165,10 +165,10 @@ pub struct Enemy<'a> {
 					self.flee(x.into(), y.into(), game_data.get_speed_limit());
 				}
 				EnemyType::Skeleton=>{
-					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 0.7);
 				}
                 EnemyType::Eyeball=>{
-                    self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 1.5);
+                    self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 1.3);
 				}
 			}
 		}

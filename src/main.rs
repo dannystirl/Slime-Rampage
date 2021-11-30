@@ -589,9 +589,8 @@ impl ROGUELIKE {
 					}
 				},
 				PowerType::Dash => {
-                    if !player.is_firing && player.get_mana() >= 1 {
-                        let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
-                        self.game_data.player_projectiles.push(bullet);
+                    if !player.is_firing && player.get_mana() >= 4 {
+                        player.set_dash_timer();
                     }
                 },
 
