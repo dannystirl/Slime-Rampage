@@ -128,8 +128,8 @@ impl Game for ROGUELIKE  {
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
-		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
+		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
+		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -444,8 +444,12 @@ impl ROGUELIKE {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
-				if enemy.has_coin() { self.game_data.gold.push(enemy.drop_coin()); }
-				self.game_data.dropped_powers.push(enemy.drop_power());
+				if enemy.has_coin() {
+					self.game_data.gold.push(enemy.drop_coin());
+				}
+				if enemy.has_power() {
+					self.game_data.dropped_powers.push(enemy.drop_power());
+				}
 			}
 		}
 		// draw uncollected coins
@@ -460,8 +464,8 @@ impl ROGUELIKE {
 		// draw powers
 		for power in self.game_data.dropped_powers.iter_mut() {
 			if !power.collected() {
-				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32) + TILE_SIZE as i32 / 4,
-									power.y() as i32 + (CENTER_H - player.y() as i32) + TILE_SIZE as i32 / 4,
+				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32),
+									power.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE_POWER, TILE_SIZE_POWER);
 				match power.power_type() {
 					PowerType::Fireball => {
@@ -708,7 +712,6 @@ impl ROGUELIKE {
 						}
 						EnemyType::Skeleton=>{}
 					}
-					println!("Hit an enemy");
 					projectile.die();
 				}
 			}
