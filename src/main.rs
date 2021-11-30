@@ -480,6 +480,10 @@ impl ROGUELIKE {
 		// draw shop items
 		let mut i = 0; 
 		while i < map_data.shop_spawns.len() {
+			if map_data.shop_items[i].1 {
+				i += 1;
+				continue;
+			}
 			let src = Rect::new(0,0,TILE_SIZE_64,TILE_SIZE_64); 
 			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32 + (TILE_SIZE as i32 / 4),
 								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32 + (TILE_SIZE as i32 / 4),
@@ -502,7 +506,7 @@ impl ROGUELIKE {
 				}
 				_ => {}
 			}
-			i+=1; 
+			i += 1; 
 		}
 	}
 
@@ -584,31 +588,30 @@ impl ROGUELIKE {
 						break;
 					}
 				}
-				let mut i=0; 
-				while i< map_data.shop_spawns.len() {
+				let mut i = 0; 
+				while i < map_data.shop_spawns.len() {
+					if map_data.shop_items[i].1 {
+						i += 1;
+						continue;
+					}
 					let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 										(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 										TILE_SIZE, TILE_SIZE);
 					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 &&
 					   (player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
 						player.reset_pickup_timer();
-						if !map_data.shop_items[i].1 { 
-							player.sub_coins(map_data.shop_items[i].2);
-						}
+						player.sub_coins(map_data.shop_items[i].2);
 						match map_data.shop_items[i].0 {
 							ShopItems::Fireball => {
 								player.set_power(PowerType::Fireball);
-								println!("Setting to true...");
 								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Slimeball => {
 								player.set_power(PowerType::Slimeball);
-								println!("Setting to true...");
 								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Shield => {
 								player.set_power(PowerType::Shield);
-								println!("Setting to true...");
 								map_data.shop_items[i].1 = true; 
 							}
 							ShopItems::HealthUpgrade => {
@@ -619,7 +622,8 @@ impl ROGUELIKE {
 								} 
 							}
 							ShopItems::Health => {
-								player.plus_hp(10); 
+								player.plus_hp(10);
+								map_data.shop_items[i].1 = true;
 							}
 							_ => { }
 						}
@@ -764,8 +768,12 @@ impl ROGUELIKE {
 				}
 			}
 		}
-		let mut i=0; 
-		while i< map_data.shop_spawns.len() {
+		let mut i = 0; 
+		while i < map_data.shop_spawns.len() {
+			if map_data.shop_items[i].1 {
+				i += 1;
+				continue;
+			}
 			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 								TILE_SIZE, TILE_SIZE);

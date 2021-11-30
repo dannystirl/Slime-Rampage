@@ -111,7 +111,7 @@ impl<'a> Player<'a> {
 		let power: PowerType;
 		if DEBUG {power = PowerType::Shield; }
 		else { power = PowerType::None; }
-		let coins = 0;
+		let coins = 10; // CHANGE THIS CHANGE THIS CHANGE THIS CHANGE THIS CHANGE THIS CHANGE THIS CHANGE THIS CHANGE THIS
 		// check values
 		let max_mana = 4;
 		let max_hp = 30; 
