@@ -1,11 +1,8 @@
 extern crate rogue_sdl;
 
-use std::vec;
 use std::f64;
 use sdl2::rect::Rect;
-use sdl2::rect::Point;
-use sdl2::sys::CWOverrideRedirect;
-use sdl2::sys::exit;
+
 use crate::vector::*;
 
 #[derive(Copy,Clone)]
@@ -38,6 +35,7 @@ pub struct Rigidbody{
     pub vel: Vector2D,
     pub elasticity: f64,
     pub mass: f64,
+    pub i_mass: f64,
     pub radius: f64,
 
 }
@@ -56,11 +54,13 @@ impl Rigidbody{
         let vel = Vector2D {x, y};
         let elasticity  =1.0;
         let radius = 32.0;
+        let i_mass = 1.0/mass;
         Rigidbody{
             hitbox,
             vel,
             elasticity, 
             mass,
+            i_mass,
             radius,
         }
     }
@@ -196,37 +196,14 @@ impl Rigidbody{
     }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
-           /*// sink correction for static objects with infite mass
-           
-           let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
-
-          let percent = 0.01; // usually 20% to 80%
-          let slop = 0.1; // usually 0.01 to 0.1
-          let zero: f64 = 0.0;
-          let correction = zero.max(pen - slop ) / ((1.0/self.mass) + (1.0/other.mass)) * percent * n;
-          self.hitbox.x -= (1.0/self.mass) * correction.x;
-          self.hitbox.y -= (1.0/self.mass) * correction.y;
-          other.hitbox.x += (1.0/self.mass) * correction.x;
-          other.hitbox.y += (1.0/self.mass) * correction.y;    */
-     
-        let normal_vel = (other.vel - self.vel) * (normal_collision);
+        let normal_vel = (other.vel - self.vel) * (normal_collision);//get
         if normal_vel > 0.0{
             return;
         } 
-        
-        let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel) / (1.0/self.mass + 1.0/other.mass);
+        let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel) / (self.i_mass + other.i_mass);
         let impulse_vec = normal_collision * imp_scalar;
-        
-        self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
-        other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
-        
-  /*  this if for bounce based on mass ratio   
-     let mass_sum = self.mass + other.mass;
-        let mut ratio = self.mass / mass_sum;
-        self.vel = self.vel - ratio * impulse_vec; 
-        ratio = other.mass / mass_sum;
-        other.vel = other. vel + ratio * impulse_vec; */
-        
+        self.vel = self.vel - (self.i_mass * impulse_vec);
+        other.vel = other.vel + (other.i_mass * impulse_vec);
     }
 
 
@@ -305,4 +282,23 @@ impl Rigidbody{
     }
  
 }
+/*  this if for bounce based on mass ratio   
+     let mass_sum = self.mass + other.mass;
+        let mut ratio = self.mass / mass_sum;
+        self.vel = self.vel - ratio * impulse_vec; 
+        ratio = other.mass / mass_sum;
+        other.vel = other. vel + ratio * impulse_vec; */
+        
+         /*// sink correction for static objects with infite mass
+           
+           let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
+          let percent = 0.01; // usually 20% to 80%
+          let slop = 0.1; // usually 0.01 to 0.1
+          let zero: f64 = 0.0;
+          let correction = zero.max(pen - slop ) / ((1.0/self.mass) + (1.0/other.mass)) * percent * n;
+          self.hitbox.x -= (1.0/self.mass) * correction.x;
+          self.hitbox.y -= (1.0/self.mass) * correction.y;
+          other.hitbox.x += (1.0/self.mass) * correction.x;
+          other.hitbox.y += (1.0/self.mass) * correction.y;    */
+     

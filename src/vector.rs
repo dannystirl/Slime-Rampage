@@ -1,9 +1,12 @@
 extern crate rogue_sdl;
-use std::{ops, process::Output};
+use std::ops;
 pub struct Vector2D{
     pub x: f64,
     pub y: f64,
 }
+//operation overloading and other simple operations
+
+//WARNING: multiplication is the dot product.
 
 impl ops::Add<Vector2D> for Vector2D {//enables + operator for this struct
     type Output = Vector2D;
@@ -39,7 +42,6 @@ impl ops::Div<Vector2D> for f64{
     type Output = Vector2D;
     fn div(self, other:Vector2D)->Vector2D{
         Vector2D{x: self / other.x, y: self / other.y}
-
     }
 }
 impl ops::Mul<Vector2D> for f64{
@@ -54,6 +56,7 @@ impl ops::Mul<Vector2D> for Vector2D{//enables dot product
          self.x * other.x + self.y * other.y
     }
 }
+
 impl ops::Mul<f64> for Vector2D{//enables * with scalars
     type Output = Vector2D;
     fn mul(self, other: f64)-> Vector2D{
@@ -95,7 +98,7 @@ impl Vector2D{
        // self.
     }
     pub fn length(self) -> f64{
-        (self.x * self.x + self.y * self.y).sqrt()
+        (self * self).sqrt()
     }
     pub fn length_squared(self) -> f64{
         self.x * self.x + self.y * self.y
