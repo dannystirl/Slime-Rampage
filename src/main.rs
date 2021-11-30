@@ -128,7 +128,7 @@ impl Game for ROGUELIKE  {
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
-		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
+		let sword_texture = texture_creator.load_texture("images/player/sword.png")?;
 		let spear_texture = texture_creator.load_texture("images/player/spear.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
@@ -969,12 +969,12 @@ impl ROGUELIKE {
 		if player.facing_right{
 			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
 							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM);
+							ATTACK_LENGTH, TILE_SIZE_CAM * 13/10);
 			rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 		} else{
 			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
 							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM);
+							ATTACK_LENGTH, TILE_SIZE_CAM * 13/10);
 			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 			angle = -angle;
 		}

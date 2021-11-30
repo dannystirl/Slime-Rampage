@@ -43,7 +43,7 @@ pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 
 // player globals
-pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3 / 2;   // length of sword
+pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3/2;   // length of sword
 pub const ATTK_COOLDOWN: u128 = 300;        // how often player can attack
 pub const DMG_COOLDOWN: u128 = 800;         // how often player can take damage
 pub const FIRE_COOLDOWN_P: u128 = 300;      // how often player can shoot projectile

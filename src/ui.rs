@@ -144,19 +144,19 @@ impl<'a> UI<'a> {
 
 		//display equipped weapon
 		match player.get_weapon() {
-			WeaponType::Spear => { 
+			WeaponType::Sword => { 
 				let weapon = UI::new(
 					Rect::new(
 						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*8) as i32,
 						(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
-						(TILE_SIZE_64 as f64 * 2.0) as u32,
+						(TILE_SIZE_64 as f64 * 1.2) as u32,
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 					),
-					texture_creator.load_texture("images/player/sword_l.png")?,
+					texture_creator.load_texture("images/player/sword.png")?,
 				);
 				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
 			},
-			WeaponType::Sword => {
+			WeaponType::Spear => {
 				let weapon = UI::new(
 					Rect::new(
 						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*8) as i32,
