@@ -413,9 +413,9 @@ impl Game for ROGUELIKE  {
 				CAM_H,)
 			)?;
 
-			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let mut pen = &mut 0.0;
-			if rb.circle_vs_rect(rb1, normal_collision, pen){
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let  pen = &mut 0.0;
+			if rb.rect_vs_circle(rb1, normal_collision, pen){
 				
 				rb.resolve_col(&mut rb1, *normal_collision, *pen);
 			}	

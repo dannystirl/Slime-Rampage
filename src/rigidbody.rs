@@ -9,7 +9,7 @@ use sdl2::sys::exit;
 use crate::vector::*;
 
 #[derive(Copy,Clone)]
-struct Rectangle{
+pub struct Rectangle{
     x : f64,
     y : f64,
     w : f64,
@@ -34,11 +34,11 @@ impl Rectangle{
 }
 pub struct Rigidbody{
     
-    hitbox : Rectangle,
-    vel: Vector2D,
-    elasticity: f64,
-    mass: f64,
-    radius: f64,
+    pub hitbox : Rectangle,
+    pub vel: Vector2D,
+    pub elasticity: f64,
+    pub mass: f64,
+    pub radius: f64,
 
 }
 impl Copy for Rigidbody { }
@@ -126,7 +126,7 @@ impl Rigidbody{
         let n =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0}
                               - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
 
-        let mut r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
+        let r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
 
         if n.length_squared() > r_square {
             return false;
@@ -147,7 +147,7 @@ impl Rigidbody{
             return true;
         }
     }
-    pub fn circle_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
+    pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let mut closest_point = a_to_b;
@@ -171,12 +171,12 @@ impl Rigidbody{
                     closest_point.y = -self_y_extreme;
                 }
             }
+
         }
         *normal_collision = a_to_b - closest_point;
-        
         let mut d = normal_collision.length_squared();
         let r = other.radius;
-        if d>r*r && !inside{
+        if d > r*r && !inside{
             return false
         }
         d = d.sqrt();
@@ -188,7 +188,6 @@ impl Rigidbody{
             *normal_collision = a_to_b;
             *pen = r - d;
         }
-
         true
 
     }
