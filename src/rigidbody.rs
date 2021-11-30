@@ -1,5 +1,5 @@
 extern crate rogue_sdl;
-use std::arch::x86_64::_mm_mask_andnot_epi64;
+
 use std::vec;
 use std::f64;
 use sdl2::rect::Rect;
@@ -144,7 +144,7 @@ impl Rigidbody{
 
         
     }
-    pub fn circle_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D) -> bool {
+    pub fn circle_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let mut closest_point = a_to_b;
@@ -153,7 +153,7 @@ impl Rigidbody{
 
         closest_point.x = closest_point.x.clamp(-self_x_extreme,self_x_extreme);
         closest_point.y = closest_point.y.clamp(-self_y_extreme,self_y_extreme);
-        let mut inside = a_to_b == closest_point;
+        let inside = a_to_b == closest_point;
         if inside{
             if  f64::abs(a_to_b.x) > f64::abs(a_to_b.y) {
                 if closest_point.x > 0.0 {
@@ -171,10 +171,22 @@ impl Rigidbody{
         }
         *normal_collision = a_to_b - closest_point;
         
-        let d = normal_collision.length_squared();
-        let r = 
+        let mut d = normal_collision.length_squared();
+        let r = other.radius;
+        if d>r*r && !inside{
+            return false
+        }
+        d = d.sqrt();
+        if inside{
+            *normal_collision = -a_to_b;
+            *pen = r - d;
+        }
+        else{
+            *normal_collision = a_to_b;
+            *pen = r - d;
+        }
 
-        false
+        true
 
     }
 
