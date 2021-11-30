@@ -116,15 +116,19 @@ impl Rigidbody{
     }
 
     // Circle vs Circle Normal
-    pub fn circular_collision_calc(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool {
+    pub fn circle_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool {
 
-        // Vectior from A to B
-        let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y};
+        // Vector from A to B
+        let n = other.hitbox.center() - self.hitbox.center();
 
         let mut r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
         r = r.powf(2.0);
-        return true;
 
+        if n.length_squared() > r {
+            return false;
+        }
+
+        return true;
     }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
