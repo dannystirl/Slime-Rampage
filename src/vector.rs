@@ -80,6 +80,12 @@ impl Clone for Vector2D {
         *self
     }
 }
+impl PartialEq for Vector2D {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
 #[allow(dead_code)]
 impl Vector2D{
     pub fn new(x:f64,y: f64)-> Vector2D{
@@ -94,7 +100,7 @@ impl Vector2D{
     pub fn length_squared(self) -> f64{
         (self.x * self.x + self.y * self.y)
     }
-   pub  fn distance(self,  other: Vector2D) -> f64{
+   pub fn distance(self,  other: Vector2D) -> f64{
         let delta_v = self-other;
         (delta_v.x * delta_v.x + delta_v.y * delta_v.y).sqrt()
     }

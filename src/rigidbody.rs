@@ -1,4 +1,5 @@
 extern crate rogue_sdl;
+use std::arch::x86_64::_mm_mask_andnot_epi64;
 use std::vec;
 use std::f64;
 use sdl2::rect::Rect;
@@ -129,6 +130,39 @@ impl Rigidbody{
         }
 
         return true;
+    }
+    pub fn circle_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D) -> bool {
+        let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+
+        let mut closest_point = a_to_b;
+        let self_x_extreme = (self.hitbox.right() - self.hitbox.left())/2.0;
+        let self_y_extreme = (self.hitbox.bottom() - self.hitbox.top())/2.0;
+
+        closest_point.x = closest_point.x.clamp(-self_x_extreme,self_x_extreme);
+        closest_point.y = closest_point.y.clamp(-self_y_extreme,self_y_extreme);
+        let mut inside = a_to_b == closest_point;
+        if inside{
+            if  f64::abs(a_to_b.x) > f64::abs(a_to_b.y) {
+                if closest_point.x > 0.0 {
+                    closest_point.x = self_x_extreme;
+                } else {
+                    closest_point.x = -self_x_extreme;
+                }
+            }else{
+                if closest_point.y > 0.0 {
+                    closest_point.y = self_y_extreme;
+                } else {
+                    closest_point.y = -self_y_extreme;
+                }
+            }
+        }
+        *normal_collision = a_to_b - closest_point;
+        
+        let d = normal_collision.length_squared();
+        let r = 
+
+        false
+
     }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
