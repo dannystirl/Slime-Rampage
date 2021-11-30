@@ -143,7 +143,7 @@ pub struct Enemy<'a> {
 	}
 	// movement stuff
 	pub fn update_pos(&mut self){
-		self.pos.set_x(self.x() as i32 +self.x_vel() as i32);
+		self.pos.set_x(self.x() as i32 + self.x_vel() as i32);
 		self.pos.set_y(self.y() as i32 + self.y_vel() as i32);
 	}
 	#[allow(unused_parens)]
@@ -168,7 +168,7 @@ pub struct Enemy<'a> {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
 				}
                 EnemyType::Eyeball=>{
-                    self.flee(x.into(), y.into(), game_data.get_speed_limit());
+                    self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 1.5);
 				}
 			}
 		}

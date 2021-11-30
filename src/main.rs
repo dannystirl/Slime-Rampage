@@ -899,7 +899,6 @@ impl ROGUELIKE {
 					ProjectileType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
-					_ => {}
 				}	
 			}
 		}
