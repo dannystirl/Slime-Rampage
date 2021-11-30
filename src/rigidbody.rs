@@ -34,6 +34,7 @@ pub struct Rigidbody{
     vel: Vector2D,
     elasticity: f64,
     mass: f64,
+    radius: f64,
     
 }
 impl Copy for Rigidbody { }
@@ -50,11 +51,13 @@ impl Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
         let vel = Vector2D {x, y};
         let elasticity  =1.0;
+        let radius = 32.0;
         Rigidbody{
             hitbox,
             vel,
             elasticity, 
             mass,
+            radius,
         }
     }
     pub fn draw_pos(self)->Rect{
@@ -111,6 +114,33 @@ impl Rigidbody{
         }
 
     }
+
+    pub fn circle_vs_circle_calc(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{
+        let r = self.radius + other.radius;//Ra + Rb
+        let r_square = r * r;
+        let n =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0} 
+                              - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
+        let length_square = n.x * n.x + n.y * n.y; 
+
+        if length_square > r_square {
+            return false;
+        }
+
+        let distance = n.length();
+
+        if distance != 0.0{
+            *pen = r - distance;
+            *normal_collision = n.normalize();//distance;
+            return true;
+        }else{
+            *pen = r/2.0;//Ra
+            *normal_collision = Vector2D{x: 1.0, y: 0.0};
+            return true;
+        }
+
+        
+    }
+
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
            /*// sink correction for static objects with infite mass
            
