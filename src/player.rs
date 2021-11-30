@@ -73,7 +73,9 @@ pub struct Player<'a> {
 	max_hp: u32, 
 	invincible: bool,
 	shielded: bool,
-	pub can_pickup: bool,
+	can_pickup: bool,
+	can_pickup_shop: bool,
+	shop_price: u32,
 	pub facing_right: bool,
 	is_attacking: bool,
 	pub is_firing: bool,
@@ -120,6 +122,8 @@ impl<'a> Player<'a> {
 		let invincible = true;
 		let shielded = false; 
 		let can_pickup = false;
+		let can_pickup_shop = false;
+		let shop_price = 0;
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
@@ -159,6 +163,8 @@ impl<'a> Player<'a> {
 			invincible,
 			shielded,
 			can_pickup,
+			can_pickup_shop,
+			shop_price,
 			facing_right,
 			is_attacking,
 			is_firing,
@@ -482,6 +488,22 @@ impl<'a> Player<'a> {
 
 	pub fn set_can_pickup(&mut self, can: bool) {
 		self.can_pickup = can;
+	}
+
+	pub fn can_pickup_shop(&self) -> bool {
+		self.can_pickup_shop
+	}
+
+	pub fn set_can_pickup_shop(&mut self, can: bool) {
+		self.can_pickup_shop = can;
+	}
+
+	pub fn get_shop_price(&self) -> u32 {
+		self.shop_price
+	}
+
+	pub fn set_shop_price(&mut self, price: u32) {
+		self.shop_price = price;
 	}
 
 	pub fn get_pickup_timer(&self) -> u128 {
