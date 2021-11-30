@@ -9,11 +9,11 @@ use sdl2::sys::exit;
 use crate::vector::*;
 
 #[derive(Copy,Clone)]
-struct Rectangle{
-    x : f64,
-    y : f64,
-    w : f64,
-    h : f64,
+pub struct Rectangle{
+    pub x : f64,
+    pub y : f64,
+    pub w : f64,
+    pub h : f64,
 }
 impl Rectangle{
     pub fn top(&self) -> f64{
@@ -34,11 +34,11 @@ impl Rectangle{
 }
 pub struct Rigidbody{
     
-    hitbox : Rectangle,
-    vel: Vector2D,
-    elasticity: f64,
-    mass: f64,
-    radius: f64,
+    pub hitbox : Rectangle,
+    pub vel: Vector2D,
+    pub elasticity: f64,
+    pub mass: f64,
+    pub radius: f64,
 
 }
 impl Copy for Rigidbody { }
