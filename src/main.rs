@@ -407,12 +407,12 @@ impl Game for ROGUELIKE  {
 				CAM_W,
 				CAM_H,)
 			);
-			if rb.check_rect_col(rb1){
-				rb.resolve_col(&mut rb1);
+
+			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			if rb.check_rect_col(rb1, normal_collision){
+				rb.resolve_col(&mut rb1, *normal_collision);
 			}	
-			if rb1.check_rect_col(rb){
-				rb1.resolve_col(&mut rb);
-			}	
+		
 			rb.update_pos();
 			rb1.update_pos();
 

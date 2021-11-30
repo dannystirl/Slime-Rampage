@@ -64,48 +64,53 @@ impl Rigidbody{
         self.hitbox = Rectangle{x: self.hitbox.x + self.vel.x, y:  self.hitbox.y + self.vel.y, w: self.hitbox.w ,h: self.hitbox.h}
     }
     
-    pub fn check_rect_col(self, other: Rigidbody )->bool{ // farnan SAT collision detection 
-        if self.hitbox.bottom() < other.hitbox.top() || self.hitbox.top() > other.hitbox.bottom()|| self.hitbox.right() < other.hitbox.left()|| self.hitbox.left() > other.hitbox.right()
-        {
-            false
-        }else{
-            true
-        }
-    }
-    pub fn resolve_col(&mut self, other: &mut Rigidbody){
-
-
-        let vec_from_a_to_b = Vector2D{x:self.hitbox.x , y:self.hitbox.y} - Vector2D{x:other.hitbox.x , y: other.hitbox.y};
+    pub fn check_rect_col(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool{ // farnan SAT collision detection 
+        
+        let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y}- Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
         let a = self.hitbox;
         let b = other.hitbox;
 
         let overlap_x = ((a.right()-a.left())/2.0)+((b.right()-b.left())/2.0)- f64::abs(vec_from_a_to_b.x);
-        let mut normal_collision = Vector2D{x : 0.0, y : 0.0};//this is wrong it should be the intersection vector
-
+        //let mut normal_collision = Vector2D{x : 0.0, y : 0.0};//this is wrong it should be the intersection vector
         if  overlap_x >0.0{
             let overlap_y = ((a.bottom()-a.top())/2.0)+((b.bottom()-b.top())/2.0)- f64::abs(vec_from_a_to_b.y);
             if overlap_y > 0.0{
                 if overlap_x >overlap_y{
                     if vec_from_a_to_b.x < 0.0{
-                        normal_collision = Vector2D{x : -1.0, y : 0.0};
+                        *normal_collision = Vector2D{x : -1.0, y : 0.0};
                     }else{
-                        normal_collision = Vector2D{x : 1.0, y : 0.0};
+                        *normal_collision =  Vector2D{x : 1.0, y : 0.0};
                     }
+                    return true;
                 }else
                 {
                     if vec_from_a_to_b.y < 0.0{
-                        normal_collision = Vector2D{x : 0.0 , y : -1.0};
+                        *normal_collision = Vector2D{x : 0.0 , y : -1.0};
                     }else{
-                        normal_collision = Vector2D{x :0.0, y : 1.0};
+                        *normal_collision =  Vector2D{x :0.0, y : 1.0};
                     }
+                    return true;
                 }
+            }else{
+                return false;
             }
+        }else{
+            false
         }
+        
+        
+        
+       /*  if self.hitbox.bottom() < other.hitbox.top() || self.hitbox.top() > other.hitbox.bottom()|| self.hitbox.right() < other.hitbox.left()|| self.hitbox.left() > other.hitbox.right()
+        {
+            false
+        }else{
+            true
+        } */
+    }
+    pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D){
+
 
         let normal_vel = (other.vel - self.vel) * (normal_collision).normalize();
-       
-
-
         if normal_vel > 0.0{
             return;
         }
