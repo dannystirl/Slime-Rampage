@@ -91,6 +91,7 @@ impl Vector2D{
     pub fn length(self) -> f64{
         (self.x * self.x + self.y * self.y).sqrt()
     }
+    
    pub  fn distance(self,  other: Vector2D) -> f64{
         let delta_v = self-other;
         (delta_v.x * delta_v.x + delta_v.y * delta_v.y).sqrt()
