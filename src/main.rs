@@ -281,7 +281,7 @@ impl Game for ROGUELIKE  {
 					TILE_SIZE,
 					TILE_SIZE,
 				),
-				WeaponType::Spear,
+				WeaponType::Sword,
 			);
 			self.game_data.dropped_weapons.push(test_weapon);
 
