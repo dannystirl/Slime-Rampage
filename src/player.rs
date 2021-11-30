@@ -61,6 +61,7 @@ pub struct Player<'a> {
 	mana_timer: Instant,
 	pickup_timer: Instant,
 	shield_timer: Instant,
+	dash_timer: Instant,
 	// player attributes
 	hp: u32,
 	mana: i32,
@@ -104,6 +105,7 @@ impl<'a> Player<'a> {
 		let mana_timer = Instant::now();
 		let pickup_timer = Instant::now();
 		let shield_timer = Instant::now();
+		let dash_timer = Instant::now();
 		// player attributes
 		let hp = 30;
 		let mana = 4;
@@ -143,7 +145,8 @@ impl<'a> Player<'a> {
 			damage_timer,
 			mana_timer,
 			pickup_timer,
-			shield_timer, 
+			shield_timer,
+			dash_timer,
 			// player attributes
 			hp,
 			mana,
@@ -177,8 +180,23 @@ impl<'a> Player<'a> {
 		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
 
 		// Don't exceed speed limit
-		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+		match self.get_power() {
+			PowerType::Dash => {
+				if self.get_dash_timer() <= 1000 {
+					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * -1.0 * 1.7) as i32,
+																			(speed_limit_adj as f64 * 1.7) as i32));
+					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj as f64 * -1.0 * 1.7) as i32,
+																			(speed_limit_adj as f64 * 1.7) as i32));
+				} else {
+					self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+					self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+				}
+			},
+			_ => {
+				self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+				self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+			}
+		}
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
@@ -482,6 +500,15 @@ impl<'a> Player<'a> {
 
 	pub fn get_shielded(&self) -> bool {
 		self.shielded
+	}
+
+	pub fn get_dash_timer(&self) -> u128 {
+		self.dash_timer.elapsed().as_millis()
+	}
+
+	pub fn set_dash_timer(&mut self) {
+		self.dash_timer = Instant::now();
+		self.mana -= 4;
 	}
 
 	// heatlh values
