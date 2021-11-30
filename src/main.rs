@@ -24,6 +24,7 @@ mod enemy;
 mod gamedata;
 mod gold;
 mod power;
+mod weapon;
 mod player;
 mod projectile;
 mod room;
@@ -38,6 +39,7 @@ use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
 use crate::power::*;
+use crate::weapon::*;
 use crate::map::*;
 use crate::crateobj::*;
 use crate::gold::*;
@@ -127,6 +129,7 @@ impl Game for ROGUELIKE  {
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
+		let spear_texture = texture_creator.load_texture("images/player/spear.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
 
@@ -271,6 +274,17 @@ impl Game for ROGUELIKE  {
 			let mut all_frames = 0;
 			let last_time = Instant::now();
 
+			let test_weapon = weapon::Weapon::new(
+				Rect::new(
+					player.x() as i32 + TILE_SIZE as i32,
+					player.y() as i32 + TILE_SIZE as i32,
+					TILE_SIZE,
+					TILE_SIZE,
+				),
+				WeaponType::Spear,
+			);
+			self.game_data.dropped_weapons.push(test_weapon);
+
 			// INDIVIDUAL LEVEL LOOP
 			'level: loop {
 				for event in self.core.event_pump.poll_iter() {
@@ -333,7 +347,8 @@ impl Game for ROGUELIKE  {
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
-										&dash_texture, &health_texture, &health_upgrade_texture);
+										&dash_texture, &health_texture, &health_upgrade_texture,
+										&sword_texture, &spear_texture);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
@@ -456,7 +471,8 @@ impl ROGUELIKE {
 	
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
-						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture) {
+						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture,
+						sword_texture: &Texture, spear_texture: &Texture) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -477,6 +493,7 @@ impl ROGUELIKE {
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
 			}
 		}
+
 		// draw powers
 		for power in self.game_data.dropped_powers.iter_mut() {
 			if !power.collected() {
@@ -500,6 +517,22 @@ impl ROGUELIKE {
 				}
 			}
 		}
+
+		// draw weapons
+		for weapon in self.game_data.dropped_weapons.iter_mut() {
+			let pos = Rect::new(weapon.x() as i32 + (CENTER_W - player.x() as i32),
+								weapon.y() as i32 + (CENTER_H - player.y() as i32),
+								TILE_SIZE_POWER, TILE_SIZE_POWER);
+			match weapon.weapon_type() {
+				WeaponType::Sword => {
+					self.core.wincan.copy_ex(&sword_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
+				},
+				WeaponType::Spear => {
+					self.core.wincan.copy_ex(&spear_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
+				},
+			}
+		}
+
 		// draw shop items
 		let mut i = 0; 
 		while i < map_data.shop_spawns.len() {
@@ -815,6 +848,13 @@ impl ROGUELIKE {
 			}
 		}
 		player.set_can_pickup(can_pickup);
+		let mut can_pickup_weapon = false;
+		for drop in self.game_data.dropped_weapons.iter_mut() {
+			if check_collision(&player.pos(), &drop.pos()) {
+				can_pickup_weapon = true;
+			}
+		}
+		player.set_can_pickup_weapon(can_pickup_weapon);
 		let mut can_pickup_shop = false;
 		let mut price = 0;
 		let mut i = 0; 
