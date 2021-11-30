@@ -733,6 +733,10 @@ impl ROGUELIKE {
 							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
 							enemy.minus_hp(projectile.damage);
 						}
+						EnemyType::Eyeball =>{
+                            enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+                            enemy.minus_hp(projectile.damage);
+                        }
 						EnemyType::Skeleton=>{}
 					}
 					projectile.die();
@@ -874,6 +878,7 @@ impl ROGUELIKE {
 					ProjectileType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
+					_ => {}
 				}	
 			}
 		}

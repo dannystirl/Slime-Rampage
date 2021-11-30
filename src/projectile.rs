@@ -14,7 +14,7 @@ pub enum ProjectileType{
 	Bullet,
 	Fireball,
 	Shield,
-	Laser
+	Laser,
 }
 
 pub struct Projectile{
