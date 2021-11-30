@@ -419,9 +419,10 @@ impl Game for ROGUELIKE  {
 				
 				rb1.resolve_col(&mut rb, *normal_collision, *pen);
 			}	
-		
+			
 			if rb.circle_vs_circle(rb3, normal_collision, pen){
 				println!("collide");
+				//println!("normal: {}, {}", normal_collision.x, normal_collision.y);
 				rb.resolve_col(&mut rb3, *normal_collision, *pen);
 			}
 

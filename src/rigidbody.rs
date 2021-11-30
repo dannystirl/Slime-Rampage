@@ -149,6 +149,7 @@ impl Rigidbody{
     }
     pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+        //let a_to_b =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let mut closest_point = a_to_b;
         let self_x_extreme = (self.hitbox.right() - self.hitbox.left()) / 2.0;
@@ -156,10 +157,14 @@ impl Rigidbody{
 
         closest_point.x = closest_point.x.clamp(-self_x_extreme,self_x_extreme);
         closest_point.y = closest_point.y.clamp(-self_y_extreme,self_y_extreme);
-        let inside = a_to_b == closest_point;
-        if inside{
-            if  f64::abs(a_to_b.x) < f64::abs(a_to_b.y) {
-                if closest_point.x < 0.0 {
+        
+        let mut inside = false;
+        //let inside = a_to_b == closest_point;
+        if a_to_b == closest_point{
+            println!("in");
+            inside = true;
+            if  f64::abs(a_to_b.x) > f64::abs(a_to_b.y) {
+                if closest_point.x > 0.0 {
                     closest_point.x = self_x_extreme;
                 } else {
                     closest_point.x = -self_x_extreme;
@@ -172,19 +177,23 @@ impl Rigidbody{
                 }
             }
         }
-        *normal_collision =  other.hitbox.center() -closest_point;
-        let mut d = normal_collision.length_squared();
+        //*normal_collision = a_to_b - closest_point;
+        let normal = a_to_b - closest_point;
+        //println!("normal: {}, {}", normal.x, normal.y);
+        let mut d = normal.length_squared();
+        //let mut d = normal_collision.length_squared();
         let r = other.radius;
-        if d > r*r && !inside{
+        
+        if d>r*r && !inside{
             return false
         }
         d = d.sqrt();
         if inside{
-            *normal_collision = -a_to_b;
+            *normal_collision = -a_to_b.normalize();//normalize
             *pen = r - d;
         }
         else{
-            *normal_collision = a_to_b;
+            *normal_collision = a_to_b.normalize();
             *pen = r - d;
         }
         true
@@ -209,10 +218,13 @@ impl Rigidbody{
         if normal_vel > 0.0{
             return;
         } 
+        
         let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel) / (1.0/self.mass + 1.0/other.mass);
         let impulse_vec = normal_collision * imp_scalar;
+        
         self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
         other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
+        
   /*  this if for bounce based on mass ratio   
      let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
