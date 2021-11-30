@@ -416,12 +416,14 @@ impl Game for ROGUELIKE  {
 			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let mut pen = &mut 0.0;
 			if rb.circle_vs_rect(rb1, normal_collision, pen){
-				
+				println!("colide");
+				//println!("normal: {}, {}", normal_collision.x, normal_collision.y);
 				rb.resolve_col(&mut rb1, *normal_collision, *pen);
 			}	
-		
+			
 			if rb.circle_vs_circle(rb3, normal_collision, pen){
 				println!("collide");
+				//println!("normal: {}, {}", normal_collision.x, normal_collision.y);
 				rb.resolve_col(&mut rb3, *normal_collision, *pen);
 			}
 
