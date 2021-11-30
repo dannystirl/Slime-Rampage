@@ -38,6 +38,7 @@ pub struct Rigidbody{
     vel: Vector2D,
     elasticity: f64,
     mass: f64,
+    radius: f64,
     
 }
 impl Copy for Rigidbody { }
@@ -54,11 +55,13 @@ impl Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
         let vel = Vector2D {x, y};
         let elasticity  =1.0;
+        let radius = 32.0;
         Rigidbody{
             hitbox,
             vel,
             elasticity, 
             mass,
+            radius,
         }
     }
     pub fn draw_pos(self)->Rect{
@@ -116,20 +119,30 @@ impl Rigidbody{
 
     }
 
-    // Circle vs Circle Normal
-    pub fn circle_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool {
+    pub fn circle_vs_circle_calc(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{
+        let r = self.radius + other.radius;//Ra + Rb
+        let r_square = r * r;
+        let n =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0} 
+                              - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
+        let length_square = n.x * n.x + n.y * n.y; 
 
-        // Vector from A to B
-        let n = other.hitbox.center() - self.hitbox.center();
-
-        let mut r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
-        r = r.powf(2.0);
-
-        if n.length_squared() > r {
+        if length_square > r_square {
             return false;
         }
 
-        return true;
+        let distance = n.length();
+
+        if distance != 0.0{
+            *pen = r - distance;
+            *normal_collision = n.normalize();//distance;
+            return true;
+        }else{
+            *pen = r/2.0;//Ra
+            *normal_collision = Vector2D{x: 1.0, y: 0.0};
+            return true;
+        }
+
+        
     }
     pub fn circle_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
