@@ -591,6 +591,16 @@ impl<'a> Map<'a> {
             	enemy_and_object_spawns[pos.0][pos.1] = 4;
             	skeleton_placed += 1;
             }
+
+            let eyeball = rng.gen_range(1..4);
+            let mut eyeball_placed = 0;
+            while eyeball_placed < eyeball {
+                let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
+                if enemy_and_object_spawns[pos.0][pos.1] != 0 {
+                    continue;
+                }
+                enemy_and_object_spawns[pos.0][pos.1] = 3;
+                eyeball_placed += 1;
 		}
 		self.enemy_and_object_spawns = enemy_and_object_spawns;
 	}

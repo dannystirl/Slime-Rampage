@@ -112,12 +112,12 @@ impl Game for ROGUELIKE  {
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
-		
+		let laser = texture_creator.load_texture("images/abilities/laser.png")?;
 		ability_textures.push(bullet);
 		ability_textures.push(fireball);
 		ability_textures.push(enemy_bullet);
 		ability_textures.push(shield);
-
+        ability_textures.push(laser);
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
@@ -247,6 +247,23 @@ impl Game for ROGUELIKE  {
 							rngt.push(rng.gen_range(1..5));
 							enemy_count += 1;
 						}
+
+						5 => {
+                            let e = enemy::Enemy::new(
+                                Rect::new(
+                                    w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+                                    TILE_SIZE_CAM,
+                                    TILE_SIZE_CAM
+                                ),
+                                texture_creator.load_texture("images/enemies/eyeball.png")?,
+                                EnemyType::Eyeball,
+                                enemy_count,
+                            );
+                            enemies.push(e);
+                            rngt.push(rng.gen_range(1..5));
+                            enemy_count += 1;
+                        }
 						_ => {}
 					}
 				}
@@ -473,6 +490,9 @@ impl ROGUELIKE {
 					PowerType::Shield => {
 						self.core.wincan.copy_ex(&shield_texture, power.src(), pos, 0.0, None, false, false).unwrap();
 					},
+					PowerType::Laser => {
+                    	self.core.wincan.copy_ex(&shield_texture, power.src(), pos, 0.0, None, false, false).unwrap();
+                    },
 					_ => {},
 				}
 			}
@@ -558,6 +578,13 @@ impl ROGUELIKE {
 						//self.game_data.player_projectiles.push(bullet);
 					}
 				},
+				PowerType::Laser => {
+                    if !player.is_firing && player.get_mana() >= 1 {
+                        let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
+                        self.game_data.player_projectiles.push(bullet);
+                    }
+                },
+
 				_ => {},
 			}
 		}
@@ -573,6 +600,9 @@ impl ROGUELIKE {
 							PowerType::Fireball => {
 								player.set_power(PowerType::Fireball);
 							},
+							PowerType::Laser => {
+                                player.set_power(PowerType::Laser);
+                            },
 							PowerType::Slimeball => {
 								player.set_power(PowerType::Slimeball);
 							},
@@ -608,6 +638,10 @@ impl ROGUELIKE {
 								player.set_power(PowerType::Shield);
 								map_data.shop_items[i].1 = true; 
 							}
+							ShopItems::Laser => {
+                                player.set_power(PowerType::Laser);
+                                map_data.shop_items[i].1 = true;
+                            }
 							ShopItems::HealthUpgrade => {
 								if map_data.shop_items[i].1 == false {
 									player.upgrade_hp(10); 

@@ -14,6 +14,7 @@ pub enum ProjectileType{
 	Bullet,
 	Fireball,
 	Shield,
+	Laser
 }
 
 pub struct Projectile{
@@ -38,6 +39,7 @@ impl Projectile {
 			ProjectileType::Bullet => { damage = 5; }
 			ProjectileType::Fireball => { damage = 10; } 
 			ProjectileType::Shield => { damage = 0; }
+			ProjectileType::Laser => { damage = 8; }
 		}
 		Projectile {
 			src,

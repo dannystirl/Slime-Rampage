@@ -19,6 +19,7 @@ pub enum EnemyType{
 	Melee,
 	Ranged,
 	Skeleton,
+	Eyeball,
 }
 pub struct Enemy<'a> {
 	vel_x: f64,
@@ -72,6 +73,7 @@ pub struct Enemy<'a> {
 			EnemyType::Melee => { stun_time = 500; hp = 15; knockback_vel = 20.0; }
 			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; } 
 			EnemyType::Skeleton => { stun_time = 100; hp = 30;knockback_vel = 3.0;  }
+			EnemyType::Eyeball => { stun_time = 250 ; hp = 20;knockback_vel = 10.0;  }
 		}
 
 		Enemy {
@@ -157,12 +159,16 @@ pub struct Enemy<'a> {
 		} else {
 			match self.enemy_type {
 				EnemyType::Melee=>{
-					self.aggro(x.into(), y.into(), game_data.get_speed_limit());}
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
+				}
 				EnemyType::Ranged =>{
 					self.flee(x.into(), y.into(), game_data.get_speed_limit());
 				}
 				EnemyType::Skeleton=>{
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
+				}
+                EnemyType::Eyeball=>{
+                    self.flee(x.into(), y.into(), game_data.get_speed_limit());
 				}
 			}
 		}
@@ -440,9 +446,8 @@ pub struct Enemy<'a> {
 					}
 				}
 			}
-			EnemyType::Melee=>{
-
-			}
+            EnemyType::Eyeball=>{}
+			EnemyType::Melee=>{}
 			EnemyType::Skeleton=>{}
 		}
 	}
@@ -568,6 +573,16 @@ pub struct Enemy<'a> {
 					),
 					PowerType::Shield,
 				);
+			EnemyType::Eyeball => {
+                power = power::Power::new(
+                	Rect::new(
+                		self.x() as i32,
+                		self.y() as i32,
+                		TILE_SIZE,
+                		TILE_SIZE,
+                	),
+                	PowerType::Laser,
+                );
 			}
 		}
 		self.has_power = false;
