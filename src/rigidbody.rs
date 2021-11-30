@@ -128,7 +128,23 @@ impl Rigidbody{
             return false;
         }
 
-        return true;
+        // Circles have collided, now compute manifold
+        let d = n.length();
+
+        // If distance between circles is not zero
+        if d != 0.0 {
+
+            // Distance is difference between radius and distance
+            r = r - d;
+
+            *normal_collision = n / d;
+            return true;
+        }
+        // Circles are on same position
+        else {
+            *normal_collision = Vector2D{x : 1.0, y : 0.0};
+            return true;
+        }
     }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
