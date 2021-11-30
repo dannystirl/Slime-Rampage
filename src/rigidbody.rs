@@ -10,10 +10,10 @@ use crate::vector::*;
 
 #[derive(Copy,Clone)]
 pub struct Rectangle{
-    x : f64,
-    y : f64,
-    w : f64,
-    h : f64,
+    pub x : f64,
+    pub y : f64,
+    pub w : f64,
+    pub h : f64,
 }
 impl Rectangle{
     pub fn top(&self) -> f64{
@@ -151,29 +151,28 @@ impl Rigidbody{
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let mut closest_point = a_to_b;
-        let self_x_extreme = (self.hitbox.right() - self.hitbox.left())/2.0;
-        let self_y_extreme = (self.hitbox.bottom() - self.hitbox.top())/2.0;
+        let self_x_extreme = (self.hitbox.right() - self.hitbox.left()) / 2.0;
+        let self_y_extreme = (self.hitbox.bottom() - self.hitbox.top()) / 2.0;
 
         closest_point.x = closest_point.x.clamp(-self_x_extreme,self_x_extreme);
         closest_point.y = closest_point.y.clamp(-self_y_extreme,self_y_extreme);
         let inside = a_to_b == closest_point;
         if inside{
-            if  f64::abs(a_to_b.x) > f64::abs(a_to_b.y) {
-                if closest_point.x > 0.0 {
+            if  f64::abs(a_to_b.x) < f64::abs(a_to_b.y) {
+                if closest_point.x < 0.0 {
                     closest_point.x = self_x_extreme;
                 } else {
                     closest_point.x = -self_x_extreme;
                 }
             }else{
-                if closest_point.y > 0.0 {
+                if closest_point.y < 0.0 {
                     closest_point.y = self_y_extreme;
                 } else {
                     closest_point.y = -self_y_extreme;
                 }
             }
-
         }
-        *normal_collision = a_to_b - closest_point;
+        *normal_collision =  other.hitbox.center() -closest_point;
         let mut d = normal_collision.length_squared();
         let r = other.radius;
         if d > r*r && !inside{
