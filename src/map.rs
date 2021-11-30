@@ -41,7 +41,7 @@ impl<'a> Map<'a> {
 		let starting_position = (0.0,0.0);
 		let ending_room = 2;
 		let ending_position = (0,0);
-		let shop = 6;
+		let shop = 3;
 		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let shop_spawns = Vec::with_capacity(0);
 		let shop_items = Vec::with_capacity(0);
@@ -483,10 +483,10 @@ impl<'a> Map<'a> {
 					continue; 
 				}
 				else {
-					new_map[h][w] = 6;
+					/* new_map[h][w] = 6; */
 					self.shop = self.numbered_map[h][w];
-					self.shop_spawns.push((h,w)); 
-					self.shop_items.push((ShopItems::None, true, 0)); 
+					/* self.shop_spawns.push((h,w)); 
+					self.shop_items.push((ShopItems::None, true, 0)); */
 					while self.shop_spawns.len() <= 2 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..
 											  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
@@ -528,12 +528,15 @@ impl<'a> Map<'a> {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
-			   self.surroundings_clear(w, h, vec![2], new_map) {
+			   self.surroundings_clear(w, h, vec![2], new_map) &&
+			   self.numbered_map[h][w] != self.starting_room &&
+			   self.numbered_map[h][w] != self.ending_room &&
+			   self.numbered_map[h][w] != self.shop {
 				//add wall
 				let moss = rng.gen_range(0..10);
 				if moss < 8 {
-					new_map[h][w] = 2;			// pilars
-				} else { new_map[h][w] = 5; }	// moss pilars
+					new_map[h][w] = 2;			// pillars
+				} else { new_map[h][w] = 5; }	// moss pillars
 			}
 		}
 

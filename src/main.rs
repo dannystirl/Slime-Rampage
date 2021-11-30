@@ -128,8 +128,8 @@ impl Game for ROGUELIKE  {
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
-		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
+		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
+		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -444,8 +444,12 @@ impl ROGUELIKE {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
-				if enemy.has_coin() { self.game_data.gold.push(enemy.drop_coin()); }
-				self.game_data.dropped_powers.push(enemy.drop_power());
+				if enemy.has_coin() {
+					self.game_data.gold.push(enemy.drop_coin());
+				}
+				if enemy.has_power() {
+					self.game_data.dropped_powers.push(enemy.drop_power());
+				}
 			}
 		}
 		// draw uncollected coins
@@ -460,8 +464,8 @@ impl ROGUELIKE {
 		// draw powers
 		for power in self.game_data.dropped_powers.iter_mut() {
 			if !power.collected() {
-				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32) + TILE_SIZE as i32 / 4,
-									power.y() as i32 + (CENTER_H - player.y() as i32) + TILE_SIZE as i32 / 4,
+				let pos = Rect::new(power.x() as i32 + (CENTER_W - player.x() as i32),
+									power.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE_POWER, TILE_SIZE_POWER);
 				match power.power_type() {
 					PowerType::Fireball => {
@@ -478,12 +482,16 @@ impl ROGUELIKE {
 			}
 		}
 		// draw shop items
-		let mut i=0; 
-		while i< map_data.shop_spawns.len() {
+		let mut i = 0; 
+		while i < map_data.shop_spawns.len() {
+			if map_data.shop_items[i].1 {
+				i += 1;
+				continue;
+			}
 			let src = Rect::new(0,0,TILE_SIZE_64,TILE_SIZE_64); 
-			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32,
-								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32,
-								TILE_SIZE, TILE_SIZE);
+			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32 + (TILE_SIZE as i32 / 4),
+								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32 + (TILE_SIZE as i32 / 4),
+								TILE_SIZE_POWER, TILE_SIZE_POWER);
 			match map_data.shop_items[i].0 {
 				ShopItems::Fireball => {
 					self.core.wincan.copy_ex(&fireball_texture, src, pos, 0.0, None, false, false).unwrap();
@@ -502,7 +510,7 @@ impl ROGUELIKE {
 				}
 				_ => {}
 			}
-			i+=1; 
+			i += 1; 
 		}
 	}
 
@@ -584,25 +592,27 @@ impl ROGUELIKE {
 						break;
 					}
 				}
-				let mut i=0; 
-				while i< map_data.shop_spawns.len() {
+				let mut i = 0; 
+				while i < map_data.shop_spawns.len() {
+					if map_data.shop_items[i].1 {
+						i += 1;
+						continue;
+					}
 					let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 										(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 										TILE_SIZE, TILE_SIZE);
-					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 && 
+					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 &&
 					   (player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
 						player.reset_pickup_timer();
-						if !map_data.shop_items[i].1 { 
-							player.sub_coins(map_data.shop_items[i].2); 
-						}
+						player.sub_coins(map_data.shop_items[i].2);
 						match map_data.shop_items[i].0 {
 							ShopItems::Fireball => {
 								player.set_power(PowerType::Fireball);
-								map_data.shop_items[i].1 = true; 
+								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Slimeball => {
 								player.set_power(PowerType::Slimeball);
-								map_data.shop_items[i].1 = true; 
+								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Shield => {
 								player.set_power(PowerType::Shield);
@@ -616,7 +626,8 @@ impl ROGUELIKE {
 								} 
 							}
 							ShopItems::Health => {
-								player.plus_hp(10); 
+								player.plus_hp(10);
+								map_data.shop_items[i].1 = true;
 							}
 							_ => { }
 						}
@@ -701,7 +712,6 @@ impl ROGUELIKE {
 						}
 						EnemyType::Skeleton=>{}
 					}
-					println!("Hit an enemy");
 					projectile.die();
 				}
 			}
@@ -761,8 +771,12 @@ impl ROGUELIKE {
 				}
 			}
 		}
-		let mut i=0; 
-		while i< map_data.shop_spawns.len() {
+		let mut i = 0; 
+		while i < map_data.shop_spawns.len() {
+			if map_data.shop_items[i].1 {
+				i += 1;
+				continue;
+			}
 			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
 								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
 								TILE_SIZE, TILE_SIZE);
@@ -815,10 +829,10 @@ impl ROGUELIKE {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				match projectile.p_type{
-					ProjectileType::Bullet=>{
-						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos_large(player), 0.0, None, !projectile.facing_right, false).unwrap();
+					ProjectileType::Bullet=> {
+						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
-					ProjectileType::Fireball=>{
+					ProjectileType::Fireball=> {
 						let time = projectile.elapsed;
 
 						let angle = 0.0;

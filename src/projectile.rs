@@ -137,7 +137,6 @@ impl Projectile {
 			if projectiles[p].is_active() {
 				if GameData::check_collision(&self.pos(), &projectiles[p].pos()) {
 					collisions.push(self.collect_col(self.pos(), self.pos().center(), projectiles[p].pos()));
-					println!("Collided with another projectile");
 					projectiles[p].die();
 					self.die();
 				}
