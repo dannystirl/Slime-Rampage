@@ -125,7 +125,10 @@ impl Game for ROGUELIKE  {
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
+		
+		let circle = texture_creator.load_texture("images/abilities/pink.png")?; 
 		crate_textures.push(crate_texture);
+		crate_textures.push(circle);
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
@@ -141,10 +144,12 @@ impl Game for ROGUELIKE  {
 			let test = Rect::new(500, 200, 64, 64);
 			let test1 = Rect::new(0, 0, 64, 64);
 			let test2 = Rect::new(600, 600, 64, 64);
+			let test3 = Rect::new(600, 300, 64, 64);
 
 			let mut rb = Rigidbody::new(test1, 0.0, 0.0,4.0);
 			let mut rb1 = Rigidbody::new(test, -1.0, -1.0, 1.0);
 			let mut rb2 = Rigidbody::new(test2, 0.0, 0.0, 10.0);
+			let mut rb3 = Rigidbody::new(test3, 0.0, 0.0, 1.0);
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -400,7 +405,7 @@ impl Game for ROGUELIKE  {
 
 			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data, &mut rb)?;
 
-		
+			//background
 			self.core.wincan.copy(&b, None,Rect::new(
 				0 ,
 				0 ,
@@ -411,16 +416,25 @@ impl Game for ROGUELIKE  {
 			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let mut pen = &mut 0.0;
 			if rb.check_rect_col(rb1){
-				rb.circle_vs_circle(rb1, normal_collision);
+				rb.rect_vs_rect(rb1, normal_collision, pen);
 				rb.resolve_col(&mut rb1, *normal_collision, *pen);
 			}	
 		
+			if rb.circle_vs_circle_calc(rb3, normal_collision, pen){
+				println!("collide");
+				rb.resolve_col(&mut rb3, *normal_collision, *pen);
+			}
+
 			rb.update_pos();
 			rb1.update_pos();
 
+			rb3.update_pos();
+
 			self.core.wincan.copy(&crate_textures[0], None, rb1.draw_pos())?;
 
-			self.core.wincan.copy(&crate_textures[0], None, rb.draw_pos())?;
+			self.core.wincan.copy(&crate_textures[1], None, rb.draw_pos())?;
+			
+			self.core.wincan.copy(&crate_textures[1], None, rb3.draw_pos())?;
 
 			self.core.wincan.present();
 
