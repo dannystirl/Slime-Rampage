@@ -573,17 +573,18 @@ pub struct Enemy<'a> {
 					),
 					PowerType::Shield,
 				);
+			},
 			EnemyType::Eyeball => {
-                power = power::Power::new(
-                	Rect::new(
-                		self.x() as i32,
-                		self.y() as i32,
-                		TILE_SIZE,
-                		TILE_SIZE,
-                	),
-                	PowerType::Laser,
-                );
-			}
+				power = power::Power::new(
+					Rect::new(
+						self.x() as i32,
+						self.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					PowerType::Laser,
+				);
+			},
 		}
 		self.has_power = false;
 		return power;
