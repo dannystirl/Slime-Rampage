@@ -184,6 +184,18 @@ impl<'a> UI<'a> {
 				);
 				core.wincan.copy(ui_ability.texture(), ui_ability.src(), ui_ability.pos())?;
 			},
+			PowerType::Laser => {
+				let ui_ability = UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*6) as i32,
+						(CAM_H-(TILE_SIZE_64 as u32)) as i32,
+						TILE_SIZE_64 as u32,
+						TILE_SIZE_64 as u32,
+					),
+					texture_creator.load_texture("images/abilities/laser_pickup.png")?,
+				);
+				core.wincan.copy(ui_ability.texture(), ui_ability.src(), ui_ability.pos())?;
+			}
 			_ => {},
 		}
 	

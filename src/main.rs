@@ -127,6 +127,7 @@ impl Game for ROGUELIKE  {
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
+		let laser_texture = texture_creator.load_texture("images/abilities/laser_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
@@ -333,8 +334,8 @@ impl Game for ROGUELIKE  {
 				// UPDATE INTERACTABLES
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
-										&fireball_texture, &slimeball_texture, &shield_texture, 
-										&health_texture, &health_upgrade_texture);
+										&fireball_texture, &slimeball_texture, &shield_texture,
+										&laser_texture, &health_texture, &health_upgrade_texture);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
@@ -456,8 +457,8 @@ impl ROGUELIKE {
 	}
 	
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
-						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture, 
-						health_texture: &Texture, health_upgrade_texture: &Texture) {
+						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
+						laser_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -495,7 +496,7 @@ impl ROGUELIKE {
 						self.core.wincan.copy_ex(&shield_texture, power.src(), pos, 0.0, None, false, false).unwrap();
 					},
 					PowerType::Laser => {
-                    	self.core.wincan.copy_ex(&shield_texture, power.src(), pos, 0.0, None, false, false).unwrap();
+                    	self.core.wincan.copy_ex(&laser_texture, power.src(), pos, 0.0, None, false, false).unwrap();
                     },
 					_ => {},
 				}
@@ -521,6 +522,9 @@ impl ROGUELIKE {
 				},
 				ShopItems::Shield => {
 					self.core.wincan.copy_ex(&shield_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::Laser => {
+					self.core.wincan.copy_ex(&laser_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
 				ShopItems::HealthUpgrade => {
 					self.core.wincan.copy_ex(&health_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
