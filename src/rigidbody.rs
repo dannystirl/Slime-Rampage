@@ -27,6 +27,9 @@ impl Rectangle{
     pub fn bottom(&self) -> f64{
         self.y + self.h
     }
+    pub fn center(&self) -> Vector2D{
+        Vector2D{x: (self.left()+self.right())/2.0 , y: (self.top()+self.bottom())/2.0}
+    }
 }
 pub struct Rigidbody{
     
@@ -77,7 +80,7 @@ impl Rigidbody{
             true
         }
     }
-    pub fn normal_collision_calc(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
+    pub fn rect_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
         
         let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
         let a = self.hitbox;
@@ -158,13 +161,11 @@ impl Rigidbody{
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;
-        }
-        let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel)/(1.0/self.mass +1.0/other.mass);
-        let impulse_vec = normal_collision*imp_scalar;
+        } 
+        let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel) / (1.0/self.mass + 1.0/other.mass);
+        let impulse_vec = normal_collision * imp_scalar;
         self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
         other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
-
-
   /*  this if for bounce based on mass ratio   
      let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
