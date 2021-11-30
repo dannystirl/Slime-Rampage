@@ -126,6 +126,13 @@ impl<'a> UI<'a> {
 				let absorb_help = get_font.render("[E]: Absorb Power").blended(Color::WHITE).unwrap();
 				let display_absorb_help = texture_creator.create_texture_from_surface( &absorb_help ).unwrap();
 				core.wincan.copy(&display_absorb_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+			} else {
+				if player.can_pickup_shop() {
+					let price_tag = format!("[E]: Buy Item (${})", player.get_shop_price());
+					let buy_help = get_font.render(&price_tag).blended(Color::WHITE).unwrap();
+					let display_buy_help = texture_creator.create_texture_from_surface( &buy_help ).unwrap();
+					core.wincan.copy(&display_buy_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+				}
 			}
 		}
 

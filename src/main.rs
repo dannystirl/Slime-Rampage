@@ -600,6 +600,7 @@ impl ROGUELIKE {
 		// Absorb power
 		if keystate.contains(&Keycode::E) {
 			if player.can_pickup() {
+				let mut picked_up = false;
 				for drop in self.game_data.dropped_powers.iter_mut() {
 					if check_collision(&player.pos(), &drop.pos()) &&
 					   !drop.collected() && player.get_pickup_timer() > 1000 {
@@ -620,55 +621,58 @@ impl ROGUELIKE {
                             },
 							_ => {}
 						}
+						picked_up = true;
 						break;
 					}
 				}
-				let mut i = 0; 
-				while i < map_data.shop_spawns.len() {
-					if map_data.shop_items[i].1 {
-						i += 1;
-						continue;
-					}
-					let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-										(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-										TILE_SIZE, TILE_SIZE);
-					if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 &&
-					   (player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
-						player.reset_pickup_timer();
-						player.sub_coins(map_data.shop_items[i].2);
-						match map_data.shop_items[i].0 {
-							ShopItems::Fireball => {
-								player.set_power(PowerType::Fireball);
-								map_data.shop_items[i].1 = true;
-							},
-							ShopItems::Slimeball => {
-								player.set_power(PowerType::Slimeball);
-								map_data.shop_items[i].1 = true;
-							},
-							ShopItems::Shield => {
-								player.set_power(PowerType::Shield);
-								map_data.shop_items[i].1 = true; 
-							}
-							ShopItems::Dash => {
-                                player.set_power(PowerType::Dash);
-                                map_data.shop_items[i].1 = true;
-                            }
-							ShopItems::HealthUpgrade => {
-								if map_data.shop_items[i].1 == false {
-									player.upgrade_hp(10); 
-									player.plus_hp(10); 
-									map_data.shop_items[i].1 = true; 
-								} 
-							}
-							ShopItems::Health => {
-								player.plus_hp(10);
-								map_data.shop_items[i].1 = true;
-							}
-							_ => { }
+				if !picked_up {
+					let mut i = 0; 
+					while i < map_data.shop_spawns.len() {
+						if map_data.shop_items[i].1 {
+							i += 1;
+							continue;
 						}
-						break;
+						let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+											(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+											TILE_SIZE, TILE_SIZE);
+						if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 &&
+						(player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
+							player.reset_pickup_timer();
+							player.sub_coins(map_data.shop_items[i].2);
+							match map_data.shop_items[i].0 {
+								ShopItems::Fireball => {
+									player.set_power(PowerType::Fireball);
+									map_data.shop_items[i].1 = true;
+								},
+								ShopItems::Slimeball => {
+									player.set_power(PowerType::Slimeball);
+									map_data.shop_items[i].1 = true;
+								},
+								ShopItems::Shield => {
+									player.set_power(PowerType::Shield);
+									map_data.shop_items[i].1 = true; 
+								}
+								ShopItems::Dash => {
+									player.set_power(PowerType::Dash);
+									map_data.shop_items[i].1 = true;
+								}
+								ShopItems::HealthUpgrade => {
+									if map_data.shop_items[i].1 == false {
+										player.upgrade_hp(10); 
+										player.plus_hp(10); 
+										map_data.shop_items[i].1 = true; 
+									} 
+								}
+								ShopItems::Health => {
+									player.plus_hp(10);
+									map_data.shop_items[i].1 = true;
+								}
+								_ => { }
+							}
+							break;
+						}
+						i+=1; 
 					}
-					i+=1; 
 				}
 			}
 		}
@@ -810,6 +814,9 @@ impl ROGUELIKE {
 				}
 			}
 		}
+		player.set_can_pickup(can_pickup);
+		let mut can_pickup_shop = false;
+		let mut price = 0;
 		let mut i = 0; 
 		while i < map_data.shop_spawns.len() {
 			if map_data.shop_items[i].1 {
@@ -822,13 +829,17 @@ impl ROGUELIKE {
 			if check_collision(&player.pos(), &pos) && player.get_pickup_timer() > 1000 {
 				match map_data.shop_items[i].0 {
 					ShopItems::None => { }
-					_ => { can_pickup = true; }
+					_ => {
+						can_pickup_shop = true;
+						price = map_data.shop_items[i].2;
+					}
 				}
 				break;
 			}
-			i += 1; 
+			i += 1;
 		}
-		player.set_can_pickup(can_pickup);
+		player.set_can_pickup_shop(can_pickup_shop);
+		player.set_shop_price(price);
 		//check collision between crates and player
 		for c in self.game_data.crates.iter_mut(){
 			if check_collision(&player.pos(), &c.pos()){
