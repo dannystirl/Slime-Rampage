@@ -85,7 +85,7 @@ impl Rigidbody{
         if  overlap_x > 0.0{
             let overlap_y = ((a.bottom() - a.top())/2.0) + ((b.bottom() - b.top())/2.0) - f64::abs(vec_from_a_to_b.y);
             if overlap_y > 0.0{
-                if overlap_x > overlap_y{
+                if overlap_x < overlap_y{
                     if vec_from_a_to_b.x < 0.0 {
                         *normal_collision = Vector2D{x : -1.0, y : 0.0};
                     }else{
@@ -112,16 +112,18 @@ impl Rigidbody{
 
     }
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
-        /*  let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+           /*// sink correction for static objects with infite mass
+           
+           let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
-          let percent = 0.2; // usually 20% to 80%
-          let slop = 0.01; // usually 0.01 to 0.1
+          let percent = 0.01; // usually 20% to 80%
+          let slop = 0.1; // usually 0.01 to 0.1
           let zero: f64 = 0.0;
           let correction = zero.max(pen - slop ) / ((1.0/self.mass) + (1.0/other.mass)) * percent * n;
           self.hitbox.x -= (1.0/self.mass) * correction.x;
           self.hitbox.y -= (1.0/self.mass) * correction.y;
           other.hitbox.x += (1.0/self.mass) * correction.x;
-          other.hitbox.y += (1.0/self.mass) * correction.y;  */
+          other.hitbox.y += (1.0/self.mass) * correction.y;    */
      
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
@@ -131,11 +133,14 @@ impl Rigidbody{
         let impulse_vec = normal_collision*imp_scalar;
         self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
         other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
-        let mass_sum = self.mass + other.mass;
+
+
+  /*  this if for bounce based on mass ratio   
+     let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
         self.vel = self.vel - ratio * impulse_vec; 
         ratio = other.mass / mass_sum;
-        other.vel = other. vel + ratio * impulse_vec;
+        other.vel = other. vel + ratio * impulse_vec; */
         
     }
 
