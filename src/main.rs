@@ -142,7 +142,7 @@ impl Game for ROGUELIKE  {
 			let test1 = Rect::new(0, 0, 64, 64);
 			let test2 = Rect::new(600, 600, 64, 64);
 
-			let mut rb = Rigidbody::new(test1, 0.0, 0.0,2.0);
+			let mut rb = Rigidbody::new(test1, 0.0, 0.0,4.0);
 			let mut rb1 = Rigidbody::new(test, -1.0, -1.0, 1.0);
 			let mut rb2 = Rigidbody::new(test2, 0.0, 0.0, 10.0);
 
@@ -406,19 +406,19 @@ impl Game for ROGUELIKE  {
 				0 ,
 				CAM_W,
 				CAM_H,)
-			);
+			)?;
 
 			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			if rb.check_rect_col(rb1, normal_collision){
+			if 	rb.normal_collision_calc(rb1, normal_collision){
 				rb.resolve_col(&mut rb1, *normal_collision);
 			}	
 		
 			rb.update_pos();
 			rb1.update_pos();
 
-			self.core.wincan.copy(&crate_textures[0], None, rb1.draw_pos());
+			self.core.wincan.copy(&crate_textures[0], None, rb1.draw_pos())?;
 
-			self.core.wincan.copy(&crate_textures[0], None, rb.draw_pos());
+			self.core.wincan.copy(&crate_textures[0], None, rb.draw_pos())?;
 			
 
 			self.core.wincan.present();

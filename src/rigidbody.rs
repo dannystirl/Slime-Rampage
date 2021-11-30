@@ -42,6 +42,8 @@ impl Clone for Rigidbody {
         *self
     }
 }
+#[allow(dead_code)]
+
 impl Rigidbody{
     pub fn new(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
@@ -63,31 +65,38 @@ impl Rigidbody{
     pub fn update_pos(&mut self){
         self.hitbox = Rectangle{x: self.hitbox.x + self.vel.x, y:  self.hitbox.y + self.vel.y, w: self.hitbox.w ,h: self.hitbox.h}
     }
-    
-    pub fn check_rect_col(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool{ // farnan SAT collision detection 
+    pub fn check_rect_col(self, other: Rigidbody) -> bool {
+        if self.hitbox.bottom() < other.hitbox.top() || self.hitbox.top() > other.hitbox.bottom()|| self.hitbox.right() < other.hitbox.left()|| self.hitbox.left() > other.hitbox.right()
+        {
+            false
+        }else{
+            true
+        }
+    }
+    pub fn normal_collision_calc(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool{ // farnan SAT collision detection 
         
         let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y}- Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
         let a = self.hitbox;
         let b = other.hitbox;
 
-        let overlap_x = ((a.right()-a.left())/2.0)+((b.right()-b.left())/2.0)- f64::abs(vec_from_a_to_b.x);
-        //let mut normal_collision = Vector2D{x : 0.0, y : 0.0};//this is wrong it should be the intersection vector
-        if  overlap_x >0.0{
+        let overlap_x = ((a.right() - a.left()) /2.0)+((b.right()-b.left())/2.0)- f64::abs(vec_from_a_to_b.x);
+
+        if  overlap_x > 0.0{
             let overlap_y = ((a.bottom()-a.top())/2.0)+((b.bottom()-b.top())/2.0)- f64::abs(vec_from_a_to_b.y);
             if overlap_y > 0.0{
-                if overlap_x >overlap_y{
-                    if vec_from_a_to_b.x < 0.0{
+                if overlap_x > overlap_y{
+                    if vec_from_a_to_b.x < 0.0 {
                         *normal_collision = Vector2D{x : -1.0, y : 0.0};
                     }else{
-                        *normal_collision =  Vector2D{x : 1.0, y : 0.0};
+                        *normal_collision = Vector2D{x : 1.0, y : 0.0};
                     }
                     return true;
                 }else
                 {
-                    if vec_from_a_to_b.y < 0.0{
+                    if vec_from_a_to_b.y < 0.0 {
                         *normal_collision = Vector2D{x : 0.0 , y : -1.0};
                     }else{
-                        *normal_collision =  Vector2D{x :0.0, y : 1.0};
+                        *normal_collision = Vector2D{x : 0.0, y : 1.0};
                     }
                     return true;
                 }
@@ -97,29 +106,24 @@ impl Rigidbody{
         }else{
             false
         }
-        
-        
-        
-       /*  if self.hitbox.bottom() < other.hitbox.top() || self.hitbox.top() > other.hitbox.bottom()|| self.hitbox.right() < other.hitbox.left()|| self.hitbox.left() > other.hitbox.right()
-        {
-            false
-        }else{
-            true
-        } */
+
     }
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D){
 
-
-        let normal_vel = (other.vel - self.vel) * (normal_collision).normalize();
+        let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;
         }
         let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel)/(1.0/self.mass +1.0/other.mass);
-        let impulse_vec = (self.vel -other.vel).normalize()*imp_scalar;
-        self.vel = self.vel - (1.0 / self.mass * impulse_vec);
-        other.vel = other.vel + (1.0 / other.mass * impulse_vec);
+        let impulse_vec = normal_collision*imp_scalar;
+        self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
+        other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
 
     }
+
+
+
+
     //might use later for very fast objects
     fn swept(self, other: Rigidbody,  normal_x : &mut f64,  normal_y : &mut f64 )-> f64{//moving self and other is static
       
