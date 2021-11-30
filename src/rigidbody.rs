@@ -1,8 +1,9 @@
 extern crate rogue_sdl;
 use std::vec;
-
+use std::f64;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
+use sdl2::sys::CWOverrideRedirect;
 use sdl2::sys::exit;
 use crate::vector::*;
 
@@ -73,16 +74,16 @@ impl Rigidbody{
             true
         }
     }
-    pub fn normal_collision_calc(self, other: Rigidbody, normal_collision : &mut Vector2D)->bool{ // farnan SAT collision detection 
+    pub fn normal_collision_calc(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
         
-        let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y}- Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+        let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
         let a = self.hitbox;
         let b = other.hitbox;
 
-        let overlap_x = ((a.right() - a.left()) /2.0)+((b.right()-b.left())/2.0)- f64::abs(vec_from_a_to_b.x);
+        let overlap_x = ((a.right() - a.left()) / 2.0) + ((b.right() - b.left())/2.0) - f64::abs(vec_from_a_to_b.x);
 
         if  overlap_x > 0.0{
-            let overlap_y = ((a.bottom()-a.top())/2.0)+((b.bottom()-b.top())/2.0)- f64::abs(vec_from_a_to_b.y);
+            let overlap_y = ((a.bottom() - a.top())/2.0) + ((b.bottom() - b.top())/2.0) - f64::abs(vec_from_a_to_b.y);
             if overlap_y > 0.0{
                 if overlap_x > overlap_y{
                     if vec_from_a_to_b.x < 0.0 {
@@ -90,6 +91,7 @@ impl Rigidbody{
                     }else{
                         *normal_collision = Vector2D{x : 1.0, y : 0.0};
                     }
+                    *pen = overlap_x;
                     return true;
                 }else
                 {
@@ -98,18 +100,29 @@ impl Rigidbody{
                     }else{
                         *normal_collision = Vector2D{x : 0.0, y : 1.0};
                     }
+                    *pen = overlap_y;
                     return true;
                 }
             }else{
-                return false;
+                return false
             }
         }else{
             false
         }
 
     }
-    pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D){
+    pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
+        /*  let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
+          let percent = 0.2; // usually 20% to 80%
+          let slop = 0.01; // usually 0.01 to 0.1
+          let zero: f64 = 0.0;
+          let correction = zero.max(pen - slop ) / ((1.0/self.mass) + (1.0/other.mass)) * percent * n;
+          self.hitbox.x -= (1.0/self.mass) * correction.x;
+          self.hitbox.y -= (1.0/self.mass) * correction.y;
+          other.hitbox.x += (1.0/self.mass) * correction.x;
+          other.hitbox.y += (1.0/self.mass) * correction.y;  */
+     
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;
@@ -118,7 +131,12 @@ impl Rigidbody{
         let impulse_vec = normal_collision*imp_scalar;
         self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
         other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
-
+        let mass_sum = self.mass + other.mass;
+        let mut ratio = self.mass / mass_sum;
+        self.vel = self.vel - ratio * impulse_vec; 
+        ratio = other.mass / mass_sum;
+        other.vel = other. vel + ratio * impulse_vec;
+        
     }
 
 

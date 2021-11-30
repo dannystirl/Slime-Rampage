@@ -143,7 +143,7 @@ impl Game for ROGUELIKE  {
 			let test2 = Rect::new(600, 600, 64, 64);
 
 			let mut rb = Rigidbody::new(test1, 0.0, 0.0,4.0);
-			let mut rb1 = Rigidbody::new(test, -1.0, -1.0, 1.0);
+			let mut rb1 = Rigidbody::new(test, 0.0, 0.0, 1.0);
 			let mut rb2 = Rigidbody::new(test2, 0.0, 0.0, 10.0);
 
 		// MAIN GAME LOOP
@@ -409,8 +409,10 @@ impl Game for ROGUELIKE  {
 			)?;
 
 			let mut normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			if 	rb.normal_collision_calc(rb1, normal_collision){
-				rb.resolve_col(&mut rb1, *normal_collision);
+			let mut pen = &mut 0.0;
+			if rb.check_rect_col(rb1){
+				rb.normal_collision_calc(rb1, normal_collision, pen);
+				rb.resolve_col(&mut rb1, *normal_collision, *pen);
 			}	
 		
 			rb.update_pos();
