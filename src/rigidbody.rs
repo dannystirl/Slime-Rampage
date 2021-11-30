@@ -119,30 +119,33 @@ impl Rigidbody{
     }
 
     pub fn circle_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{
+        // Vector from A to B
         let r = self.radius + other.radius;//Ra + Rb
         let r_square = r * r;
         let n =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0}
                               - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
-        let length_square = n.x * n.x + n.y * n.y;
 
         let mut r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
-        r = r.powf(2.0);
 
-        if n.length_squared() > r {
+        if n.length_squared() > r_square {
             return false;
         }
 
+        // Circles have collided, compute manifold
         let distance = n.length();
 
-        if distance != 0.0{
+        if distance != 0.0 {
+            // Distance is difference between radius and distance
             *pen = r - distance;
             *normal_collision = n.normalize();//distance;
             return true;
-        }else{
-            *pen = r/2.0;//Ra
-            *normal_collision = Vector2D{x: 1.0, y: 0.0};
+        } else {
+            // Circles are on same position
+            *pen = self.radius;//Ra
+            *normal_collision = Vector2D { x: 1.0, y: 0.0 };
             return true;
         }
+    }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
            /*// sink correction for static objects with infite mass
