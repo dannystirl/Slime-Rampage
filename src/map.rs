@@ -483,10 +483,10 @@ impl<'a> Map<'a> {
 					continue; 
 				}
 				else {
-					new_map[h][w] = 6;
+					/* new_map[h][w] = 6; */
 					self.shop = self.numbered_map[h][w];
-					self.shop_spawns.push((h,w)); 
-					self.shop_items.push((ShopItems::None, true, 0)); 
+					/* self.shop_spawns.push((h,w)); 
+					self.shop_items.push((ShopItems::None, true, 0)); */
 					while self.shop_spawns.len() <= 2 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..
 											  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	

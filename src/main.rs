@@ -598,14 +598,17 @@ impl ROGUELIKE {
 						match map_data.shop_items[i].0 {
 							ShopItems::Fireball => {
 								player.set_power(PowerType::Fireball);
+								println!("Setting to true...");
 								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Slimeball => {
 								player.set_power(PowerType::Slimeball);
-								map_data.shop_items[i].1 = true; 
+								println!("Setting to true...");
+								map_data.shop_items[i].1 = true;
 							},
 							ShopItems::Shield => {
 								player.set_power(PowerType::Shield);
+								println!("Setting to true...");
 								map_data.shop_items[i].1 = true; 
 							}
 							ShopItems::HealthUpgrade => {
@@ -815,10 +818,10 @@ impl ROGUELIKE {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				match projectile.p_type{
-					ProjectileType::Bullet=>{
-						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos_large(player), 0.0, None, !projectile.facing_right, false).unwrap();
+					ProjectileType::Bullet=> {
+						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
-					ProjectileType::Fireball=>{
+					ProjectileType::Fireball=> {
 						let time = projectile.elapsed;
 
 						let angle = 0.0;
