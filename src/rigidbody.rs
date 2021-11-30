@@ -27,6 +27,9 @@ impl Rectangle{
     pub fn bottom(&self) -> f64{
         self.y + self.h
     }
+    pub fn center(&self) -> Vector2D{
+        Vector2D{x: (self.left()+self.right())/2.0 , y: (self.top()+self.bottom())/2.0}
+    }
 }
 pub struct Rigidbody{
     
@@ -128,13 +131,11 @@ impl Rigidbody{
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;
-        }
-        let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel)/(1.0/self.mass +1.0/other.mass);
-        let impulse_vec = normal_collision*imp_scalar;
+        } 
+        let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel) / (1.0/self.mass + 1.0/other.mass);
+        let impulse_vec = normal_collision * imp_scalar;
         self.vel = self.vel - ((1.0 / self.mass) * impulse_vec);
         other.vel = other.vel + ((1.0 / other.mass) * impulse_vec);
-
-
   /*  this if for bounce based on mass ratio   
      let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
