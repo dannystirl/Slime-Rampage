@@ -15,44 +15,16 @@ pub const MAX_CRATE_SPEED: f64 = 2.0;
 pub const MAX_CRATE_VEL: f64 = 6.0; 
 
 pub struct Crate{
-	pos: Rect,
 	src: Rect,
-	vel: (f64,f64),
-	velocity: Vec<f64>,
-	acceleration: Vec<f64>,
 	pub rb:  Rigidbody,
 }
 
 impl Crate {
-    pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-        let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
-		let vel = (0.0,0.0);
-		let velocity = vec![0.0,0.0];
-		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0); //hitbox
-
-        Crate{
-            pos,
-            src,
-			vel,
-			velocity,
-			acceleration,
-			rb,
-        }
-    }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let vel = (0.0,0.0);
-		let velocity = vec![0.0,0.0];
-		let acceleration = vec![0.0,0.0];
 		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0);
 		Crate{
-			pos,
 			src,
-			vel,
-			velocity,
-			acceleration,
 			rb,
 		}
 	}
@@ -66,42 +38,42 @@ impl Crate {
 	}
 
 	pub fn pos(&self) -> Rect {
-        self.pos
+        self.rb.draw_pos()
     }
 	pub fn x(&self) -> i32 {
-		return self.pos.x;
+		return self.rb.hitbox.x as i32;
 	}
 	pub fn y(&self) -> i32 {
-		return self.pos.y;
+		return self.rb.hitbox.y as i32;
 	}
 	pub fn x_vel(&self) -> f64 {
-		return self.velocity[0];
+		return self.rb.vel.x;
 	}
 	pub fn y_vel(&self) -> f64 {
-		return self.velocity[1];
+		return self.rb.vel.y;
 	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
-		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
-		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn update_acceleration(&mut self, x: f64, y: f64){
-		self.acceleration[0] = x;
-		self.acceleration[1] = y;
+		// self.acceleration[0] = x;
+		// self.acceleration[1] = y;
 	}
 	pub fn get_magnitude(&self) -> f64{
 		return ((self.x_vel() as f64).powf(2.0) + (self.y_vel() as f64).powf(2.0)).sqrt()
 	}
 	pub fn set_x(&mut self, x: i32){
-		self.pos.x = x;
+		self.rb.hitbox.x = x as f64;
 	}
 	pub fn set_y(&mut self, y: i32){
-		self.pos.y = y;
+		self.rb.hitbox.y = y as f64;
 	}
 	pub fn set_x_vel(&mut self, x_vel: f64) {
-		self.velocity[0] = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_y_vel(&mut self, y_vel: f64) {
-		self.velocity[1] = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_rb(&mut self){
 		//self.rb.set_pos(self.pos);
@@ -136,8 +108,8 @@ impl Crate {
 			}
 		}
 		self.resolve_col(&collisions);
-		self.set_x(self.x() + self.velocity[0] as i32);
-		self.set_y(self.y() + self.velocity[1] as i32);
+		self.set_x(self.x() + self.rb.vel.x as i32);
+		self.set_y(self.y() + self.rb.vel.y as i32);
 		self.set_rb();
 		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 	}

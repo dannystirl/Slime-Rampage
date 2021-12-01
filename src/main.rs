@@ -91,7 +91,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(1)?;
+		//music.play(1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -901,11 +901,15 @@ impl ROGUELIKE {
 			i += 1; 
 		}
 		player.set_can_pickup(can_pickup);
-		//check collision between crates and player
+
+		// PLAYER VS CRATES
 		for c in self.game_data.crates.iter_mut(){
-			if check_collision(&player.pos(), &c.pos()){
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let pen = &mut 0.0;
+			if player.rb.rect_vs_rect(c.rb, normal_collision, pen){
 				// provide impulse
-				c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
+				player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
+				// c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
 			} else {
 				c.friction();
 			}
