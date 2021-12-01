@@ -191,7 +191,8 @@ pub struct Enemy<'a> {
 				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
+							map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
 					let p_pos = self.pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
 						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
