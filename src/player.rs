@@ -175,6 +175,11 @@ impl<'a> Player<'a> {
 		// Slow down to 0 vel if no input and non-zero velocity
 		//self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
 		//self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
+		self.rb.accel.x = resist(self.rb.vel.x as i32, self.rb.accel.x as i32).into();
+		self.rb.accel.y = resist(self.rb.vel.y as i32, self.rb.accel.y as i32).into();
+
+		self.rb.vel.x = (self.rb.vel.x + self.rb.accel.x).clamp(-speed_limit_adj , speed_limit_adj);
+		self.rb.vel.y = (self.rb.vel.y + self.rb.accel.y).clamp(-speed_limit_adj , speed_limit_adj);
 
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
@@ -684,7 +689,7 @@ impl<'a> Player<'a> {
 }
 
 // calculate velocity resistance
-/*
+
 pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 	if delta == 0 {
 		if vel > 0 {-1}
@@ -693,4 +698,4 @@ pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 	} else {delta}
 }
 
- */
+ 
