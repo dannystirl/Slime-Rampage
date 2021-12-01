@@ -370,7 +370,6 @@ impl Game for ROGUELIKE  {
 				self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
 			}
 			// reset frame values
-			player.set_x_delta(0);
 			player.set_y_delta(0);
 
 			// GET INPUT
@@ -631,25 +630,29 @@ impl ROGUELIKE {
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map, r: &mut Rigidbody)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
-			player.rb.change_accel(Vector2D{x: player.rb.accel.x  ,y: player.rb.vel.y-self.game_data.get_accel_rate()});
+			player.rb.accel.y = player.rb.accel.y-self.game_data.get_accel_rate();
+
 			//player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
 			//player.set_x_delta(player.x_delta() - self.game_data.get_accel_rate() as i32);
-			player.rb.change_accel(Vector2D{x: player.rb.accel.x -self.game_data.get_accel_rate() ,y: player.rb.vel.y});
+			
+			player.rb.accel.x = player.rb.accel.x-self.game_data.get_accel_rate();
+
 			player.facing_right = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
 			//player.set_y_delta(player.y_delta() + self.game_data.get_accel_rate() as i32);
-			player.rb.change_accel(Vector2D{x: player.rb.accel.x  ,y: player.rb.vel.y+self.game_data.get_accel_rate()});
-
+			player.rb.accel.y = player.rb.accel.y+self.game_data.get_accel_rate();
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
 			//player.set_x_delta(player.x_delta() + self.game_data.get_accel_rate() as i32);
-			player.rb.change_accel(Vector2D{x: player.rb.accel.x +self.game_data.get_accel_rate() ,y: player.rb.vel.y});
+			
+			player.rb.accel.x = player.rb.accel.x+self.game_data.get_accel_rate();
+
 
 			player.facing_right = true;
 		}
