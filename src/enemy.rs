@@ -20,6 +20,7 @@ pub enum EnemyType{
 	Ranged,
 	Skeleton,
 	Eyeball,
+	Boss,
 }
 pub struct Enemy<'a> {
 	vel_x: f64,
@@ -52,6 +53,13 @@ pub struct Enemy<'a> {
 		let vel_x = 0.0;
 		let vel_y = 0.0;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		/* let mut src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		match enemy_type {
+			EnemyType::Boss => {
+				src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64 / 2, TILE_SIZE_64 / 2);
+			},
+			_ => {}
+		} */
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
@@ -74,6 +82,7 @@ pub struct Enemy<'a> {
 			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; }
 			EnemyType::Skeleton => { stun_time = 100; hp = 30; knockback_vel = 3.0; }
 			EnemyType::Eyeball => { stun_time = 200; hp = 10; knockback_vel = 10.0; }
+			EnemyType::Boss => { stun_time = 100; hp = 100; knockback_vel = 0.0; }
 		}
 
 		Enemy {
@@ -154,21 +163,34 @@ pub struct Enemy<'a> {
 			self.set_stunned(false);
 		} 
 		// distance should be very close to number of tiles
-		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > 5.0 {
+		let range;
+		match self.enemy_type {
+			EnemyType::Boss => {
+				range = 100.0;
+			},
+			_ => {
+				range = 5.0;
+			},
+		}
+
+		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > range {
 			self.wander(rngt[i]);
 		} else {
 			match self.enemy_type {
-				EnemyType::Melee=>{
+				EnemyType::Melee => {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
 				}
-				EnemyType::Ranged =>{
+				EnemyType::Ranged => {
 					self.flee(x.into(), y.into(), game_data.get_speed_limit());
 				}
-				EnemyType::Skeleton=>{
+				EnemyType::Skeleton => {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 0.7);
 				}
-                EnemyType::Eyeball=>{
+                EnemyType::Eyeball => {
                     self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 1.3);
+				}
+				EnemyType::Boss => {
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 0.5);
 				}
 			}
 		}
@@ -216,9 +238,27 @@ pub struct Enemy<'a> {
 		if self.is_stunned {
 			self.slow_vel(1.0);
 		}
-		return Rect::new(self.x() as i32 + (CENTER_W - x as i32),
-						 self.y() as i32 + (CENTER_H - y as i32),
-						 TILE_SIZE_CAM, TILE_SIZE_CAM);
+
+		let r;
+		match self.enemy_type {
+			EnemyType::Boss => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM * 4,
+					TILE_SIZE_CAM * 4,
+				);
+			},
+			_ => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM,
+					TILE_SIZE_CAM,
+				);
+			}
+		}
+		return r;
 	}
 
 	 pub fn got_squished(&mut self, w_pos: Rect, c_pos: Rect, c_xvel: f64, c_yvel: f64) -> bool{
@@ -447,9 +487,10 @@ pub struct Enemy<'a> {
 					}
 				}
 			}
-            EnemyType::Eyeball=>{}
-			EnemyType::Melee=>{}
-			EnemyType::Skeleton=>{}
+            EnemyType::Eyeball => {}
+			EnemyType::Melee => {}
+			EnemyType::Skeleton => {}
+			EnemyType::Boss => {}
 		}
 	}
 
@@ -596,6 +637,17 @@ pub struct Enemy<'a> {
 					PowerType::Dash,
 				);
 			},
+			EnemyType::Boss => {
+				power = power::Power::new(
+					Rect::new(
+						self.x() as i32,
+						self.y() as i32,
+						TILE_SIZE,
+						TILE_SIZE,
+					),
+					PowerType::None,
+				);
+			}
 		}
 		self.has_power = false;
 		return power;
