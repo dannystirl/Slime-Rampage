@@ -253,10 +253,21 @@ impl<'a> Player<'a> {
 		self.update_pos();/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
-		if self.get_attack_timer() > ATTK_COOLDOWN {
-			self.is_attacking = false;
-			// clear attack box
-			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.get_attack_timer() > ATTK_COOLDOWN {
+					self.is_attacking = false;
+					// clear attack box
+					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+				}
+			},
+			WeaponType::Spear => {
+				if self.get_attack_timer() > ATTK_TIME_SPEAR {
+					self.is_attacking = false;
+					// clear attack box
+					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+				}
+			},
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
@@ -388,16 +399,36 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		if self.facing_right{
-			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
-		} else {
-			self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.facing_right{
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+				} else {
+					self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+				}
+			},
+			WeaponType::Spear => {
+				if self.facing_right{
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
+				} else {
+					self.attack_box = Rect::new(x - ATTACK_LENGTH_SPEAR as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
+				}
+			},
 		}
 	}
 
 	pub fn attack(&mut self) {
-		if self.get_attack_timer() < ATTK_COOLDOWN {
-			return;
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.get_attack_timer() < ATTK_COOLDOWN {
+					return;
+				}
+			},
+			WeaponType::Spear => {
+				if self.get_attack_timer() < ATTK_COOLDOWN_SPEAR {
+					return;
+				}
+			},
 		}
 		self.is_attacking = true;
 		self.set_attack_box(self.x() as i32, self.y() as i32);

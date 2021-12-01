@@ -830,7 +830,14 @@ impl ROGUELIKE {
 			if player.get_attacking() {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into());
-					enemy.minus_hp(2);
+					match player.get_weapon() {
+						WeaponType::Sword => {
+							enemy.minus_hp(2);
+						},
+						WeaponType::Spear => {
+							enemy.minus_hp(4);
+						},
+					}
 				}
 			}
 		
@@ -1000,17 +1007,35 @@ impl ROGUELIKE {
 			angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
 		} else { angle = - 60.0; }
 		// display weapon
-		if player.facing_right{
-			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
-							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
-			rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
-		} else{
-			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
-							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
-			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
-			angle = -angle;
+		match player.get_weapon() {
+			WeaponType::Sword => {
+				if player.facing_right{
+					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
+				} else{
+					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+					angle = -angle;
+				}
+			},
+			WeaponType::Spear => {
+				if player.facing_right{
+					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
+				} else{
+					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SPEAR as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(ATTACK_LENGTH_SPEAR as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+					angle = -angle;
+				}
+			},
 		}
 
 		match player.get_weapon() {
