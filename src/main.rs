@@ -96,7 +96,6 @@ impl Game for ROGUELIKE  {
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
 		let mut player = player::Player::new(
-			(CENTER_W as f64, CENTER_H as f64),
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
 		);
 		// create ui
