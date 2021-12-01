@@ -8,6 +8,7 @@ use std::time::Instant;
 
 use crate::gold::*;
 use crate::power::*;
+use crate::weapon::*;
 use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
@@ -42,12 +43,15 @@ pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 
 // player globals
-pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3 / 2;   // length of sword
-pub const ATTK_COOLDOWN: u128 = 300;        // how often player can attack
-pub const DMG_COOLDOWN: u128 = 800;         // how often player can take damage
-pub const FIRE_COOLDOWN_P: u128 = 300;      // how often player can shoot projectile
-pub const SHIELD_TIME: u128 = 1800;         // how long player shield lastsa
-pub const MANA_RESTORE_RATE: u128 = 1000;   // how quickly mana is restored
+pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3/2;     // length of sword
+pub const ATTACK_LENGTH_SPEAR: u32 = TILE_SIZE_CAM * 2; // length of spear
+pub const ATTK_COOLDOWN: u128 = 300;                    // how often player can attack with sword
+pub const ATTK_TIME_SPEAR: u128 = 300;                  // how long the spear attack lasts
+pub const ATTK_COOLDOWN_SPEAR: u128 = 800;              // how often player can attack with spear
+pub const DMG_COOLDOWN: u128 = 800;                     // how often player can take damage
+pub const FIRE_COOLDOWN_P: u128 = 300;                  // how often player can shoot projectile
+pub const SHIELD_TIME: u128 = 1800;                     // how long player shield lastsa
+pub const MANA_RESTORE_RATE: u128 = 1000;               // how quickly mana is restored
 
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
@@ -59,6 +63,7 @@ pub struct GameData {
 
     pub gold: Vec<Gold>,
     pub dropped_powers: Vec<Power>,
+    pub dropped_weapons: Vec<Weapon>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
     pub crates: Vec<Crate>,
@@ -87,6 +92,7 @@ impl GameData {
         // objects
         let gold: Vec<Gold> = Vec::with_capacity(5);
         let dropped_powers: Vec<Power> = Vec::new();
+        let dropped_weapons: Vec<Weapon> = Vec::new();
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
@@ -98,6 +104,7 @@ impl GameData {
             current_room,
             gold,
             dropped_powers,
+            dropped_weapons,
             player_projectiles,
             enemy_projectiles,
             rooms,
