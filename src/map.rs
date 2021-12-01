@@ -67,6 +67,27 @@ impl<'a> Map<'a> {
 		}
 	}
 
+	pub fn create_boss(&mut self) {
+		self.map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+
+		let mut new_map = self.map;
+		for h in 0..BOSS_ROOM_H {
+			for w in 0..BOSS_ROOM_W {
+				if h == 0 || h == BOSS_ROOM_H - 1 || w == 0 || w == BOSS_ROOM_W - 1 {
+					new_map[h][w] = 2;
+				} else {
+					new_map[h][w] = 1;
+				}
+			}
+		}
+
+		self.map = new_map;
+
+		self.starting_position = (10.0, 10.0);
+
+		self.print_map(self.map);
+	}
+
 	// 1: create a new map
 	pub fn create_map(&mut self) {
 		self.map = [[0; MAP_SIZE_W]; MAP_SIZE_H];

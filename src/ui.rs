@@ -45,7 +45,7 @@ impl<'a> UI<'a> {
 
 
 	//update background
-	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map, game_data: &GameData) -> Result<(), String> {
 		// set ui bar
 		let texture_creator = core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE_64*2);
@@ -237,6 +237,11 @@ impl<'a> UI<'a> {
 		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
 		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) )?;
+
+		let level_str = format!("Level {}", game_data.current_floor);
+		let level_counter = get_font.render(&level_str).blended(Color::BLUE).unwrap();
+		let display_level_counter = texture_creator.create_texture_from_surface( &level_counter ).unwrap();
+		core.wincan.copy(&display_level_counter, None, Rect::new(10 as i32, 10 as i32, 150, 48))?;
 
 		if player.god_mode {
 			let offset = 10;
