@@ -2,7 +2,11 @@ extern crate rogue_sdl;
 
 //use std::sync::Mutex;
 
+use std::vec;
+
 use crate::Player;
+use crate::rigidbody::Rigidbody;
+use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;
@@ -26,6 +30,7 @@ pub struct Projectile{
 	pub bounce_counter: i32,
 	pub elapsed: u128,
 	pub damage: i32, 
+	pub rb: Rigidbody,
 }
 
 impl Projectile {
@@ -39,6 +44,7 @@ impl Projectile {
 			ProjectileType::Fireball => { damage = 10; } 
 			ProjectileType::Shield => { damage = 0; }
 		}
+		let rb = Rigidbody::new(pos, vector[0], vector[1], 1.0);
 		Projectile {
 			src,
 			pos,
@@ -48,7 +54,7 @@ impl Projectile {
 			p_type,
 			bounce_counter,
 			elapsed,
-			damage, 
+			damage, rb
 		}
 	}
 	pub fn x(&self) -> i32 {
@@ -118,8 +124,11 @@ impl Projectile {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let p_pos = self.pos();
-					if GameData::check_collision(&p_pos, &w_pos) {
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+					let mut wall = Rigidbody::new(w_pos, 0.0, 0.0, 10000.0);
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let  pen = &mut 0.0;
+					if wall.rect_vs_circle(self.rb, normal_collision, pen) {
+						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
 					}
 				}
 			}

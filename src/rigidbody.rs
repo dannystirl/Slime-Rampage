@@ -5,6 +5,7 @@ use sdl2::rect::Rect;
 
 use crate::vector::*;
 
+
 #[derive(Copy,Clone)]
 pub struct Rectangle{
     pub x : f64,

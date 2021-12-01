@@ -137,7 +137,7 @@ impl Game for ROGUELIKE  {
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		let physics_debug_stage =true;
+		let physics_debug_stage =false;
 		
 			let mut all_frames = 0;
 			let last_time = Instant::now();
