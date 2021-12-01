@@ -29,7 +29,9 @@ pub enum ShopItems{
 	Dash,
 	HealthUpgrade, 
 	Health,
-	None, 
+	Sword,
+	Spear,
+	None,
 }
 
 impl<'a> Map<'a> {
@@ -63,6 +65,42 @@ impl<'a> Map<'a> {
 			shop_spawns, 
 			shop_items, 
 		}
+	}
+
+	pub fn create_boss(&mut self) {
+		let mut rng = rand::thread_rng();
+		self.map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+
+		let mut new_map = self.map;
+		for h in 0..BOSS_ROOM_H {
+			for w in 0..BOSS_ROOM_W {
+				if h == 0 || h == BOSS_ROOM_H - 1 || w == 0 || w == BOSS_ROOM_W - 1 {
+					new_map[h][w] = 2;
+				} else {
+					new_map[h][w] = 1;
+				}
+			}
+		}
+
+		for h in 0..BOSS_ROOM_H {
+			for w in 0..BOSS_ROOM_W {
+				if (h > 0 && h < 6) || (h < BOSS_ROOM_H - 1 && h > BOSS_ROOM_H - 7) ||
+					(w > 0 && w < 6) || (w < BOSS_ROOM_W - 1 && w > BOSS_ROOM_W - 7) {
+					let pillar = rng.gen_range(0..8);
+					if pillar == 0 {
+						new_map[h][w] = 2;
+					}
+				}
+			}
+		}
+
+		self.map = new_map;
+
+		self.starting_position = (BOSS_ROOM_W as f64 / 2.0, BOSS_ROOM_H as f64 - 7.0);
+
+		self.enemy_and_object_spawns[7][BOSS_ROOM_W / 2] = 6;
+
+		self.print_map(self.map);
 	}
 
 	// 1: create a new map
@@ -497,7 +535,7 @@ impl<'a> Map<'a> {
 							if !self.shop_spawns.contains(&(h,w)) {
 								new_map[h][w] = 6;
 								self.shop_spawns.push((h,w)); 
-								let item = rng.gen_range(1..6);
+								let item = rng.gen_range(1..9);
 								// should ensure no duplicate powers at some point
 								match item {
 									1 => {
@@ -507,7 +545,7 @@ impl<'a> Map<'a> {
 										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
 									}
 									3 => {
-										self.shop_items.push((ShopItems::Shield, false, 4)); 
+										self.shop_items.push((ShopItems::Shield, false, 2)); 
 									}
 									4 => {
 										self.shop_items.push((ShopItems::Dash, false, 4));
@@ -515,8 +553,14 @@ impl<'a> Map<'a> {
 									5 => {
 										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
 									}
+									6 => {
+										self.shop_items.push((ShopItems::Sword, false, 3));
+									}
+									7 => {
+										self.shop_items.push((ShopItems::Spear, false, 5));
+									}
 									_ => {
-										self.shop_items.push((ShopItems::Health, false, 2)); 
+										self.shop_items.push((ShopItems::Health, false, 3)); 
 									}
 								}
 							}

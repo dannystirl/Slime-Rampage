@@ -24,6 +24,7 @@ mod enemy;
 mod gamedata;
 mod gold;
 mod power;
+mod weapon;
 mod player;
 mod projectile;
 mod room;
@@ -38,6 +39,7 @@ use crate::player::*;
 use crate::enemy::*;
 use crate::projectile::*;
 use crate::power::*;
+use crate::weapon::*;
 use crate::map::*;
 use crate::crateobj::*;
 use crate::gold::*;
@@ -126,7 +128,8 @@ impl Game for ROGUELIKE  {
 		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
-		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
+		let sword_texture = texture_creator.load_texture("images/player/sword.png")?;
+		let spear_texture = texture_creator.load_texture("images/player/spear.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
 
@@ -151,7 +154,11 @@ impl Game for ROGUELIKE  {
 				),
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
-			map_data.create_map();
+			if self.game_data.current_floor > 3 {
+				map_data.create_boss();
+			} else {
+				map_data.create_map();
+			}
 
 			// set starting position
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
@@ -160,6 +167,7 @@ impl Game for ROGUELIKE  {
 			// reset arrays
 			self.game_data.crates = Vec::<Crate>::with_capacity(0);
 			self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
+			self.game_data.dropped_weapons = Vec::<Weapon>::with_capacity(0);
 			self.game_data.gold = Vec::<Gold>::with_capacity(0);
 			self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
 			self.game_data.enemy_projectiles = Vec::<Projectile>::with_capacity(0);
@@ -179,8 +187,9 @@ impl Game for ROGUELIKE  {
 			let mut rngt = Vec::new();
 
 			let mut enemy_count = 0;
-			let max_h = MAP_SIZE_H + ((self.game_data.current_floor-1)*30) as usize; 
-			let max_w = MAP_SIZE_W + ((self.game_data.current_floor-1)*30) as usize;
+			let max_h = MAP_SIZE_H; 
+			let max_w = MAP_SIZE_W;
+			println!("{}, {}", max_w, max_h);
 			for h in 0..max_h {
 				for w in 0..max_w {
 					if map_data.enemy_and_object_spawns[h][w] == 0 {
@@ -263,6 +272,22 @@ impl Game for ROGUELIKE  {
                             rngt.push(rng.gen_range(1..5));
                             enemy_count += 1;
                         }
+						6 => {
+							let e = enemy::Enemy::new(
+								Rect::new(
+									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+                                    TILE_SIZE_CAM * 4,
+                                    TILE_SIZE_CAM * 4
+								),
+								texture_creator.load_texture("images/enemies/boss.png")?,
+								EnemyType::Boss,
+								enemy_count,
+							);
+							enemies.push(e);
+							rngt.push(rng.gen_range(1..5));
+							enemy_count += 1;
+						}
 						_ => {}
 					}
 				}
@@ -321,32 +346,35 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
 
 				// UPDATE ENEMIES
-				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
+				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player, map_data.map);
 				// UPDATE ATTACKS
 				// Should be switched to take in array of active fireballs, bullets, etc.
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
 				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
-				ROGUELIKE::draw_weapon(self, &player, &sword_texture);
+				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture);
 				
 				// UPDATE INTERACTABLES
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
-										&dash_texture, &health_texture, &health_upgrade_texture);
+										&dash_texture, &health_texture, &health_upgrade_texture,
+										&sword_texture, &spear_texture);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
 				if player.is_dead(){break 'gameloop;}
 
 				// UPDATE UI
-				ui.update_ui(&player, &mut self.core, &map_data)?;
+				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
 				
 				// UPDATE FRAME
 				self.core.wincan.present();
 			}
+			self.game_data.current_floor += 1;
+        	self.game_data.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
+        	self.game_data.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
 		}
-		self.game_data.current_floor += 1;
 		// Out of game loop, return Ok
 		Ok(()) 
 	}
@@ -456,7 +484,8 @@ impl ROGUELIKE {
 	
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
-						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture) {
+						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture,
+						sword_texture: &Texture, spear_texture: &Texture) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -477,6 +506,7 @@ impl ROGUELIKE {
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
 			}
 		}
+
 		// draw powers
 		for power in self.game_data.dropped_powers.iter_mut() {
 			if !power.collected() {
@@ -500,6 +530,22 @@ impl ROGUELIKE {
 				}
 			}
 		}
+
+		// draw weapons
+		for weapon in self.game_data.dropped_weapons.iter_mut() {
+			let pos = Rect::new(weapon.x() as i32 + (CENTER_W - player.x() as i32),
+								weapon.y() as i32 + (CENTER_H - player.y() as i32),
+								TILE_SIZE_POWER, TILE_SIZE_POWER);
+			match weapon.weapon_type() {
+				WeaponType::Sword => {
+					self.core.wincan.copy_ex(&sword_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
+				},
+				WeaponType::Spear => {
+					self.core.wincan.copy_ex(&spear_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
+				},
+			}
+		}
+
 		// draw shop items
 		let mut i = 0; 
 		while i < map_data.shop_spawns.len() {
@@ -508,8 +554,8 @@ impl ROGUELIKE {
 				continue;
 			}
 			let src = Rect::new(0,0,TILE_SIZE_64,TILE_SIZE_64); 
-			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32 + (TILE_SIZE as i32 / 4),
-								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32 + (TILE_SIZE as i32 / 4),
+			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32,
+								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32,
 								TILE_SIZE_POWER, TILE_SIZE_POWER);
 			match map_data.shop_items[i].0 {
 				ShopItems::Fireball => {
@@ -523,6 +569,12 @@ impl ROGUELIKE {
 				}
 				ShopItems::Dash => {
 					self.core.wincan.copy_ex(&dash_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::Sword => {
+					self.core.wincan.copy_ex(&sword_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::Spear => {
+					self.core.wincan.copy_ex(&spear_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
 				ShopItems::HealthUpgrade => {
 					self.core.wincan.copy_ex(&health_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
@@ -599,7 +651,7 @@ impl ROGUELIKE {
 		}
 		// Absorb power
 		if keystate.contains(&Keycode::E) {
-			if player.can_pickup() || player.can_pickup_shop() {
+			if player.can_pickup() || player.can_pickup_shop() || player.can_pickup_weapon() {
 				let mut picked_up = false;
 				for drop in self.game_data.dropped_powers.iter_mut() {
 					if check_collision(&player.pos(), &drop.pos()) &&
@@ -656,6 +708,14 @@ impl ROGUELIKE {
 									player.set_power(PowerType::Dash);
 									map_data.shop_items[i].1 = true;
 								}
+								ShopItems::Sword => {
+									player.set_weapon(WeaponType::Sword);
+									map_data.shop_items[i].1 = true;
+								}
+								ShopItems::Spear => {
+									player.set_weapon(WeaponType::Spear);
+									map_data.shop_items[i].1 = true;
+								}
 								ShopItems::HealthUpgrade => {
 									if map_data.shop_items[i].1 == false {
 										player.upgrade_hp(10); 
@@ -669,9 +729,43 @@ impl ROGUELIKE {
 								}
 								_ => { }
 							}
+							picked_up = true;
 							break;
 						}
 						i+=1; 
+					}
+				}
+				if !picked_up {
+					for drop in self.game_data.dropped_weapons.iter_mut() {
+						if check_collision(&player.pos(), &drop.pos()) &&
+						   player.get_pickup_timer() > 1000 {
+							player.reset_pickup_timer();
+							match drop.weapon_type() {
+								WeaponType::Sword => {
+									match player.get_weapon() {
+										WeaponType::Sword => {
+											drop.set_weapon_type(WeaponType::Sword);
+										},
+										WeaponType::Spear => {
+											drop.set_weapon_type(WeaponType::Spear);
+										},
+									}
+									player.set_weapon(WeaponType::Sword);
+								},
+								WeaponType::Spear => {
+									match player.get_weapon() {
+										WeaponType::Sword => {
+											drop.set_weapon_type(WeaponType::Sword);
+										},
+										WeaponType::Spear => {
+											drop.set_weapon_type(WeaponType::Spear);
+										},
+									}
+									player.set_weapon(WeaponType::Spear);
+								},
+							}
+							break;
+						}
 					}
 				}
 			}
@@ -753,7 +847,13 @@ impl ROGUELIKE {
                             enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
                             enemy.minus_hp(projectile.damage);
                         }
-						EnemyType::Skeleton=>{}
+						EnemyType::Skeleton=>{
+							enemy.minus_hp(projectile.damage / 2);
+						}
+						EnemyType::Boss => {
+							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+							enemy.minus_hp(projectile.damage);
+						}
 					}
 					projectile.die();
 				}
@@ -763,7 +863,14 @@ impl ROGUELIKE {
 			if player.get_attacking() {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into());
-					enemy.minus_hp(2);
+					match player.get_weapon() {
+						WeaponType::Sword => {
+							enemy.minus_hp(2);
+						},
+						WeaponType::Spear => {
+							enemy.minus_hp(4);
+						},
+					}
 				}
 			}
 		
@@ -815,6 +922,13 @@ impl ROGUELIKE {
 			}
 		}
 		player.set_can_pickup(can_pickup);
+		let mut can_pickup_weapon = false;
+		for drop in self.game_data.dropped_weapons.iter_mut() {
+			if check_collision(&player.pos(), &drop.pos()) {
+				can_pickup_weapon = true;
+			}
+		}
+		player.set_can_pickup_weapon(can_pickup_weapon);
 		let mut can_pickup_shop = false;
 		let mut price = 0;
 		let mut i = 0; 
@@ -916,7 +1030,7 @@ impl ROGUELIKE {
 	}
 
 	//draw player weapon
-	pub fn draw_weapon(&mut self, player: &Player, texture : &Texture){
+	pub fn draw_weapon(&mut self, player: &Player, sword_texture: &Texture, spear_texture: &Texture){
 		let rotation_point;
 		let pos;
 		let mut angle;
@@ -926,19 +1040,47 @@ impl ROGUELIKE {
 			angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
 		} else { angle = - 60.0; }
 		// display weapon
-		if player.facing_right{
-			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
-							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM);
-			rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
-		} else{
-			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
-							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM);
-			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
-			angle = -angle;
+		match player.get_weapon() {
+			WeaponType::Sword => {
+				if player.facing_right{
+					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
+				} else{
+					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+					angle = -angle;
+				}
+			},
+			WeaponType::Spear => {
+				if player.facing_right{
+					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
+				} else{
+					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SPEAR as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(ATTACK_LENGTH_SPEAR as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+					angle = -angle;
+				}
+			},
 		}
-		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
+
+		match player.get_weapon() {
+			WeaponType::Sword => {
+				self.core.wincan.copy_ex(&sword_texture, None, pos, angle, rotation_point,
+					player.facing_right, false).unwrap();
+			},
+			WeaponType::Spear => {
+				self.core.wincan.copy_ex(&spear_texture, None, pos, angle, rotation_point,
+					player.facing_right, false).unwrap();
+			},
+		}
 	}
 
 	pub fn draw_enemy_projectile(&mut self,ability_textures: &Vec<Texture> , player: &Player) {

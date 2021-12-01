@@ -8,6 +8,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
@@ -37,10 +38,6 @@ impl CollisionDecider{
 	}
 }
 
-pub enum Weapon{
-	Sword,
-}
-
 pub struct Player<'a> {
 	// position values
 	pos: (f64, f64),
@@ -65,7 +62,7 @@ pub struct Player<'a> {
 	// player attributes
 	hp: u32,
 	mana: i32,
-	pub weapon: Weapon,
+	weapon: WeaponType,
 	power: PowerType,
 	coins: u32,
 	// check values
@@ -74,6 +71,7 @@ pub struct Player<'a> {
 	invincible: bool,
 	shielded: bool,
 	can_pickup: bool,
+	can_pickup_weapon: bool,
 	can_pickup_shop: bool,
 	shop_price: u32,
 	pub facing_right: bool,
@@ -111,7 +109,7 @@ impl<'a> Player<'a> {
 		// player attributes
 		let hp = 30;
 		let mana = 4;
-		let weapon = Weapon::Sword;
+		let weapon = WeaponType::Sword;
 		let power: PowerType;
 		if DEBUG {power = PowerType::Shield; }
 		else { power = PowerType::None; }
@@ -122,6 +120,7 @@ impl<'a> Player<'a> {
 		let invincible = true;
 		let shielded = false; 
 		let can_pickup = false;
+		let can_pickup_weapon = false;
 		let can_pickup_shop = false;
 		let shop_price = 0;
 		let facing_right = false;
@@ -163,6 +162,7 @@ impl<'a> Player<'a> {
 			invincible,
 			shielded,
 			can_pickup,
+			can_pickup_weapon,
 			can_pickup_shop,
 			shop_price,
 			facing_right,
@@ -253,10 +253,21 @@ impl<'a> Player<'a> {
 		self.update_pos();/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
-		if self.get_attack_timer() > ATTK_COOLDOWN {
-			self.is_attacking = false;
-			// clear attack box
-			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.get_attack_timer() > ATTK_COOLDOWN {
+					self.is_attacking = false;
+					// clear attack box
+					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+				}
+			},
+			WeaponType::Spear => {
+				if self.get_attack_timer() > ATTK_TIME_SPEAR {
+					self.is_attacking = false;
+					// clear attack box
+					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+				}
+			},
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
@@ -388,16 +399,36 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		if self.facing_right{
-			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
-		} else {
-			self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.facing_right{
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+				} else {
+					self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+				}
+			},
+			WeaponType::Spear => {
+				if self.facing_right{
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
+				} else {
+					self.attack_box = Rect::new(x - ATTACK_LENGTH_SPEAR as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
+				}
+			},
 		}
 	}
 
 	pub fn attack(&mut self) {
-		if self.get_attack_timer() < ATTK_COOLDOWN {
-			return;
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.get_attack_timer() < ATTK_COOLDOWN {
+					return;
+				}
+			},
+			WeaponType::Spear => {
+				if self.get_attack_timer() < ATTK_COOLDOWN_SPEAR {
+					return;
+				}
+			},
 		}
 		self.is_attacking = true;
 		self.set_attack_box(self.x() as i32, self.y() as i32);
@@ -473,6 +504,14 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
+	pub fn get_weapon(&self) -> &WeaponType {
+		&self.weapon
+	}
+
+	pub fn set_weapon(&mut self, weapon: WeaponType) {
+		self.weapon = weapon;
+	}
+
 	// power functions
 	pub fn get_power(&self) -> &PowerType {
 		&self.power
@@ -488,6 +527,14 @@ impl<'a> Player<'a> {
 
 	pub fn set_can_pickup(&mut self, can: bool) {
 		self.can_pickup = can;
+	}
+
+	pub fn can_pickup_weapon(&self) -> bool {
+		self.can_pickup_weapon
+	}
+
+	pub fn set_can_pickup_weapon(&mut self, can: bool) {
+		self.can_pickup_weapon = can;
 	}
 
 	pub fn can_pickup_shop(&self) -> bool {

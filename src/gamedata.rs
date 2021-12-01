@@ -8,6 +8,7 @@ use std::time::Instant;
 
 use crate::gold::*;
 use crate::power::*;
+use crate::weapon::*;
 use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
@@ -37,17 +38,23 @@ pub const MIN_ROOM_H: usize = 11;
 pub const MAX_ROOM_H: usize = 21;
 pub const MAP_SIZE_H: usize = 61;
 
+pub const BOSS_ROOM_W: usize = 31;
+pub const BOSS_ROOM_H: usize = 21;
+
 // game globals
 pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 
 // player globals
-pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3 / 2;   // length of sword
-pub const ATTK_COOLDOWN: u128 = 300;        // how often player can attack
-pub const DMG_COOLDOWN: u128 = 800;         // how often player can take damage
-pub const FIRE_COOLDOWN_P: u128 = 300;      // how often player can shoot projectile
-pub const SHIELD_TIME: u128 = 1800;         // how long player shield lastsa
-pub const MANA_RESTORE_RATE: u128 = 1000;   // how quickly mana is restored
+pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3/2;     // length of sword
+pub const ATTACK_LENGTH_SPEAR: u32 = TILE_SIZE_CAM * 2; // length of spear
+pub const ATTK_COOLDOWN: u128 = 300;                    // how often player can attack with sword
+pub const ATTK_TIME_SPEAR: u128 = 300;                  // how long the spear attack lasts
+pub const ATTK_COOLDOWN_SPEAR: u128 = 800;              // how often player can attack with spear
+pub const DMG_COOLDOWN: u128 = 800;                     // how often player can take damage
+pub const FIRE_COOLDOWN_P: u128 = 300;                  // how often player can shoot projectile
+pub const SHIELD_TIME: u128 = 1800;                     // how long player shield lasts
+pub const MANA_RESTORE_RATE: u128 = 1000;               // how quickly mana is restored
 
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
@@ -59,10 +66,13 @@ pub struct GameData {
 
     pub gold: Vec<Gold>,
     pub dropped_powers: Vec<Power>,
+    pub dropped_weapons: Vec<Weapon>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
     pub crates: Vec<Crate>,
     
+    pub map_size_w: usize,
+    pub map_size_h: usize,
     pub current_floor: i32, 
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,
@@ -71,6 +81,8 @@ pub struct GameData {
 impl GameData {
     pub fn new() -> GameData {
         // creating a level: room data
+        let map_size_w = 61;
+        let map_size_h = 61;
         let current_floor = 1; // starting floor
         let current_room = 0; // starting room
         let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11));
@@ -87,17 +99,21 @@ impl GameData {
         // objects
         let gold: Vec<Gold> = Vec::with_capacity(5);
         let dropped_powers: Vec<Power> = Vec::new();
+        let dropped_weapons: Vec<Weapon> = Vec::new();
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
         let frame_counter = Instant::now();
 
         GameData {
+            map_size_w,
+            map_size_h,
             current_floor, 
             frame_counter, 
             current_room,
             gold,
             dropped_powers,
+            dropped_weapons,
             player_projectiles,
             enemy_projectiles,
             rooms,
@@ -139,4 +155,10 @@ impl GameData {
             true
         }
     }
+
+    /* pub fn go_to_next_floor() {
+        self.current_floor += 1;
+        self.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
+        self.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
+    } */
 }

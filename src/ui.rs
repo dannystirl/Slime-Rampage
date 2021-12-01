@@ -6,7 +6,7 @@ use sdl2::rect::Rect;
 use crate::SDLCore;
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
-use crate::player::*;
+use crate::weapon::*;
 use crate::power::*;
 use crate::map::*;
 use sdl2::pixels::Color;
@@ -19,7 +19,7 @@ pub struct UI<'a>{
 
 impl<'a> UI<'a> {
 	pub fn new(pos: Rect, texture: Texture<'a>) -> UI<'a> {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64 * 2, TILE_SIZE_64);
 		UI{
 			pos,
 			src,
@@ -45,7 +45,7 @@ impl<'a> UI<'a> {
 
 
 	//update background
-	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map, game_data: &GameData) -> Result<(), String> {
 		// set ui bar
 		let texture_creator = core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE_64*2);
@@ -132,13 +132,19 @@ impl<'a> UI<'a> {
 					let buy_help = get_font.render(&price_tag).blended(Color::WHITE).unwrap();
 					let display_buy_help = texture_creator.create_texture_from_surface( &buy_help ).unwrap();
 					core.wincan.copy(&display_buy_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+				} else {
+					if player.can_pickup_weapon() {
+						let swap_help = get_font.render("[E]: Swap Weapon").blended(Color::WHITE).unwrap();
+						let display_swap_help = texture_creator.create_texture_from_surface( &swap_help ).unwrap();
+						core.wincan.copy(&display_swap_help, None, Rect::new(300 as i32, 660 as i32, 300, 48))?;
+					}
 				}
 			}
 		}
 
 		//display equipped weapon
-		match player.weapon{
-			Weapon::Sword=>{ 
+		match player.get_weapon() {
+			WeaponType::Sword => { 
 				let weapon = UI::new(
 					Rect::new(
 						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*8) as i32,
@@ -146,11 +152,22 @@ impl<'a> UI<'a> {
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 					),
-					texture_creator.load_texture("images/player/sword_l.png")?,
+					texture_creator.load_texture("images/player/sword.png")?,
+				);
+				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+			},
+			WeaponType::Spear => {
+				let weapon = UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*8) as i32,
+						(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
+						(TILE_SIZE_64 as f64 * 1.2) as u32,
+						(TILE_SIZE_64 as f64 * 1.2) as u32,
+					),
+					texture_creator.load_texture("images/player/spear.png")?,
 				);
 				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
 			}
-			
 		}
 		
 		// Display current power
@@ -220,6 +237,14 @@ impl<'a> UI<'a> {
 		let coin_count = get_font.render( format!("{}", player.get_coins() ).as_str() ).blended(Color::WHITE).unwrap();
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
 		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) )?;
+
+		let mut level_str = format!("Level {}", game_data.current_floor);
+		if game_data.current_floor > 3 {
+			level_str = "Boss Fight".to_string();
+		}
+		let level_counter = get_font.render(&level_str).blended(Color::BLUE).unwrap();
+		let display_level_counter = texture_creator.create_texture_from_surface( &level_counter ).unwrap();
+		core.wincan.copy(&display_level_counter, None, Rect::new(10 as i32, 10 as i32, 150, 48))?;
 
 		if player.god_mode {
 			let offset = 10;
