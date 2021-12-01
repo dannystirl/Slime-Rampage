@@ -272,6 +272,22 @@ impl Game for ROGUELIKE  {
                             rngt.push(rng.gen_range(1..5));
                             enemy_count += 1;
                         }
+						6 => {
+							let e = enemy::Enemy::new(
+								Rect::new(
+									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+                                    TILE_SIZE_CAM * 4,
+                                    TILE_SIZE_CAM * 4
+								),
+								texture_creator.load_texture("images/enemies/boss.png")?,
+								EnemyType::Boss,
+								enemy_count,
+							);
+							enemies.push(e);
+							rngt.push(rng.gen_range(1..5));
+							enemy_count += 1;
+						}
 						_ => {}
 					}
 				}
@@ -831,7 +847,13 @@ impl ROGUELIKE {
                             enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
                             enemy.minus_hp(projectile.damage);
                         }
-						EnemyType::Skeleton=>{}
+						EnemyType::Skeleton=>{
+							enemy.minus_hp(projectile.damage / 2);
+						}
+						EnemyType::Boss => {
+							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+							enemy.minus_hp(projectile.damage);
+						}
 					}
 					projectile.die();
 				}
