@@ -154,7 +154,11 @@ impl Game for ROGUELIKE  {
 				),
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
-			map_data.create_map();
+			if self.game_data.current_floor > 3 {
+				map_data.create_boss();
+			} else {
+				map_data.create_map();
+			}
 
 			// set starting position
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
@@ -183,8 +187,9 @@ impl Game for ROGUELIKE  {
 			let mut rngt = Vec::new();
 
 			let mut enemy_count = 0;
-			let max_h = MAP_SIZE_H + ((self.game_data.current_floor-1)*30) as usize; 
-			let max_w = MAP_SIZE_W + ((self.game_data.current_floor-1)*30) as usize;
+			let max_h = MAP_SIZE_H; 
+			let max_w = MAP_SIZE_W;
+			println!("{}, {}", max_w, max_h);
 			for h in 0..max_h {
 				for w in 0..max_w {
 					if map_data.enemy_and_object_spawns[h][w] == 0 {
@@ -325,7 +330,7 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
 
 				// UPDATE ENEMIES
-				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
+				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player, map_data.map);
 				// UPDATE ATTACKS
 				// Should be switched to take in array of active fireballs, bullets, etc.
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
@@ -345,13 +350,15 @@ impl Game for ROGUELIKE  {
 				if player.is_dead(){break 'gameloop;}
 
 				// UPDATE UI
-				ui.update_ui(&player, &mut self.core, &map_data)?;
+				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
 				
 				// UPDATE FRAME
 				self.core.wincan.present();
 			}
+			self.game_data.current_floor += 1;
+        	self.game_data.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
+        	self.game_data.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
 		}
-		self.game_data.current_floor += 1;
 		// Out of game loop, return Ok
 		Ok(()) 
 	}
