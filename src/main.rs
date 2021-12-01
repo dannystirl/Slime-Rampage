@@ -154,7 +154,7 @@ impl Game for ROGUELIKE  {
 				),
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
-			if self.game_data.current_floor > 0 {
+			if self.game_data.current_floor > 3 {
 				map_data.create_boss();
 			} else {
 				map_data.create_map();

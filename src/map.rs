@@ -68,6 +68,7 @@ impl<'a> Map<'a> {
 	}
 
 	pub fn create_boss(&mut self) {
+		let mut rng = rand::thread_rng();
 		self.map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
 
 		let mut new_map = self.map;
@@ -81,9 +82,21 @@ impl<'a> Map<'a> {
 			}
 		}
 
+		for h in 0..BOSS_ROOM_H {
+			for w in 0..BOSS_ROOM_W {
+				if (h > 0 && h < 6) || (h < BOSS_ROOM_H - 1 && h > BOSS_ROOM_H - 7) ||
+					(w > 0 && w < 6) || (w < BOSS_ROOM_W - 1 && w > BOSS_ROOM_W - 7) {
+					let pillar = rng.gen_range(0..8);
+					if pillar == 0 {
+						new_map[h][w] = 2;
+					}
+				}
+			}
+		}
+
 		self.map = new_map;
 
-		self.starting_position = (10.0, 10.0);
+		self.starting_position = (BOSS_ROOM_W as f64 / 2.0, BOSS_ROOM_H as f64 - 7.0);
 
 		self.print_map(self.map);
 	}

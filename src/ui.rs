@@ -238,7 +238,10 @@ impl<'a> UI<'a> {
 		let display_coin_count = texture_creator.create_texture_from_surface( &coin_count ).unwrap();
 		core.wincan.copy(&display_coin_count, None, Rect::new( coin.pos().x - 16 as i32, coin.pos().y + 12 as i32, 32, 48) )?;
 
-		let level_str = format!("Level {}", game_data.current_floor);
+		let mut level_str = format!("Level {}", game_data.current_floor);
+		if game_data.current_floor > 3 {
+			level_str = "Boss Fight".to_string();
+		}
 		let level_counter = get_font.render(&level_str).blended(Color::BLUE).unwrap();
 		let display_level_counter = texture_creator.create_texture_from_surface( &level_counter ).unwrap();
 		core.wincan.copy(&display_level_counter, None, Rect::new(10 as i32, 10 as i32, 150, 48))?;
