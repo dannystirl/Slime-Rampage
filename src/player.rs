@@ -164,13 +164,7 @@ impl<'a> Player<'a> {
 		let speed_limit_adj = game_data.get_speed_limit();
 
 		// Slow down to 0 vel if no input and non-zero velocity
-		if self.rb.accel.length() == 0.0 {
-			self.resist();
-		}
-		//self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
-		//self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
-		//self.rb.accel.x = resist(self.rb.vel.x as i32, self.rb.accel.x as i32).into();
-		//self.rb.accel.y = resist(self.rb.vel.y as i32, self.rb.accel.y as i32).into();
+		self.resist();
 
 		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
 		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
@@ -679,18 +673,21 @@ impl<'a> Player<'a> {
 		}
 	}
 
-
-// calculate velocity resistance
+	// calculate velocity resistance
 	pub fn resist(&mut self) {
-		if self.x_vel() > 0 {
-			self.update_velocity(-1.0, 0.0);
-		} else if self.x_vel() < 0 {
-			self.update_velocity(1.0, 0.0);
+		if self.x_delta() == 0 {
+			if self.x_vel() > 0 {
+				self.update_velocity(-0.5, 0.0);
+			} else if self.x_vel() < 0 {
+				self.update_velocity(0.5, 0.0);
+			}
 		}
-		if self.y_vel() > 0 {
-			self.update_velocity(0.0, -1.0);
-		} else if self.y_vel() < 0 {
-			self.update_velocity(0.0, 1.0);
+		if self.y_delta() == 0 {
+			if self.y_vel() > 0 {
+				self.update_velocity(0.0, -0.5);
+			} else if self.y_vel() < 0 {
+				self.update_velocity(0.0, 0.5);
+			}
 		}
 	}
 }
