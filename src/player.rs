@@ -277,7 +277,7 @@ impl<'a> Player<'a> {
 		self.rb.hitbox.y = y;
 	}
 	pub fn y(&self) -> f64 {
-		return self.rb.hitbox.x;
+		return self.rb.hitbox.y;
 	}
 	pub fn set_y_vel(&mut self, y: f64){
 		self.rb.vel.y = y;

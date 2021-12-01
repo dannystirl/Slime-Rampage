@@ -420,7 +420,7 @@ impl Game for ROGUELIKE  {
 
 				if player.rb.rect_vs_rect(c.rb, normal_collision, pen ){
 					println!("Collision!!!");
-					rb1.resolve_col(&mut rb, *normal_collision, *pen);
+					rb1.resolve_col(&mut c.rb, *normal_collision, *pen);
 				}
 			}
 
