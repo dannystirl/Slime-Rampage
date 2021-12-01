@@ -44,10 +44,7 @@ pub enum Weapon{
 
 pub struct Player<'a> {
 	// position values
-	pos: (f64, f64),
 	cam_pos: Rect,
-	mass: f64,
-	vel: (i32, i32),
 	delta: (i32, i32),
 	height: u32,
 	width: u32,
@@ -77,12 +74,11 @@ pub struct Player<'a> {
 	pub facing_right: bool,
 	is_attacking: bool,
 	pub is_firing: bool,
-
 	pub rb: Rigidbody,
 }
 
 impl<'a> Player<'a> {
-	pub fn new(pos: (f64, f64), texture_all: Texture<'a>) -> Player<'a> {
+	pub fn new(texture_all: Texture<'a>) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -90,14 +86,13 @@ impl<'a> Player<'a> {
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
-		let mass = 1.5;
-		let vel = (0, 0);
 		let delta = (0, 0);
 		let height = TILE_SIZE;
 		let width = TILE_SIZE;
 		// display values
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let attack_box = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
+
 		// timers
 		let attack_timer = Instant::now();
 		let fire_timer = Instant::now();
@@ -126,10 +121,7 @@ impl<'a> Player<'a> {
 
 		Player {
 			// position values
-			pos,
 			cam_pos,
-			mass,
-			vel,
 			delta,
 			height,
 			width,
@@ -168,7 +160,7 @@ impl<'a> Player<'a> {
 		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 		// debug stuff
 		let tc = core.wincan.texture_creator();
-		let hitbox =tc.load_texture("images/objects/crate.png")?;
+		let hitbox = tc.load_texture("images/objects/crate.png")?;
 		let src = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let speed_limit_adj = game_data.get_speed_limit();
 
@@ -298,14 +290,10 @@ impl<'a> Player<'a> {
 	// update position
 	#[allow(unused_variables)]
 	pub fn update_pos(&mut self) {
-		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
-		println!("PLayer Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
-		//self.rb.hitbox.x + self.rb.vel.x
+		println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
+		println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
 		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
-		//self.rb.hitbox = Rectangle{x: self.rb.hitbox.x + self.rb.vel.x, y:  self.rb.hitbox.y + self.rb.vel.y, w: self.rb.hitbox.w ,h: self.rb.hitbox.h};
-		//self.pos.0 = self.x() + self.x_vel() as f64 * 2.0 /* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
-		//self.pos.1 = self.y() + self.y_vel() as f64 * 2.0 /* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -338,7 +326,7 @@ impl<'a> Player<'a> {
         self.cam_pos
     }
 
-	pub fn get_mass(&self) -> f64 { self.mass }
+	pub fn get_mass(&self) -> f64 { self.rb.mass }
 
 	pub fn texture_all(&self) -> &Texture {
         &self.texture_all
