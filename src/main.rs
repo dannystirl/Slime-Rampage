@@ -531,8 +531,8 @@ impl ROGUELIKE {
 				continue;
 			}
 			let src = Rect::new(0,0,TILE_SIZE_64,TILE_SIZE_64); 
-			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32 + (TILE_SIZE as i32 / 4),
-								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32 + (TILE_SIZE as i32 / 4),
+			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - player.x() as i32,
+								(map_data.shop_spawns[i].0 as i32) * TILE_SIZE as i32 - player.y() as i32,
 								TILE_SIZE_POWER, TILE_SIZE_POWER);
 			match map_data.shop_items[i].0 {
 				ShopItems::Fireball => {
