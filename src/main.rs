@@ -137,19 +137,19 @@ impl Game for ROGUELIKE  {
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		let physics_debug_stage =false;
+		let physics_debug_stage =true;
 		
 			let mut all_frames = 0;
 			let last_time = Instant::now();
-			let test = Rect::new(500, 200, 64, 64);
-			let test1 = Rect::new(0, 0, 64, 64);
-			let test2 = Rect::new(600, 600, 64, 64);
+			let test = Rect::new(900, 400, 64, 64);
+			let test1 = Rect::new(100, 100, 64, 64);
+			let test2 = Rect::new(200, 200, 64, 64);
 			let test3 = Rect::new(600, 300, 64, 64);
-
-			let mut rb = Rigidbody::new(test1, 0.0, 0.0,4.0);
-			let mut rb1 = Rigidbody::new(test, -1.0, -1.0, 1.0);
-			let mut rb2 = Rigidbody::new(test2, 0.0, 0.0, 10.0);
-			let mut rb3 = Rigidbody::new(test3, 0.0, 0.0, 1.0);
+			let mut en = Rigidbody::new(test1, 0.0, 0.0, 10.0);
+			let mut ball1 = Rigidbody::new(test2, 3.0, 1.0,4.0);
+			let mut pl = Rigidbody::new(test, 0.0, 0.0, 1.0);
+			
+			let mut ball2 = Rigidbody::new(test3, -6.0, -1.0, 4.0);
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -318,7 +318,7 @@ impl Game for ROGUELIKE  {
 					}
 				}
 				//println!("helpsadas");
-				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data,&mut rb)?;
+				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data,&mut ball1)?;
 
 				// UPDATE BACKGROUND
 				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
@@ -403,7 +403,7 @@ impl Game for ROGUELIKE  {
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
 
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data, &mut rb)?;
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data, &mut ball1)?;
 
 			//background
 			self.core.wincan.copy(&b, None,Rect::new(
@@ -415,27 +415,23 @@ impl Game for ROGUELIKE  {
 
 			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let  pen = &mut 0.0;
-			if rb1.rect_vs_circle(rb, normal_collision, pen){
-				
-				rb1.resolve_col(&mut rb, *normal_collision, *pen);
-			}	
 			
-			if rb.circle_vs_circle(rb3, normal_collision, pen){
+			if ball1.circle_vs_circle(ball2, normal_collision, pen){
 				println!("collide");
 				//println!("normal: {}, {}", normal_collision.x, normal_collision.y);
-				rb.resolve_col(&mut rb3, *normal_collision, *pen);
+				ball1.resolve_col(&mut ball2, *normal_collision, *pen);
 			}
+			ball1.update_pos();
+			ball2.update_pos();
 
-			rb.update_pos();
-			rb1.update_pos();
+			let testtext = texture_creator.load_texture("images/enemies/ranged_enemy_small.png")?;
+			self.core.wincan.copy(&crate_textures[1], None, ball2.draw_pos())?;
 
-			rb3.update_pos();
-
-			self.core.wincan.copy(&crate_textures[0], None, rb1.draw_pos())?;
-
-			self.core.wincan.copy(&crate_textures[1], None, rb.draw_pos())?;
+			self.core.wincan.copy(&crate_textures[1], None, ball1.draw_pos())?;
 			
-			self.core.wincan.copy(&crate_textures[1], None, rb3.draw_pos())?;
+			self.core.wincan.copy(&testtext, None, en.draw_pos())?;
+
+			self.core.wincan.copy(&player.texture_all(), Rect::new(0, 0, 64, 64), pl.draw_pos())?;
 
 			self.core.wincan.present();
 
