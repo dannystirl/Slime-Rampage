@@ -9,6 +9,7 @@ use crate::gamedata::*;
 use crate::projectile::Direction::{Down, Up, Left, Right};
 use crate::player::*;
 use crate::crateobj::*;
+use crate::rigidbody::Rigidbody;
 
 pub enum ProjectileType{
 	Bullet,
@@ -18,22 +19,22 @@ pub enum ProjectileType{
 
 pub struct Projectile{
 	src: Rect,
-	pos: Rect,
 	pub facing_right: bool,
 	is_active: bool,
-	vector: Vec<f64>,
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
 	pub elapsed: u128,
-	pub damage: i32, 
+	pub damage: i32,
+	pub rb: Rigidbody,
 }
 
 impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
+	pub fn new(pos: Rect, facing_right: bool, velocity: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
-		let damage: i32; 
+		let damage: i32;
+		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0);
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
 			ProjectileType::Fireball => { damage = 10; } 
@@ -41,45 +42,44 @@ impl Projectile {
 		}
 		Projectile {
 			src,
-			pos,
 			facing_right,
 			is_active,
-			vector,
 			p_type,
 			bounce_counter,
 			elapsed,
-			damage, 
+			damage,
+			rb,
 		}
 	}
 	pub fn x(&self) -> i32 {
-		return self.pos.x;
+		return self.rb.hitbox.x as i32;
 	}
 
 	pub fn y(&self) -> i32 {
-		return self.pos.y;
+		return self.rb.hitbox.y as i32;
 	}
 
 	pub fn set_x_vel(&mut self, vel: f64) {
-		self.vector[0] = vel;
+		self.rb.vel.x = vel;
 	}
 
 	pub fn set_y_vel(&mut self, vel: f64) {
-		self.vector[1] = vel;
+		self.rb.vel.y = vel;
 	}
 
 	pub fn x_vel(&self) -> f64 {
-		return self.vector[0];
+		return self.rb.vel.x;
 	}
 
 	pub fn y_vel(&self) -> f64 {
-		return self.vector[1];
+		return self.rb.vel.y;
 	}
 
 	 pub fn set_x(&mut self, x: i32){
-		 self.pos.x = x;
+		 self.rb.hitbox.x = x as f64;
 	 }
 	 pub fn set_y(&mut self, y: i32){
-		 self.pos.y = y;
+		 self.rb.hitbox.y = y as f64;
 	 }
 	pub fn is_active(&self) -> bool{
 		return self.is_active;
@@ -213,12 +213,13 @@ impl Projectile {
 	}
 	
 	pub fn update_pos(&mut self) {
-		self.set_x(self.x() + self.vector[0] as i32);
-		self.set_y(self.y() + self.vector[1] as i32);
+		self.set_x(self.x() + self.rb.vel.x as i32);
+		self.set_y(self.y() + self.rb.vel.y as i32);
 
 	}
 	pub fn set_pos(&mut self, p:Rect){
-		self.pos = p;
+		self.rb.hitbox.x = p.x() as f64;
+		self.rb.hitbox.y= p.y() as f64;
 	}
 	pub fn src(&self) -> Rect{
 		return self.src;

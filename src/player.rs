@@ -153,7 +153,6 @@ impl<'a> Player<'a> {
 
 	// update player
 	pub fn update_player(&mut self, game_data: &GameData, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], core: &mut SDLCore) -> Result<(), String> {
-		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 		// debug stuff
 		let tc = core.wincan.texture_creator();
 		let hitbox = tc.load_texture("images/objects/crate.png")?;
@@ -165,6 +164,8 @@ impl<'a> Player<'a> {
 
 		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
 		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
+
+		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
@@ -290,14 +291,14 @@ impl<'a> Player<'a> {
 	pub fn update_pos(&mut self) {
 		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
-		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x * 2.0;
-		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y * 2.0;
+		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
+		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
 
 	// Update Velocity
 	pub fn update_velocity(&mut self, x: f64, y: f64) {
-		self.rb.vel.x = (self.rb.vel.x + x as f64) * 2.0;
-		self.rb.vel.y = (self.rb.vel.y + y as f64) * 2.0;
+		self.rb.vel.x = (self.rb.vel.x + x as f64);
+		self.rb.vel.y = (self.rb.vel.y + y as f64);
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {

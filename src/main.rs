@@ -201,7 +201,7 @@ impl Game for ROGUELIKE  {
 			let mut rngt = Vec::new();
 
 			let mut enemy_count = 0;
-			let max_h = MAP_SIZE_H + ((self.game_data.current_floor-1)*30) as usize; 
+			let max_h = MAP_SIZE_H + ((self.game_data.current_floor-1)*30) as usize;
 			let max_w = MAP_SIZE_W + ((self.game_data.current_floor-1)*30) as usize;
 			for h in 0..max_h {
 				for w in 0..max_w {
@@ -296,6 +296,7 @@ impl Game for ROGUELIKE  {
 				// reset frame values
 				player.set_x_accel(0);
 				player.set_y_accel(0);
+
 				self.core.wincan.copy(&map_data.background.black, None, None)?;
 
 				// GET INPUT
@@ -813,19 +814,22 @@ impl ROGUELIKE {
 
 			// ENEMIES VS PLAYER PROJECTILES
 			for projectile in self.game_data.player_projectiles.iter_mut() {
-				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
-					match enemy.enemy_type {
-						EnemyType::Melee =>{
-							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-							enemy.minus_hp(projectile.damage);
+				if projectile.is_active() {
+					if check_collision(&projectile.pos(), &enemy.pos()) && projectile.is_active() {
+						match enemy.enemy_type {
+							EnemyType::Melee => {
+								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+								enemy.minus_hp(projectile.damage);
+							}
+							EnemyType::Ranged => {
+								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+								enemy.minus_hp(projectile.damage);
+							}
+							EnemyType::Skeleton => {}
 						}
-						EnemyType::Ranged =>{
-							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-							enemy.minus_hp(projectile.damage);
-						}
-						EnemyType::Skeleton=>{}
+						projectile.die();
 					}
-					projectile.die();
+					projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
 				}
 			}
 
@@ -846,6 +850,19 @@ impl ROGUELIKE {
 			}
 		}
 
+		// PLAYER VS CRATES
+		for c in self.game_data.crates.iter_mut(){
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let pen = &mut 0.0;
+			if player.rb.rect_vs_rect(c.rb, normal_collision, pen){
+				// provide impulse
+				player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
+				// c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
+			} else {
+				c.friction();
+			}
+		}
+
 		// ENEMY PROJECTILES
 		// enemy projectile collisions
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
@@ -854,16 +871,9 @@ impl ROGUELIKE {
 				projectile.die();
 			}
 			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
-
 		}
 
-		for projectile in self.game_data.player_projectiles.iter_mut() {
-			//projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
-		}
-		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			//projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
-		}
-
+		// COINS
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
@@ -872,6 +882,8 @@ impl ROGUELIKE {
 				}
 			}
 		}
+
+		// PICKUPS
 		let mut can_pickup = false;
 		for drop in self.game_data.dropped_powers.iter_mut() {
 			if check_collision(&player.pos(), &drop.pos()) {
@@ -885,6 +897,8 @@ impl ROGUELIKE {
 				}
 			}
 		}
+
+		// SHOP
 		let mut i=0; 
 		while i< map_data.shop_spawns.len() {
 			let pos = Rect::new((map_data.shop_spawns[i].1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
@@ -900,19 +914,6 @@ impl ROGUELIKE {
 			i += 1; 
 		}
 		player.set_can_pickup(can_pickup);
-
-		// PLAYER VS CRATES
-		for c in self.game_data.crates.iter_mut(){
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let pen = &mut 0.0;
-			if player.rb.rect_vs_rect(c.rb, normal_collision, pen){
-				// provide impulse
-				player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
-				// c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
-			} else {
-				c.friction();
-			}
-		}
 
 		for c in self.game_data.crates.iter_mut(){
 			c.update_crates(&mut self.core, &crate_textures, player, map);
