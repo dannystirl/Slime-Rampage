@@ -294,8 +294,8 @@ impl Game for ROGUELIKE  {
 					self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
 				}
 				// reset frame values
-				player.set_x_delta(0);
-				player.set_y_delta(0);
+				player.set_x_accel(0);
+				player.set_y_accel(0);
 				self.core.wincan.copy(&map_data.background.black, None, None)?;
 
 				// GET INPUT
@@ -369,8 +369,6 @@ impl Game for ROGUELIKE  {
 				self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
 				self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
 			}
-			// reset frame values
-			player.set_y_delta(0);
 
 			// GET INPUT
 			let mousestate= self.core.event_pump.mouse_state();
@@ -410,17 +408,6 @@ impl Game for ROGUELIKE  {
 				CAM_W,
 				CAM_H,)
 			)?;
-
-			// Check player with Crates
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let  pen = &mut 0.0;
-			for c in self.game_data.crates.iter_mut(){
-
-				if player.rb.rect_vs_rect(c.rb, normal_collision, pen ){
-					println!("Collision!!!");
-					rb1.resolve_col(&mut c.rb, *normal_collision, *pen);
-				}
-			}
 
 			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let  pen = &mut 0.0;
@@ -811,18 +798,20 @@ impl ROGUELIKE {
 	
 	// check collisions
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, crate_textures: &Vec<Texture>) {
-		let map = map_data.map; 	
+		let map = map_data.map;
+
+		// ALL ENEMIES
 		for enemy in enemies {
 			if !enemy.is_alive() {
 				continue;
 			}
 
-			// player collision
+			// PLAYER VS ENEMIES
 			if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
 				player.minus_hp(5);
 			}
 
-			// player projectile collisions
+			// ENEMIES VS PLAYER PROJECTILES
 			for projectile in self.game_data.player_projectiles.iter_mut() {
 				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
 					match enemy.enemy_type {
@@ -840,36 +829,41 @@ impl ROGUELIKE {
 				}
 			}
 
-			// player melee collisions
+			// ENEMIES VS PLAYER MELEE
 			if player.get_attacking() {
 				if check_collision(&player.get_attack_box(), &enemy.pos()) {
 					enemy.knockback(player.x().into(), player.y().into());
 					enemy.minus_hp(2);
 				}
 			}
-		
-			// enemy projectile collisions
-			for projectile in self.game_data.enemy_projectiles.iter_mut() {
-				if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-					player.minus_hp(5);
-					projectile.die();
-				}
-			}
 
-			// check crate collisions
+			// ENEMIES VS CRATES
 			for c in self.game_data.crates.iter_mut() {
+				//if enemy.rb.rect_vs_rect()
 				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
 					enemy.projectile_knockback(c.x_vel(), c.y_vel());
 				}
 			}
 		}
 
-		for projectile in self.game_data.player_projectiles.iter_mut() {
+		// ENEMY PROJECTILES
+		// enemy projectile collisions
+		for projectile in self.game_data.enemy_projectiles.iter_mut() {
+			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
+				player.minus_hp(5);
+				projectile.die();
+			}
 			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
+
+		}
+
+		for projectile in self.game_data.player_projectiles.iter_mut() {
+			//projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
 		}
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
+			//projectile.check_bounce(&mut self.game_data.crates, &mut self.game_data.player_projectiles, map);
 		}
+
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {

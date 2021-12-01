@@ -45,7 +45,6 @@ pub enum Weapon{
 pub struct Player<'a> {
 	// position values
 	cam_pos: Rect,
-	delta: (i32, i32),
 	height: u32,
 	width: u32,
 	// display values
@@ -86,7 +85,6 @@ impl<'a> Player<'a> {
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
-		let delta = (0, 0);
 		let height = TILE_SIZE;
 		let width = TILE_SIZE;
 		// display values
@@ -121,7 +119,6 @@ impl<'a> Player<'a> {
 		Player {
 			// position values
 			cam_pos,
-			delta,
 			height,
 			width,
 			// display values
@@ -255,10 +252,10 @@ impl<'a> Player<'a> {
 	pub fn x_vel(&self) -> i32 {
 		return self.rb.vel.x as i32;
 	}
-	pub fn set_x_delta(&mut self, x: i32) {
+	pub fn set_x_accel(&mut self, x: i32) {
 		self.rb.accel.x = x as f64;
 	}
-	pub fn x_delta(&self) -> i32 {
+	pub fn x_accel(&self) -> i32 {
 		return self.rb.accel.x as i32;
 	}
 	pub fn width(&self) -> u32 {
@@ -278,10 +275,10 @@ impl<'a> Player<'a> {
 	pub fn y_vel(&self) -> i32 {
 		return self.rb.vel.y as i32;
 	}
-	pub fn set_y_delta(&mut self, y: i32) {
+	pub fn set_y_accel(&mut self, y: i32) {
 		self.rb.accel.y  = y as f64;
 	}
-	pub fn y_delta(&self) -> i32 {
+	pub fn y_accel(&self) -> i32 {
 		return self.rb.accel.y as i32;
 	}
 	pub fn height(&self) -> u32 {
@@ -293,14 +290,14 @@ impl<'a> Player<'a> {
 	pub fn update_pos(&mut self) {
 		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
-		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
-		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
+		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x * 2.0;
+		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y * 2.0;
 	}
 
 	// Update Velocity
 	pub fn update_velocity(&mut self, x: f64, y: f64) {
-		self.rb.vel.x = (self.rb.vel.x + x as f64);
-		self.rb.vel.y = (self.rb.vel.y + y as f64);
+		self.rb.vel.x = (self.rb.vel.x + x as f64) * 2.0;
+		self.rb.vel.y = (self.rb.vel.y + y as f64) * 2.0;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -675,14 +672,14 @@ impl<'a> Player<'a> {
 
 	// calculate velocity resistance
 	pub fn resist(&mut self) {
-		if self.x_delta() == 0 {
+		if self.x_accel() == 0 {
 			if self.x_vel() > 0 {
 				self.update_velocity(-0.5, 0.0);
 			} else if self.x_vel() < 0 {
 				self.update_velocity(0.5, 0.0);
 			}
 		}
-		if self.y_delta() == 0 {
+		if self.y_accel() == 0 {
 			if self.y_vel() > 0 {
 				self.update_velocity(0.0, -0.5);
 			} else if self.y_vel() < 0 {
