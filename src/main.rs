@@ -145,15 +145,10 @@ impl Game for ROGUELIKE  {
 			let test2 = Rect::new(600, 600, 64, 64);
 			let test3 = Rect::new(600, 300, 64, 64);
 
-			let mut rb = Rigidbody::new(test1, 0.0, 0.0,4.0);
-			let mut rb1 = Rigidbody::new(test, -1.0, -1.0, 1.0);
-			let mut rb2 = Rigidbody::new(test2, 0.0, 0.0, 10.0);
-			let mut rb3 = Rigidbody::new(test3, 0.0, 0.0, 1.0);
-
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			// CREATE MAPS
-	
+
 		if !physics_debug_stage {
 			let background = background::Background::new(
 				texture_creator.load_texture("images/background/bb.png")?,
@@ -318,7 +313,7 @@ impl Game for ROGUELIKE  {
 					}
 				}
 				//println!("helpsadas");
-				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data,&mut rb)?;
+				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
 
 				// UPDATE BACKGROUND
 				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
@@ -329,15 +324,16 @@ impl Game for ROGUELIKE  {
 
 				// UPDATE ENEMIES
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player,map_data.map);
+
 				// UPDATE ATTACKS
-				// Should be switched to take in array of active fireballs, bullets, etc.
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
 				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
 				ROGUELIKE::draw_weapon(self, &player, &sword_texture);
 				
 				// UPDATE INTERACTABLES
-				// function to check explosive barrels stuff like that should go here. placed for ordering.
+				ROGUELIKE::update_crates(self, &crate_textures, &mut player, map_data.map);
+
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture, 
 										&health_texture, &health_upgrade_texture);
@@ -400,42 +396,9 @@ impl Game for ROGUELIKE  {
 			);
 			let mut map_data = map::Map::new(self.game_data.current_floor, background);
 
-			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data, &mut rb)?;
-
-			//background
-			self.core.wincan.copy(&b, None,Rect::new(
-				0 ,
-				0 ,
-				CAM_W,
-				CAM_H,)
-			)?;
-
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let  pen = &mut 0.0;
-			if rb1.rect_vs_circle(rb, normal_collision, pen){
-				
-				rb1.resolve_col(&mut rb, *normal_collision, *pen);
-			}	
-			
-			if rb.circle_vs_circle(rb3, normal_collision, pen){
-				println!("collide");
-				//println!("normal: {}, {}", normal_collision.x, normal_collision.y);
-				rb.resolve_col(&mut rb3, *normal_collision, *pen);
-			}
-
-			rb.update_pos();
-			rb1.update_pos();
-
-			rb3.update_pos();
-
-			self.core.wincan.copy(&crate_textures[0], None, rb1.draw_pos())?;
-
-			self.core.wincan.copy(&crate_textures[1], None, rb.draw_pos())?;
-			
-			self.core.wincan.copy(&crate_textures[1], None, rb3.draw_pos())?;
+			ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
 
 			self.core.wincan.present();
-
 		}
 		self.game_data.current_floor += 1;
 		// Out of game loop, return Ok
@@ -615,46 +578,24 @@ impl ROGUELIKE {
 	}
 
 	// check input values
-	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map, r: &mut Rigidbody)-> Result<(), String>  {
+	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
 			player.rb.accel.y = player.rb.accel.y-self.game_data.get_accel_rate();
-
-			//player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
-			//player.set_x_delta(player.x_delta() - self.game_data.get_accel_rate() as i32);
-			
 			player.rb.accel.x = player.rb.accel.x-self.game_data.get_accel_rate();
-
 			player.facing_right = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
-			//player.set_y_delta(player.y_delta() + self.game_data.get_accel_rate() as i32);
 			player.rb.accel.y = player.rb.accel.y+self.game_data.get_accel_rate();
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
-			//player.set_x_delta(player.x_delta() + self.game_data.get_accel_rate() as i32);
-			
 			player.rb.accel.x = player.rb.accel.x+self.game_data.get_accel_rate();
-
-
 			player.facing_right = true;
-		}
-		if keystate.contains(&Keycode::Up){
-			r.change_velocity(Vector2D{x: 0.0,y: -4.0});
-		}	
-		if keystate.contains(&Keycode::Down){
-			r.change_velocity(Vector2D{x: 0.0,y: 4.0});
-		}	
-		if keystate.contains(&Keycode::Left){
-			r.change_velocity(Vector2D{x: -4.0,y: 0.0});
-		}	
-		if keystate.contains(&Keycode::Right){
-			r.change_velocity(Vector2D{x: 4.0,y: 0.0});
 		}
 		// basic attack
 		if keystate.contains(&Keycode::Space) {
@@ -813,6 +754,7 @@ impl ROGUELIKE {
 			}
 
 			// ENEMIES VS PLAYER PROJECTILES
+			// TODO: ADD RIGID COLLISION
 			for projectile in self.game_data.player_projectiles.iter_mut() {
 				if projectile.is_active() {
 					if check_collision(&projectile.pos(), &enemy.pos()) && projectile.is_active() {
@@ -829,6 +771,7 @@ impl ROGUELIKE {
 						}
 						projectile.die();
 					}
+					// TODO: ADD RIGID COLLISION
 					projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
 				}
 			}
@@ -842,6 +785,7 @@ impl ROGUELIKE {
 			}
 
 			// ENEMIES VS CRATES
+			// TODO: ADD RIGID COLLISION
 			for c in self.game_data.crates.iter_mut() {
 				//if enemy.rb.rect_vs_rect()
 				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
@@ -864,13 +808,16 @@ impl ROGUELIKE {
 		}
 
 		// ENEMY PROJECTILES
-		// enemy projectile collisions
+		// TODO: ADD RIGID COLLISION
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
 				player.minus_hp(5);
 				projectile.die();
 			}
+			// TODO: ADD RIGID COLLISION
 			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
+
+			// TODO: ADD RIGID COLLISION BETWEEN ENEMY PROJECTILE VS PLAYER PROJECTILE
 		}
 
 		// COINS
@@ -914,10 +861,6 @@ impl ROGUELIKE {
 			i += 1; 
 		}
 		player.set_can_pickup(can_pickup);
-
-		for c in self.game_data.crates.iter_mut(){
-			c.update_crates(&mut self.core, &crate_textures, player, map);
-		}
 	}
 
 	// draw player
