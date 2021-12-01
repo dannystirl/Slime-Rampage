@@ -163,6 +163,7 @@ impl Game for ROGUELIKE  {
 			// reset arrays
 			self.game_data.crates = Vec::<Crate>::with_capacity(0);
 			self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
+			self.game_data.dropped_weapons = Vec::<Weapon>::with_capacity(0);
 			self.game_data.gold = Vec::<Gold>::with_capacity(0);
 			self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
 			self.game_data.enemy_projectiles = Vec::<Projectile>::with_capacity(0);
@@ -273,17 +274,6 @@ impl Game for ROGUELIKE  {
 
 			let mut all_frames = 0;
 			let last_time = Instant::now();
-
-			let test_weapon = weapon::Weapon::new(
-				Rect::new(
-					player.x() as i32 + TILE_SIZE as i32,
-					player.y() as i32 + TILE_SIZE as i32,
-					TILE_SIZE,
-					TILE_SIZE,
-				),
-				WeaponType::Spear,
-			);
-			self.game_data.dropped_weapons.push(test_weapon);
 
 			// INDIVIDUAL LEVEL LOOP
 			'level: loop {
@@ -557,6 +547,12 @@ impl ROGUELIKE {
 				ShopItems::Dash => {
 					self.core.wincan.copy_ex(&dash_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
+				ShopItems::Sword => {
+					self.core.wincan.copy_ex(&sword_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::Spear => {
+					self.core.wincan.copy_ex(&spear_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
 				ShopItems::HealthUpgrade => {
 					self.core.wincan.copy_ex(&health_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
@@ -687,6 +683,14 @@ impl ROGUELIKE {
 								}
 								ShopItems::Dash => {
 									player.set_power(PowerType::Dash);
+									map_data.shop_items[i].1 = true;
+								}
+								ShopItems::Sword => {
+									player.set_weapon(WeaponType::Sword);
+									map_data.shop_items[i].1 = true;
+								}
+								ShopItems::Spear => {
+									player.set_weapon(WeaponType::Spear);
 									map_data.shop_items[i].1 = true;
 								}
 								ShopItems::HealthUpgrade => {

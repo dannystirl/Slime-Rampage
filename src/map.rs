@@ -29,7 +29,9 @@ pub enum ShopItems{
 	Dash,
 	HealthUpgrade, 
 	Health,
-	None, 
+	Sword,
+	Spear,
+	None,
 }
 
 impl<'a> Map<'a> {
@@ -497,7 +499,7 @@ impl<'a> Map<'a> {
 							if !self.shop_spawns.contains(&(h,w)) {
 								new_map[h][w] = 6;
 								self.shop_spawns.push((h,w)); 
-								let item = rng.gen_range(1..6);
+								let item = rng.gen_range(1..9);
 								// should ensure no duplicate powers at some point
 								match item {
 									1 => {
@@ -507,7 +509,7 @@ impl<'a> Map<'a> {
 										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
 									}
 									3 => {
-										self.shop_items.push((ShopItems::Shield, false, 4)); 
+										self.shop_items.push((ShopItems::Shield, false, 2)); 
 									}
 									4 => {
 										self.shop_items.push((ShopItems::Dash, false, 4));
@@ -515,8 +517,14 @@ impl<'a> Map<'a> {
 									5 => {
 										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
 									}
+									6 => {
+										self.shop_items.push((ShopItems::Sword, false, 3));
+									}
+									7 => {
+										self.shop_items.push((ShopItems::Spear, false, 5));
+									}
 									_ => {
-										self.shop_items.push((ShopItems::Health, false, 2)); 
+										self.shop_items.push((ShopItems::Health, false, 3)); 
 									}
 								}
 							}
