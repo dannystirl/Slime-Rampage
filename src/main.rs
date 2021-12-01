@@ -137,7 +137,7 @@ impl Game for ROGUELIKE  {
 		let sword_texture = texture_creator.load_texture("images/player/sword_l.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")? ;
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")? ;
-		let physics_debug_stage =true;
+		let physics_debug_stage = false;
 		
 			let mut all_frames = 0;
 			let last_time = Instant::now();
@@ -413,6 +413,17 @@ impl Game for ROGUELIKE  {
 				CAM_H,)
 			)?;
 
+			// Check player with Crates
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let  pen = &mut 0.0;
+			for c in self.game_data.crates.iter_mut(){
+
+				if player.rb.rect_vs_rect(c.rb, normal_collision, pen ){
+					println!("Collision!!!");
+					rb1.resolve_col(&mut rb, *normal_collision, *pen);
+				}
+			}
+
 			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let  pen = &mut 0.0;
 			if rb1.rect_vs_circle(rb, normal_collision, pen){
@@ -621,29 +632,31 @@ impl ROGUELIKE {
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map, r: &mut Rigidbody)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
-			player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
+			player.rb.change_velocity(Vector2D{x: 0.0,y: -4.0});
+			//player.set_y_delta(player.y_delta() - self.game_data.get_accel_rate() as i32);
 		}
 		// move left
 		if keystate.contains(&Keycode::A) {
-			player.set_x_delta(player.x_delta() - self.game_data.get_accel_rate() as i32);
+			//player.set_x_delta(player.x_delta() - self.game_data.get_accel_rate() as i32);
+			player.rb.change_velocity(Vector2D{x: -4.0,y: 0.0});
 			player.facing_right = false;
 		}
 		// move down
 		if keystate.contains(&Keycode::S) {
-			player.set_y_delta(player.y_delta() + self.game_data.get_accel_rate() as i32);
+			//player.set_y_delta(player.y_delta() + self.game_data.get_accel_rate() as i32);
+			player.rb.change_velocity(Vector2D{x: 0.0,y: 4.0});
 		}
 		// move right
 		if keystate.contains(&Keycode::D) {
-			player.set_x_delta(player.x_delta() + self.game_data.get_accel_rate() as i32);
+			//player.set_x_delta(player.x_delta() + self.game_data.get_accel_rate() as i32);
+			player.rb.change_velocity(Vector2D{x: 4.0,y: 0.0});
 			player.facing_right = true;
 		}
 		if keystate.contains(&Keycode::Up){
 			r.change_velocity(Vector2D{x: 0.0,y: -4.0});
-			
 		}	
 		if keystate.contains(&Keycode::Down){
 			r.change_velocity(Vector2D{x: 0.0,y: 4.0});
-			
 		}	
 		if keystate.contains(&Keycode::Left){
 			r.change_velocity(Vector2D{x: -4.0,y: 0.0});
@@ -801,7 +814,7 @@ impl ROGUELIKE {
 			}
 
 			// player collision
-			if check_collision(&player.pos(), &enemy.pos()) {
+			if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
 				player.minus_hp(5);
 			}
 

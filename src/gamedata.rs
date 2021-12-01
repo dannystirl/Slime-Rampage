@@ -12,6 +12,7 @@ use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
 use crate::crateobj::*;
+use crate::rigidbody::Rigidbody;
 
 // window globals
 pub const TITLE: &str = "Roguelike";
@@ -61,7 +62,7 @@ pub struct GameData {
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
     pub crates: Vec<Crate>,
-    
+
     pub current_floor: i32, 
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,

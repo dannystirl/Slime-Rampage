@@ -11,6 +11,7 @@ use crate::gamedata::*;
 use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
+use crate::rigidbody::{Rigidbody, Rectangle};
 
 #[derive(Copy, Clone)]
 pub enum Direction{
@@ -76,6 +77,8 @@ pub struct Player<'a> {
 	pub facing_right: bool,
 	is_attacking: bool,
 	pub is_firing: bool,
+
+	pub rb: Rigidbody,
 }
 
 impl<'a> Player<'a> {
@@ -119,6 +122,7 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
+		let rb = Rigidbody::new(src, 0.0, 0.0,4.0);
 
 		Player {
 			// position values
@@ -155,11 +159,13 @@ impl<'a> Player<'a> {
 			facing_right,
 			is_attacking,
 			is_firing,
+			rb,
 		}
 	}
 
 	// update player
 	pub fn update_player(&mut self, game_data: &GameData, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], core: &mut SDLCore) -> Result<(), String>  {
+		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 		// debug stuff
 		let tc = core.wincan.texture_creator();
 		let hitbox =tc.load_texture("images/objects/crate.png")?;
@@ -167,12 +173,12 @@ impl<'a> Player<'a> {
 		let speed_limit_adj = game_data.get_speed_limit();
 
 		// Slow down to 0 vel if no input and non-zero velocity
-		self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
-		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
+		//self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
+		//self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
 
 		// Don't exceed speed limit
-		self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-		self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
+		//self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
@@ -196,7 +202,7 @@ impl<'a> Player<'a> {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 || 
 						  map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-					let p_pos = self.pos();
+					let p_pos = self.rb.draw_pos();
 
 					if !DEBUG_NO_WALLS {
 						if GameData::check_collision(&p_pos, &w_pos) {
@@ -204,7 +210,7 @@ impl<'a> Player<'a> {
 								core.wincan.copy(&hitbox, src, self.cam_pos)?;
 								core.wincan.copy(&hitbox, src, debug_pos)?;
 							}
-							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+							collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 						}
 					}
 				}
@@ -212,6 +218,7 @@ impl<'a> Player<'a> {
 		}
 		self.resolve_col(&collisions);
 
+		/*
 		for c in &game_data.crates{
 			/* let crate_pos = c.pos();
 			let p_pos =self.pos(); */
@@ -220,6 +227,7 @@ impl<'a> Player<'a> {
 				self.collect_col(self.pos(), self.pos().center(), c.pos());
 			}
 		}
+		 */
 		self.update_pos();/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
@@ -243,16 +251,16 @@ impl<'a> Player<'a> {
 
 	// player x values
 	pub fn set_x(&mut self, x: f64){
-		self.pos.0 = x;
+		self.rb.hitbox.x = x;
 	}
 	pub fn x(&self) -> f64 {
-		return self.pos.0;
+		return self.rb.hitbox.x;
 	}
 	pub fn set_x_vel(&mut self, x: i32){
-		self.vel.0 = x;
+		self.rb.vel.x = x as f64;
 	}
 	pub fn x_vel(&self) -> i32 {
-		return self.vel.0;
+		return self.rb.vel.x as i32;
 	}
 	pub fn set_x_delta(&mut self, x: i32){
 		self.delta.0 = x;
@@ -266,16 +274,16 @@ impl<'a> Player<'a> {
 
 	// player y values
 	pub fn set_y(&mut self, y: f64){
-		self.pos.1 = y;
+		self.rb.hitbox.y = y;
 	}
 	pub fn y(&self) -> f64 {
-		return self.pos.1;
+		return self.rb.hitbox.x;
 	}
-	pub fn set_y_vel(&mut self, y: i32){
-		self.vel.1 = y;
+	pub fn set_y_vel(&mut self, y: f64){
+		self.rb.vel.y = y;
 	}
 	pub fn y_vel(&self) -> i32 {
-		return self.vel.1;
+		return self.rb.vel.y as i32;
 	}
 	pub fn set_y_delta(&mut self, y: i32){
 		self.delta.1 = y;
@@ -290,8 +298,14 @@ impl<'a> Player<'a> {
 	// update position
 	#[allow(unused_variables)]
 	pub fn update_pos(&mut self) {
-		self.pos.0 = self.x() + self.x_vel() as f64 * 2.0 /* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
-		self.pos.1 = self.y() + self.y_vel() as f64 * 2.0 /* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
+		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
+		println!("PLayer Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
+		//self.rb.hitbox.x + self.rb.vel.x
+		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
+		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
+		//self.rb.hitbox = Rectangle{x: self.rb.hitbox.x + self.rb.vel.x, y:  self.rb.hitbox.y + self.rb.vel.y, w: self.rb.hitbox.w ,h: self.rb.hitbox.h};
+		//self.pos.0 = self.x() + self.x_vel() as f64 * 2.0 /* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
+		//self.pos.1 = self.y() + self.y_vel() as f64 * 2.0 /* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -404,8 +418,8 @@ impl<'a> Player<'a> {
 		let p_type = p_type;
 		let bullet = projectile::Projectile::new(
 			Rect::new(
-				self.x() as i32,
-				self.y() as i32,
+				self.rb.hitbox.x as i32,
+				self.rb.hitbox.y as i32,
 				TILE_SIZE_PROJECTILE,
 				TILE_SIZE_PROJECTILE,
 			),
@@ -572,21 +586,21 @@ impl<'a> Player<'a> {
 		if sorted_collisions.len() > 0 {
 			match sorted_collisions[0].dir{
 				Direction::Up=>{
-					self.set_y_vel(self.y_vel().clamp(0,100));
+					self.set_y_vel(self.y_vel().clamp(0,100).into());
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir{
 							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0,100));
+								self.set_y_vel(self.y_vel().clamp(0,100).into());
 							}
 							Direction::Down=>{
 								println!("I have no clue how this happened");
 							}
 							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
+								self.set_x_vel(self.x_vel().clamp(0,100).into());
 
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100,0));
+								self.set_x_vel(self.x_vel().clamp(-100,0).into());
 
 							}
 							Direction::None=>{
@@ -596,20 +610,20 @@ impl<'a> Player<'a> {
 					}
 				}
 				Direction::Down=>{
-					self.set_y_vel(self.y_vel().clamp(-100,0));
+					self.set_y_vel(self.y_vel().clamp(-100,0).into());
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir{
 							Direction::Up=>{
 								println!("I have no clue how this happened");
 							}
 							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100,0));
+								self.set_y_vel(self.y_vel().clamp(-100,0).into());
 							}
 							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
+								self.set_x_vel(self.x_vel().clamp(0,100).into());
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100,0));
+								self.set_x_vel(self.x_vel().clamp(-100,0).into());
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -618,20 +632,20 @@ impl<'a> Player<'a> {
 					}
 				}
 				Direction::Right=>{
-					self.set_x_vel(self.x_vel().clamp(-100,0));
+					self.set_x_vel(self.x_vel().clamp(-100,0).into());
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir{
 							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0,100));
+								self.set_y_vel(self.y_vel().clamp(0,100).into());
 							}
 							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100,0));
+								self.set_y_vel(self.y_vel().clamp(-100,0).into());
 							}
 							Direction::Left=>{
 								println!("I have no clue how this happened");
 							}
 							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100,0));
+								self.set_x_vel(self.x_vel().clamp(-100,0).into());
 							}
 							Direction::None=>{
 								println!("I have no clue how this happened");
@@ -640,17 +654,17 @@ impl<'a> Player<'a> {
 					}
 				}
 				Direction::Left=>{
-					self.set_x_vel(self.x_vel().clamp(0,100));
+					self.set_x_vel(self.x_vel().clamp(0,100).into());
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[1].dir{
 							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0,100));
+								self.set_y_vel(self.y_vel().clamp(0,100).into());
 							}
 							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100,0));
+								self.set_y_vel(self.y_vel().clamp(-100,0).into());
 							}
 							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
+								self.set_x_vel(self.x_vel().clamp(0,100).into());
 							}
 							Direction::Right=>{
 								println!("I have no clue how this happened");
@@ -670,6 +684,7 @@ impl<'a> Player<'a> {
 }
 
 // calculate velocity resistance
+/*
 pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 	if delta == 0 {
 		if vel > 0 {-1}
@@ -677,3 +692,5 @@ pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
 		else {delta}
 	} else {delta}
 }
+
+ */

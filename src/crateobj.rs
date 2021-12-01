@@ -20,7 +20,7 @@ pub struct Crate{
 	vel: (f64,f64),
 	velocity: Vec<f64>,
 	acceleration: Vec<f64>,
-	rb:  Rigidbody,
+	pub rb:  Rigidbody,
 }
 
 impl Crate {

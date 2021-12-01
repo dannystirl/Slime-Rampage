@@ -31,6 +31,9 @@ impl Rectangle{
     pub fn center(&self) -> Vector2D{
         Vector2D{x: (self.left()+self.right())/2.0 , y: (self.top()+self.bottom())/2.0}
     }
+    pub fn center_point(&self) -> Point{
+        return Point::new(((self.left()+self.right())/2.0) as i32, ((self.top()+self.bottom())/2.0) as i32);
+    }
 }
 pub struct Rigidbody{
     
