@@ -172,8 +172,8 @@ impl<'a> Player<'a> {
 		//self.rb.accel.x = resist(self.rb.vel.x as i32, self.rb.accel.x as i32).into();
 		//self.rb.accel.y = resist(self.rb.vel.y as i32, self.rb.accel.y as i32).into();
 
-		self.rb.vel.x = (self.rb.vel.x + self.rb.accel.x).clamp(-speed_limit_adj, speed_limit_adj);
-		self.rb.vel.y = (self.rb.vel.y + self.rb.accel.y).clamp(-speed_limit_adj, speed_limit_adj);
+		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
+		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
 
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
