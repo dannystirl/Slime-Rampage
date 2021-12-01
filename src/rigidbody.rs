@@ -4,8 +4,7 @@ use std::vec;
 use std::f64;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
-use sdl2::sys::CWOverrideRedirect;
-use sdl2::sys::exit;
+
 use crate::vector::*;
 
 #[derive(Copy,Clone)]
@@ -39,6 +38,7 @@ pub struct Rigidbody{
     
     pub hitbox : Rectangle,
     pub vel: Vector2D,
+    pub accel: Vector2D,
     pub elasticity: f64,
     pub mass: f64,
     pub radius: f64,
@@ -57,14 +57,17 @@ impl Rigidbody{
     pub fn new(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
         let vel = Vector2D {x, y};
+        let accel = Vector2D{x:0.0, y: 0.0};
         let elasticity  =1.0;
         let radius = 32.0;
         Rigidbody{
             hitbox,
             vel,
+            accel,
             elasticity, 
             mass,
             radius,
+            
         }
     }
     pub fn draw_pos(self)->Rect{
@@ -72,6 +75,9 @@ impl Rigidbody{
     }
     pub fn change_velocity(&mut self, vel: Vector2D){
         self.vel = vel;
+    }
+    pub fn change_accel(&mut self, accel: Vector2D){
+        self.accel = accel;
     }
     pub fn update_pos(&mut self){
         self.hitbox = Rectangle{x: self.hitbox.x + self.vel.x, y:  self.hitbox.y + self.vel.y, w: self.hitbox.w ,h: self.hitbox.h}
