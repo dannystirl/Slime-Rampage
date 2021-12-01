@@ -281,7 +281,7 @@ impl Game for ROGUELIKE  {
 					TILE_SIZE,
 					TILE_SIZE,
 				),
-				WeaponType::Sword,
+				WeaponType::Spear,
 			);
 			self.game_data.dropped_weapons.push(test_weapon);
 
@@ -341,7 +341,7 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
 				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
-				ROGUELIKE::draw_weapon(self, &player, &sword_texture);
+				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture);
 				
 				// UPDATE INTERACTABLES
 				// function to check explosive barrels stuff like that should go here. placed for ordering.
@@ -632,7 +632,7 @@ impl ROGUELIKE {
 		}
 		// Absorb power
 		if keystate.contains(&Keycode::E) {
-			if player.can_pickup() || player.can_pickup_shop() {
+			if player.can_pickup() || player.can_pickup_shop() || player.can_pickup_weapon() {
 				let mut picked_up = false;
 				for drop in self.game_data.dropped_powers.iter_mut() {
 					if check_collision(&player.pos(), &drop.pos()) &&
@@ -702,9 +702,43 @@ impl ROGUELIKE {
 								}
 								_ => { }
 							}
+							picked_up = true;
 							break;
 						}
 						i+=1; 
+					}
+				}
+				if !picked_up {
+					for drop in self.game_data.dropped_weapons.iter_mut() {
+						if check_collision(&player.pos(), &drop.pos()) &&
+						   player.get_pickup_timer() > 1000 {
+							player.reset_pickup_timer();
+							match drop.weapon_type() {
+								WeaponType::Sword => {
+									match player.get_weapon() {
+										WeaponType::Sword => {
+											drop.set_weapon_type(WeaponType::Sword);
+										},
+										WeaponType::Spear => {
+											drop.set_weapon_type(WeaponType::Spear);
+										},
+									}
+									player.set_weapon(WeaponType::Sword);
+								},
+								WeaponType::Spear => {
+									match player.get_weapon() {
+										WeaponType::Sword => {
+											drop.set_weapon_type(WeaponType::Sword);
+										},
+										WeaponType::Spear => {
+											drop.set_weapon_type(WeaponType::Spear);
+										},
+									}
+									player.set_weapon(WeaponType::Spear);
+								},
+							}
+							break;
+						}
 					}
 				}
 			}
@@ -956,7 +990,7 @@ impl ROGUELIKE {
 	}
 
 	//draw player weapon
-	pub fn draw_weapon(&mut self, player: &Player, texture : &Texture){
+	pub fn draw_weapon(&mut self, player: &Player, sword_texture: &Texture, spear_texture: &Texture){
 		let rotation_point;
 		let pos;
 		let mut angle;
@@ -969,16 +1003,26 @@ impl ROGUELIKE {
 		if player.facing_right{
 			pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
 							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM * 13/10);
+							ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
 			rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 		} else{
 			pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
 							player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-							ATTACK_LENGTH, TILE_SIZE_CAM * 13/10);
+							ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
 			rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 			angle = -angle;
 		}
-		self.core.wincan.copy_ex(&texture, None, pos, angle, rotation_point, player.facing_right, false).unwrap();
+
+		match player.get_weapon() {
+			WeaponType::Sword => {
+				self.core.wincan.copy_ex(&sword_texture, None, pos, angle, rotation_point,
+					player.facing_right, false).unwrap();
+			},
+			WeaponType::Spear => {
+				self.core.wincan.copy_ex(&spear_texture, None, pos, angle, rotation_point,
+					player.facing_right, false).unwrap();
+			},
+		}
 	}
 
 	pub fn draw_enemy_projectile(&mut self,ability_textures: &Vec<Texture> , player: &Player) {

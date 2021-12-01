@@ -44,4 +44,8 @@ impl Weapon {
     pub fn weapon_type(&self) -> &WeaponType {
         &self.weapon_type
     }
+
+    pub fn set_weapon_type(&mut self, weapon: WeaponType) {
+        self.weapon_type = weapon;
+    }
 }
