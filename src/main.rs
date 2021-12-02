@@ -130,8 +130,8 @@ impl Game for ROGUELIKE  {
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/player/sword.png")?;
 		let spear_texture = texture_creator.load_texture("images/player/spear.png")?;
-		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; // We need to change one of these
-		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart.png")?;
+		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
+		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
 
 		// MAIN GAME LOOP
 		'gameloop: loop {

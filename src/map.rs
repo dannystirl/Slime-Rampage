@@ -20,6 +20,7 @@ pub struct Map<'a> {
 	pub enemy_and_object_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub shop_spawns: Vec<(usize, usize)>, 
 	pub shop_items: Vec<(ShopItems, bool, u32)>, // item type, bought, cost
+	pub shop_creation: Vec<i32>, 
 }
 
 pub enum ShopItems{
@@ -48,6 +49,7 @@ impl<'a> Map<'a> {
 		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let shop_spawns = Vec::with_capacity(0);
 		let shop_items = Vec::with_capacity(0);
+		let shop_creation = Vec::with_capacity(0);
 
 		Map {
 			background, 
@@ -64,6 +66,7 @@ impl<'a> Map<'a> {
 			enemy_and_object_spawns, 
 			shop_spawns, 
 			shop_items, 
+			shop_creation, 
 		}
 	}
 
@@ -522,11 +525,9 @@ impl<'a> Map<'a> {
 					continue; 
 				}
 				else {
-					/* new_map[h][w] = 6; */
+					self.starting_position = (w as f64, h as f64);
 					self.shop = self.numbered_map[h][w];
-					/* self.shop_spawns.push((h,w)); 
-					self.shop_items.push((ShopItems::None, true, 0)); */
-					while self.shop_spawns.len() <= 2 {
+					while self.shop_spawns.len() < 4 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..
 											  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
 						let w = rng.gen_range(self.room_sizes[special_rooms].1..
@@ -535,32 +536,44 @@ impl<'a> Map<'a> {
 							if !self.shop_spawns.contains(&(h,w)) {
 								new_map[h][w] = 6;
 								self.shop_spawns.push((h,w)); 
-								let item = rng.gen_range(1..9);
 								// should ensure no duplicate powers at some point
+								let mut item = rng.gen_range(1..9);
+								while self.shop_creation.contains(&item) {
+									item = rng.gen_range(1..20);
+								}
+								// type, purchased, cost
 								match item {
-									1 => {
+									1..=3 => {
 										self.shop_items.push((ShopItems::Fireball, false, 3)); 
+										self.shop_creation.extend(1..=3); 
 									}
-									2 => {
+									4..=5 => {
 										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
-									}
-									3 => {
-										self.shop_items.push((ShopItems::Shield, false, 2)); 
-									}
-									4 => {
-										self.shop_items.push((ShopItems::Dash, false, 4));
-									}
-									5 => {
-										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
+										self.shop_creation.extend(4..=5); 
 									}
 									6 => {
-										self.shop_items.push((ShopItems::Sword, false, 3));
+										self.shop_items.push((ShopItems::Shield, false, 5)); 
+										self.shop_creation.push(6); 
 									}
 									7 => {
+										self.shop_items.push((ShopItems::Dash, false, 4));
+										self.shop_creation.push(7); 
+									}
+									8 => {
+										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
+										self.shop_creation.push(8); 
+									}
+									9..=10 => {
+										self.shop_items.push((ShopItems::Sword, false, 3));
+										self.shop_creation.extend(9..=10); 
+									}
+									11..=12 => {
 										self.shop_items.push((ShopItems::Spear, false, 5));
+										self.shop_creation.extend(11..=12); 
 									}
 									_ => {
 										self.shop_items.push((ShopItems::Health, false, 3)); 
+										self.shop_creation.push(item); 
 									}
 								}
 							}
