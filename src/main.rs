@@ -1033,50 +1033,54 @@ impl ROGUELIKE {
 	pub fn draw_weapon(&mut self, player: &Player, sword_texture: &Texture, spear_texture: &Texture){
 		let rotation_point;
 		let pos;
-		let mut angle;
+		let mut angle = 0.0;
+		let mut lunge = 0.0;
 
-		// weapon animation
-		if player.get_attacking() {
-			angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
-		} else { angle = - 60.0; }
 		// display weapon
 		match player.get_weapon() {
 			WeaponType::Sword => {
+				// weapon animation
+				if player.get_attacking() {
+					angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
+				} else { angle = - 60.0; }
+				// weapon position
 				if player.facing_right{
 					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
 									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
+									ATTACK_LENGTH_SWORD, TILE_SIZE_CAM * 7/5);
 					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 				} else{
-					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH as i32, 
+					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SWORD as i32, 
 									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(ATTACK_LENGTH as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+									ATTACK_LENGTH_SWORD, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(ATTACK_LENGTH_SWORD as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 					angle = -angle;
 				}
-			},
-			WeaponType::Spear => {
-				if player.facing_right{
-					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
-									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
-				} else{
-					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SPEAR as i32, 
-									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(ATTACK_LENGTH_SPEAR as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
-					angle = -angle;
-				}
-			},
-		}
-
-		match player.get_weapon() {
-			WeaponType::Sword => {
 				self.core.wincan.copy_ex(&sword_texture, None, pos, angle, rotation_point,
 					player.facing_right, false).unwrap();
 			},
 			WeaponType::Spear => {
+				// weapon animation
+				if player.get_attacking() {
+					if player.get_attack_timer() < ATTK_TIME_SPEAR/2 {
+						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_attack_timer() * 60 / 250 ) as f64;
+					} else {
+						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (ATTK_TIME_SPEAR as f64 - player.get_attack_timer() as f64) * 60.0 / 250.0;
+					}
+				} else { lunge -= (TILE_SIZE_CAM*2/3) as f64 }
+				// weapon position
+				if player.facing_right{
+					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32 + lunge as i32, 
+									player.get_cam_pos().y() as i32, 
+									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
+				} else{
+					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SPEAR as i32 - lunge as i32, 
+									player.get_cam_pos().y() as i32, 
+									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(ATTACK_LENGTH_SPEAR as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+					angle = -angle;
+				}
 				self.core.wincan.copy_ex(&spear_texture, None, pos, angle, rotation_point,
 					player.facing_right, false).unwrap();
 			},

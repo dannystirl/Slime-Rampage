@@ -109,7 +109,7 @@ impl<'a> Player<'a> {
 		// player attributes
 		let hp = 30;
 		let mana = 4;
-		let weapon = WeaponType::Sword;
+		let weapon = WeaponType::Spear;
 		let power: PowerType;
 		if DEBUG {power = PowerType::Shield; }
 		else { power = PowerType::None; }
@@ -402,9 +402,9 @@ impl<'a> Player<'a> {
 		match self.get_weapon() {
 			WeaponType::Sword => {
 				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
 				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+					self.attack_box = Rect::new(x - ATTACK_LENGTH_SWORD as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
 				}
 			},
 			WeaponType::Spear => {

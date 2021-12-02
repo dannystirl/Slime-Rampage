@@ -23,29 +23,35 @@ pub enum EnemyType{
 	Boss,
 }
 pub struct Enemy<'a> {
+	// position values
 	vel_x: f64,
 	vel_y: f64,
 	pos: Rect,
 	src: Rect,
+	angle: f64,
 	txtre: Texture<'a>,
-	stun_time: u128, 
+	// timers
 	stun_timer: Instant,
 	fire_timer: Instant,
 	damage_timer: Instant,
 	invincible: bool,
-	knockback_vel: f64,
-	angle: f64,
+	// check values
 	has_money: bool,
 	has_power: bool,
+	pub is_stunned: bool,
 	pub x_flipped: bool,
 	pub y_flipped: bool,
 	pub facing_right: bool,
-	pub is_stunned: bool,
-	pub hp: i32,
-	pub alive: bool,
 	pub is_firing: bool,
 	pub enemy_type: EnemyType,
 	pub enemy_number: usize,
+	// enemy attributes
+	pub alive: bool,
+	pub hp: i32,
+	stun_time: u128, 
+	knockback_vel: f64,
+	pub speed_delta: f64, 
+	pub aggro_range: f64, 
 }
 
  impl<'a> Enemy<'a> {
@@ -53,18 +59,10 @@ pub struct Enemy<'a> {
 		let vel_x = 0.0;
 		let vel_y = 0.0;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		/* let mut src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		match enemy_type {
-			EnemyType::Boss => {
-				src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64 / 2, TILE_SIZE_64 / 2);
-			},
-			_ => {}
-		} */
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
 		let invincible = true;
-		let knockback_vel: f64; 
 		let angle = 0.0;
 		let x_flipped = false;
 		let has_money = true;
@@ -74,15 +72,18 @@ pub struct Enemy<'a> {
 		let is_stunned = false;
 		let is_firing =false;
 		let alive = true;
-
+		
 		let hp: i32;
 		let stun_time: u128; 
+		let knockback_vel: f64; 
+		let speed_delta: f64; // multiplicitive value
+		let aggro_range: f64; // ~ number of tiles
 		match enemy_type {
-			EnemyType::Melee => { stun_time = 500; hp = 15; knockback_vel = 20.0; }
-			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; }
-			EnemyType::Skeleton => { stun_time = 100; hp = 30; knockback_vel = 3.0; }
-			EnemyType::Eyeball => { stun_time = 200; hp = 10; knockback_vel = 10.0; }
-			EnemyType::Boss => { stun_time = 100; hp = 100; knockback_vel = 0.0; }
+			EnemyType::Melee => { stun_time = 500; hp = 15; knockback_vel = 20.0; speed_delta = 1.0 ; aggro_range = 5.0; }
+			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 5.0; }
+			EnemyType::Skeleton => { stun_time = 100; hp = 30; knockback_vel = 3.0; speed_delta = 0.7 ; aggro_range = 8.0; }
+			EnemyType::Eyeball => { stun_time = 200; hp = 10; knockback_vel = 10.0; speed_delta = 1.3 ; aggro_range = 6.0; }
+			EnemyType::Boss => { stun_time = 50; hp = 100; knockback_vel = 0.0; speed_delta = 0.5 ; aggro_range = 100.0; }
 		}
 
 		Enemy {
@@ -109,6 +110,8 @@ pub struct Enemy<'a> {
 			is_firing,
 			enemy_type,
 			enemy_number,
+			speed_delta, 
+			aggro_range, 
 		}
 	}
 
@@ -162,35 +165,25 @@ pub struct Enemy<'a> {
 		if self.get_stun_timer() > self.stun_time {
 			self.set_stunned(false);
 		} 
-		// distance should be very close to number of tiles
-		let range;
-		match self.enemy_type {
-			EnemyType::Boss => {
-				range = 100.0;
-			},
-			_ => {
-				range = 5.0;
-			},
-		}
-
-		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > range {
+		
+		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > self.aggro_range {
 			self.wander(rngt[i]);
 		} else {
 			match self.enemy_type {
 				EnemyType::Melee => {
-					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
 				EnemyType::Ranged => {
-					self.flee(x.into(), y.into(), game_data.get_speed_limit());
+					self.flee(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
 				EnemyType::Skeleton => {
-					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 0.7);
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
                 EnemyType::Eyeball => {
-                    self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 1.3);
+                    self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
 				EnemyType::Boss => {
-					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * 0.5);
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
 			}
 		}

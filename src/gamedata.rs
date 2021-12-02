@@ -46,15 +46,15 @@ pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 
 // player globals
-pub const ATTACK_LENGTH: u32 = TILE_SIZE_CAM * 3/2;     // length of sword
-pub const ATTACK_LENGTH_SPEAR: u32 = TILE_SIZE_CAM * 2; // length of spear
-pub const ATTK_COOLDOWN: u128 = 300;                    // how often player can attack with sword
-pub const ATTK_TIME_SPEAR: u128 = 300;                  // how long the spear attack lasts
-pub const ATTK_COOLDOWN_SPEAR: u128 = 800;              // how often player can attack with spear
-pub const DMG_COOLDOWN: u128 = 800;                     // how often player can take damage
-pub const FIRE_COOLDOWN_P: u128 = 300;                  // how often player can shoot projectile
-pub const SHIELD_TIME: u128 = 1800;                     // how long player shield lasts
-pub const MANA_RESTORE_RATE: u128 = 1000;               // how quickly mana is restored
+pub const ATTACK_LENGTH_SWORD: u32 = TILE_SIZE_CAM * 3/2;   // length of sword
+pub const ATTACK_LENGTH_SPEAR: u32 = TILE_SIZE_CAM * 2;     // length of spear
+pub const ATTK_COOLDOWN: u128 = 300;                        // how often player can attack with sword
+pub const ATTK_COOLDOWN_SPEAR: u128 = 800;                  // how often player can attack with spear
+pub const ATTK_TIME_SPEAR: u128 = 400;                      // how long the spear attack lasts
+pub const DMG_COOLDOWN: u128 = 800;                         // how often player can take damage
+pub const FIRE_COOLDOWN_P: u128 = 300;                      // how often player can shoot projectile
+pub const SHIELD_TIME: u128 = 1800;                         // how long player shield lasts
+pub const MANA_RESTORE_RATE: u128 = 1000;                   // how quickly mana is restored
 
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
