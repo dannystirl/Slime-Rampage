@@ -23,9 +23,6 @@ pub enum EnemyType{
 	Skeleton,
 }
 pub struct Enemy<'a> {
-	vel_x: f64,
-	vel_y: f64,
-	pos: Rect,
 	src: Rect,
 	txtre: Texture<'a>,
 	stun_time: u128, 
@@ -51,8 +48,6 @@ pub struct Enemy<'a> {
 
  impl<'a> Enemy<'a> {
 	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, enemy_number: usize) -> Enemy<'a> {
-		let vel_x = 0.0;
-		let vel_y = 0.0;
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
@@ -79,9 +74,6 @@ pub struct Enemy<'a> {
 		}
 
 		Enemy {
-			vel_x,
-			vel_y,
-			pos,
 			src,
 			txtre,
 			stun_time, 
@@ -363,6 +355,7 @@ pub struct Enemy<'a> {
 		if vec[1] < 0.0 {
 			y *= -1.0;
 			self.y_flipped = true;
+			self.y_flipped = true;
 		}
 		self.set_x_vel((self.x_vel() + x).clamp(-self.knockback_vel, self.knockback_vel));
 		self.set_y_vel((self.y_vel() + y).clamp(-self.knockback_vel, self.knockback_vel));
@@ -387,7 +380,7 @@ pub struct Enemy<'a> {
     }
 
     pub fn pos(&self) -> Rect {
-        self.pos
+        self.rb.draw_pos()
     }
 
 	pub fn get_vel(&self) -> f64 {
