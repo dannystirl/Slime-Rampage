@@ -764,7 +764,7 @@ impl ROGUELIKE {
 				let pen = &mut 0.0;
 				if projectile.is_active() {
 					//if check_collision(&projectile.pos(), &enemy.pos()) && projectile.is_active() {//collision between projectile & enemy
-					if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen){
+					if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen){//rb rect vs circle
 						//rect vs circle
 						println!("collide!");
 						match enemy.enemy_type {
@@ -787,7 +787,7 @@ impl ROGUELIKE {
 
 			// ENEMIES VS PLAYER MELEE
 			if player.get_attacking() {
-				if check_collision(&player.get_attack_box(), &enemy.pos()) {
+				if check_collision(&player.get_attack_box(), &enemy.pos()) {//may also need rigidbody collision?
 					enemy.knockback(player.x().into(), player.y().into());
 					enemy.minus_hp(2);
 				}
@@ -796,8 +796,11 @@ impl ROGUELIKE {
 			// ENEMIES VS CRATES
 			// TODO: ADD RIGID COLLISION
 			for c in self.game_data.crates.iter_mut() {
-				//if enemy.rb.rect_vs_rect()
-				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
+				let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+				let pen = &mut 0.0;
+				if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.get_magnitude() != 0.0{//rb collision. rect vs rect
+				//if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
+					println!("enemy collides with crate");
 					enemy.projectile_knockback(c.x_vel(), c.y_vel());
 				}
 			}
@@ -827,6 +830,9 @@ impl ROGUELIKE {
 			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
 
 			// TODO: ADD RIGID COLLISION BETWEEN ENEMY PROJECTILE VS PLAYER PROJECTILE
+			for projectile in self.game_data.player_projectiles.iter_mut(){
+				
+			}
 		}
 
 		// COINS

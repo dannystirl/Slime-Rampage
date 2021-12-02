@@ -171,7 +171,8 @@ pub struct Enemy<'a> {
 		} else {
 			match self.enemy_type {
 				EnemyType::Melee=>{
-					self.aggro(x.into(), y.into(), game_data.get_speed_limit());}
+					self.aggro(x.into(), y.into(), game_data.get_speed_limit());
+				}
 				EnemyType::Ranged =>{
 					self.flee(x.into(), y.into(), game_data.get_speed_limit());
 				}
@@ -201,7 +202,7 @@ pub struct Enemy<'a> {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let p_pos = self.rb.draw_pos();//self.pos();
-					if GameData::check_collision(&p_pos, &w_pos) {
+					if GameData::check_collision(&p_pos, &w_pos) {//collision with wall
 						//collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
 						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 					}
