@@ -152,7 +152,7 @@ impl<'a> UI<'a> {
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 					),
-					texture_creator.load_texture("images/player/sword.png")?,
+					texture_creator.load_texture("images/weapons/sword.png")?,
 				);
 				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
 			},
@@ -164,7 +164,7 @@ impl<'a> UI<'a> {
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 						(TILE_SIZE_64 as f64 * 1.2) as u32,
 					),
-					texture_creator.load_texture("images/player/spear.png")?,
+					texture_creator.load_texture("images/weapons/spear.png")?,
 				);
 				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
 			}
@@ -192,7 +192,7 @@ impl<'a> UI<'a> {
 						TILE_SIZE_64 as u32,
 						TILE_SIZE_64 as u32,
 					),
-					texture_creator.load_texture("images/abilities/slimeball_pickup.png")?,
+					texture_creator.load_texture("images/abilities/bullet_pickup.png.png")?,
 				);
 				core.wincan.copy(ui_ability.texture(), ui_ability.src(), ui_ability.pos())?;
 			},

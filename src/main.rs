@@ -96,6 +96,7 @@ impl Game for ROGUELIKE  {
 		let mut player = player::Player::new(
 			(CENTER_W as f64, CENTER_H as f64),
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
+			PlayerType::Warrior, 
 		);
 		// create ui
 		let mut ui = ui::UI::new(
@@ -110,14 +111,16 @@ impl Game for ROGUELIKE  {
 		// LOAD TEXTURES
 		// projectile textures
 		let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
-		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
-		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
-		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
+		let bullet_player = texture_creator.load_texture("images/abilities/bullet_player.png")?; 
+		let bullet_enemy = texture_creator.load_texture("images/abilities/bullet_enemy.png")?;
+		let fireball = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
-		ability_textures.push(bullet);
+		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
+		ability_textures.push(bullet_player);
+		ability_textures.push(bullet_enemy);
 		ability_textures.push(fireball);
-		ability_textures.push(enemy_bullet);
 		ability_textures.push(shield);
+		ability_textures.push(wall);
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
@@ -125,11 +128,11 @@ impl Game for ROGUELIKE  {
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
-		let slimeball_texture = texture_creator.load_texture("images/abilities/slimeball_pickup.png")?;
+		let slimeball_texture = texture_creator.load_texture("images/abilities/bullet_pickup.png.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
-		let sword_texture = texture_creator.load_texture("images/player/sword.png")?;
-		let spear_texture = texture_creator.load_texture("images/player/spear.png")?;
+		let sword_texture = texture_creator.load_texture("images/weapons/sword.png")?;
+		let spear_texture = texture_creator.load_texture("images/weapons/spear.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
 
@@ -974,7 +977,7 @@ impl ROGUELIKE {
 		// draw player
 		player.set_cam_pos(curr_bg.x(), curr_bg.y());
 		player.get_frame_display(&mut self.game_data, fps_avg);
-		self.core.wincan.copy_ex(player.texture_all(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
+		self.core.wincan.copy_ex(player.texture(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 		// draw shield outline on player
 		if player.get_shielded() { 
 			let texture_creator = self.core.wincan.texture_creator();

@@ -158,7 +158,7 @@ pub struct Enemy<'a> {
 		self.pos.set_x(self.x() as i32 + self.x_vel() as i32);
 		self.pos.set_y(self.y() as i32 + self.y_vel() as i32);
 	}
-	#[allow(unused_parens)]
+	
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
 	
 		// aggro / move
