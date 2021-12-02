@@ -205,7 +205,7 @@ impl Rigidbody{
                     closest_point.x = -self_x_extreme;
                 }
             }else{
-                if closest_point.y < 0.0 {
+                if closest_point.y > 0.0 {
                     closest_point.y = self_y_extreme;
                 } else {
                     closest_point.y = -self_y_extreme;

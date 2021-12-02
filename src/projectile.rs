@@ -120,7 +120,7 @@ impl Projectile {
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
-					let mut wall = Rigidbody::new(w_pos, 0.0,0.0, 1.0);
+					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 1.0);
 					
 					if wall.rect_vs_circle(self.rb, normal_collision,  pen){
 						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
