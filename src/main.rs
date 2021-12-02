@@ -96,7 +96,7 @@ impl Game for ROGUELIKE  {
 		let mut player = player::Player::new(
 			(CENTER_W as f64, CENTER_H as f64),
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
-			PlayerType::Warrior, 
+			PlayerType::Classic, 
 		);
 		// create ui
 		let mut ui = ui::UI::new(
@@ -114,7 +114,7 @@ impl Game for ROGUELIKE  {
 		let bullet_player = texture_creator.load_texture("images/abilities/bullet_player.png")?; 
 		let bullet_enemy = texture_creator.load_texture("images/abilities/bullet_enemy.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/fireball.png")?;
-		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
+		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
 		ability_textures.push(bullet_player);
 		ability_textures.push(bullet_enemy);
@@ -128,7 +128,7 @@ impl Game for ROGUELIKE  {
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
-		let slimeball_texture = texture_creator.load_texture("images/abilities/bullet_pickup.png.png")?;
+		let slimeball_texture = texture_creator.load_texture("images/abilities/bullet_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/weapons/sword.png")?;
