@@ -162,8 +162,9 @@ impl<'a> Player<'a> {
 		// Slow down to 0 vel if no input and non-zero velocity
 		self.resist();
 
-		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
-		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp(-speed_limit_adj as i32 , speed_limit_adj as i32).into();
+		//to make the player move faster adj his speed limit by increaseing speed_limit_adj with a float value
+		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*2.0) as i32 , (speed_limit_adj*2.0) as i32).into();
+		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*2.0) as i32 ,(speed_limit_adj*2.0) as i32).into();
 
 		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 
