@@ -43,6 +43,8 @@ pub struct Rigidbody{
     pub mass: f64,
     pub i_mass: f64,
     pub radius: f64,
+    pub s: bool,
+    //pub circle_center: Vector2D,
 
 }
 impl Copy for Rigidbody { }
@@ -62,6 +64,7 @@ impl Rigidbody{
         let i_mass = 1.0/mass;
         let elasticity  =1.0;
         let radius = 32.0;
+        let s = false;
         Rigidbody{
             hitbox,
             vel,
@@ -70,7 +73,28 @@ impl Rigidbody{
             mass,
             i_mass,
             radius,
+            s,
             
+        }
+    }
+    pub fn new_static(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
+        let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
+        let vel = Vector2D {x, y};
+        let accel = Vector2D{x:0.0, y: 0.0};
+        let i_mass = 1.0/mass;
+        let elasticity  =1.0;
+        let radius = 32.0;
+        let s = true;
+        Rigidbody{
+            hitbox,
+            vel,
+            accel,
+            elasticity, 
+            mass,
+            i_mass,
+            radius,
+            s,
+
         }
     }
     pub fn draw_pos(self)->Rect{
@@ -161,7 +185,6 @@ impl Rigidbody{
     }
     pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
-        //let a_to_b =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let mut closest_point = a_to_b;
         let self_x_extreme = (self.hitbox.right() - self.hitbox.left()) / 2.0;
@@ -214,18 +237,30 @@ impl Rigidbody{
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
            // sink correction for static objects with infite mass
-           
            let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
-          let percent = 0.01; // usually 20% to 80%
-          let slop = 0.1; // usually 0.01 to 0.1
-          let zero: f64 = 0.0;
-          let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
-          self.hitbox.x -= (self.i_mass) * correction.x;
-          self.hitbox.y -= (self.i_mass) * correction.y;
-          other.hitbox.x += (self.i_mass) * correction.x;
-          other.hitbox.y += (self.i_mass) * correction.y;    
+           let percent = 0.01; // usually 20% to 80%
+           let slop = 0.1; // usually 0.01 to 0.1
+           let zero: f64 = 0.0;
+           let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
+      
+           
+           if self.s {
+               other.vel = -other.vel;
+
+             
+               return;    
+           }
+           if other.s{
+               self.vel = -other.vel;
+             
+               return;
+           }
      
+           self.hitbox.x -= (self.i_mass) * correction.x;
+           self.hitbox.y -= (self.i_mass) * correction.y;
+           other.hitbox.x += (self.i_mass) * correction.x;
+           other.hitbox.y += (self.i_mass) * correction.y;    
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;

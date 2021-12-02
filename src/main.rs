@@ -98,6 +98,10 @@ impl Game for ROGUELIKE  {
 		let mut player = player::Player::new(
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
 		);
+
+		//test power
+		player.set_power(PowerType:: Slimeball);
+
 		// create ui
 		let mut ui = ui::UI::new(
 			Rect::new(
@@ -750,14 +754,19 @@ impl ROGUELIKE {
 
 			// PLAYER VS ENEMIES
 			if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
-				player.minus_hp(5);
+				//player.minus_hp(5);
 			}
 
 			// ENEMIES VS PLAYER PROJECTILES
-			// TODO: ADD RIGID COLLISION
+			// TODO: ADD RIGID COLLISION (^)
 			for projectile in self.game_data.player_projectiles.iter_mut() {
+				let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+				let pen = &mut 0.0;
 				if projectile.is_active() {
-					if check_collision(&projectile.pos(), &enemy.pos()) && projectile.is_active() {
+					//if check_collision(&projectile.pos(), &enemy.pos()) && projectile.is_active() {//collision between projectile & enemy
+					if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen){//rb rect vs circle
+						//rect vs circle
+						println!("collide!");
 						match enemy.enemy_type {
 							EnemyType::Melee => {
 								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
@@ -778,17 +787,20 @@ impl ROGUELIKE {
 
 			// ENEMIES VS PLAYER MELEE
 			if player.get_attacking() {
-				if check_collision(&player.get_attack_box(), &enemy.pos()) {
+				if check_collision(&player.get_attack_box(), &enemy.pos()) {//may also need rigidbody collision?
 					enemy.knockback(player.x().into(), player.y().into());
 					enemy.minus_hp(2);
 				}
 			}
 
 			// ENEMIES VS CRATES
-			// TODO: ADD RIGID COLLISION
+			// TODO: ADD RIGID COLLISION (^)
 			for c in self.game_data.crates.iter_mut() {
-				//if enemy.rb.rect_vs_rect()
-				if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
+				let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+				let pen = &mut 0.0;
+				if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.get_magnitude() != 0.0{//rb collision. rect vs rect
+				//if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
+					println!("enemy collides with crate");
 					enemy.projectile_knockback(c.x_vel(), c.y_vel());
 				}
 			}
@@ -810,6 +822,8 @@ impl ROGUELIKE {
 		// ENEMY PROJECTILES
 		// TODO: ADD RIGID COLLISION
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let pen = &mut 0.0;
 			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
 				player.minus_hp(5);
 				projectile.die();
@@ -817,7 +831,14 @@ impl ROGUELIKE {
 			// TODO: ADD RIGID COLLISION
 			projectile.check_bounce(&mut self.game_data.crates, &mut Vec::new(), map);
 
-			// TODO: ADD RIGID COLLISION BETWEEN ENEMY PROJECTILE VS PLAYER PROJECTILE
+			// TODO: ADD RIGID COLLISION BETWEEN ENEMY PROJECTILE VS PLAYER PROJECTILE (implemented a bit)
+			for p_player in self.game_data.player_projectiles.iter_mut() {//player projectile
+				if projectile.rb.circle_vs_circle(p_player.rb, normal_collision, pen){
+					//println!("enemy projectile hits player projectile");
+					projectile.rb.resolve_col(&mut p_player.rb, *normal_collision, *pen);//projectile vs projectile
+				}
+			}
+			
 		}
 
 		// COINS

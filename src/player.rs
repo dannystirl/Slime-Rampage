@@ -166,7 +166,7 @@ impl<'a> Player<'a> {
 		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*2.0) as i32 , (speed_limit_adj*2.0) as i32).into();
 		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*2.0) as i32 ,(speed_limit_adj*2.0) as i32).into();
 
-		println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
+		//println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());

@@ -85,7 +85,8 @@ impl<'a> Map<'a> {
 		self.create_enemies();
 		self.create_objects();
 		
-		if DEBUG { self.print_map(self.map); }
+		//if DEBUG { self.print_map(self.map); }
+		self.print_map(self.map); 
 	}
 
 	// 2: create randomized rooms

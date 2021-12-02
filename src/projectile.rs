@@ -3,6 +3,7 @@ extern crate rogue_sdl;
 //use std::sync::Mutex;
 
 use crate::Player;
+use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;
@@ -117,31 +118,17 @@ impl Projectile {
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.pos();
-					if GameData::check_collision(&p_pos, &w_pos) {
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					let mut wall = Rigidbody::new(w_pos, 0.0,0.0, 1.0);
+					
+					if wall.rect_vs_circle(self.rb, normal_collision,  pen){
+						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
 					}
 				}
 			}
 		}
-
-		for c in crates {
-			if GameData::check_collision(&self.pos(), &c.pos()) { //I hate collisions
-				//println!("welcome to hell");
-				collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
-			}
-		}
-
-		for p in 0..projectiles.len() {
-			if projectiles[p].is_active {
-				if GameData::check_collision(&self.pos(), &projectiles[p].pos()) {
-					collisions.push(self.collect_col(self.pos(), self.pos().center(), projectiles[p].pos()));
-					projectiles[p].die();
-				}
-			}
-		}
-
-		self.resolve_col(&collisions);
+		
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
