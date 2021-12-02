@@ -38,6 +38,13 @@ impl CollisionDecider{
 	}
 }
 
+#[derive(Copy, Clone)]
+pub enum PlayerType{
+	Classic, 
+	Warrior, 
+	Assassin, 
+}
+
 pub struct Player<'a> {
 	// position values
 	pos: (f64, f64),
@@ -50,7 +57,7 @@ pub struct Player<'a> {
 	// display values
 	src: Rect,
 	attack_box: Rect,
-	texture_all: Texture<'a>,
+	texture: Texture<'a>,
 	// timers
 	attack_timer: Instant,
 	fire_timer: Instant,
@@ -60,11 +67,13 @@ pub struct Player<'a> {
 	shield_timer: Instant,
 	dash_timer: Instant,
 	// player attributes
+	pub class: PlayerType, 
 	hp: u32,
 	mana: i32,
 	weapon: WeaponType,
 	power: PowerType,
 	coins: u32,
+	pub speed_delta: f64, 
 	// check values
 	max_mana: i32,
 	max_hp: u32, 
@@ -82,7 +91,7 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new(pos: (f64, f64), texture_all: Texture<'a>) -> Player<'a> {
+	pub fn new(pos: (f64, f64), texture: Texture<'a>, class: PlayerType) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -107,16 +116,36 @@ impl<'a> Player<'a> {
 		let shield_timer = Instant::now();
 		let dash_timer = Instant::now();
 		// player attributes
-		let hp = 30;
+		let max_hp: u32; 
+		let weapon: WeaponType; 
+		let mut power: PowerType;
+		let speed_delta: f64; 
+		match class {
+			PlayerType::Warrior => {
+				max_hp = 50; 
+				weapon = WeaponType::Spear; 
+				power = PowerType::None; 
+				speed_delta = 0.75; 
+			}
+			PlayerType::Assassin => {
+				max_hp = 20; 
+				weapon = WeaponType::Sword; 
+				power = PowerType::None; 
+				speed_delta = 1.4; 
+			}
+			_ => {
+				max_hp = 30; 
+				weapon = WeaponType::Sword; 
+				power = PowerType::None; 
+				speed_delta = 1.0; 
+			}
+		}
+		let hp = max_hp; 
 		let mana = 4;
-		let weapon = WeaponType::Sword;
-		let power: PowerType;
 		if DEBUG {power = PowerType::Shield; }
-		else { power = PowerType::None; }
 		let coins = 0;
 		// check values
 		let max_mana = 4;
-		let max_hp = 30; 
 		let invincible = true;
 		let shielded = false; 
 		let can_pickup = false;
@@ -141,7 +170,7 @@ impl<'a> Player<'a> {
 			// display values
 			src,
 			attack_box,
-			texture_all,
+			texture,
 			// timers
 			attack_timer,
 			fire_timer,
@@ -151,11 +180,13 @@ impl<'a> Player<'a> {
 			shield_timer,
 			dash_timer,
 			// player attributes
+			class, 
 			hp,
 			mana,
 			weapon,
 			power,
 			coins,
+			speed_delta, 
 			// check values
 			max_mana,
 			max_hp, 
@@ -189,18 +220,18 @@ impl<'a> Player<'a> {
 		match self.get_power() {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
-					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * -1.0 * 1.7) as i32,
-																			(speed_limit_adj as f64 * 1.7) as i32));
-					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj as f64 * -1.0 * 1.7) as i32,
-																			(speed_limit_adj as f64 * 1.7) as i32));
+					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta * -1.0) as i32,
+																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
+					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta  * -1.0) as i32,
+																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
 				} else {
-					self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-					self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
 				}
 			},
 			_ => {
-				self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
-				self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32));
+				self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+				self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
 			}
 		}
 
@@ -250,7 +281,7 @@ impl<'a> Player<'a> {
 				self.collect_col(self.pos(), self.pos().center(), c.pos());
 			}
 		}
-		self.update_pos();/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
+		self.update_pos();
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
 		match self.get_weapon() {
@@ -329,10 +360,9 @@ impl<'a> Player<'a> {
 	}
 
 	// update position
-	#[allow(unused_variables)]
 	pub fn update_pos(&mut self) {
-		self.pos.0 = self.x() + self.x_vel() as f64 * 2.0 /* .clamp(x_bounds.0 as f64, x_bounds.1 as f64) */;
-		self.pos.1 = self.y() + self.y_vel() as f64 * 2.0 /* .clamp(y_bounds.0 as f64, y_bounds.1 as f64) */;
+		self.pos.0 = self.x() + self.x_vel() as f64 * 2.0;
+		self.pos.1 = self.y() + self.y_vel() as f64 * 2.0;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -367,8 +397,8 @@ impl<'a> Player<'a> {
 
 	pub fn get_mass(&self) -> f64 { self.mass }
 
-	pub fn texture_all(&self) -> &Texture {
-        &self.texture_all
+	pub fn texture(&self) -> &Texture {
+        &self.texture
     }
 
 	pub fn get_frame_display(&mut self, gamedata: &mut GameData, fps_avg: f64) {
@@ -402,9 +432,9 @@ impl<'a> Player<'a> {
 		match self.get_weapon() {
 			WeaponType::Sword => {
 				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
 				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+					self.attack_box = Rect::new(x - ATTACK_LENGTH_SWORD as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
 				}
 			},
 			WeaponType::Spear => {
