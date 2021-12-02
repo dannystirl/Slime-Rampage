@@ -196,7 +196,7 @@ impl Rigidbody{
         let mut inside = false;
         //let inside = a_to_b == closest_point;
         if a_to_b == closest_point{
-            println!("in");
+            //println!("in");
             inside = true;
             if  f64::abs(a_to_b.x) > f64::abs(a_to_b.y) {
                 if closest_point.x > 0.0 {
@@ -205,7 +205,7 @@ impl Rigidbody{
                     closest_point.x = -self_x_extreme;
                 }
             }else{
-                if closest_point.y > 0.0 {
+                if closest_point.y < 0.0 {
                     closest_point.y = self_y_extreme;
                 } else {
                     closest_point.y = -self_y_extreme;
@@ -244,16 +244,23 @@ impl Rigidbody{
            let zero: f64 = 0.0;
            let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
       
-           
            if self.s {
-               other.vel = -other.vel;
+               if normal_collision.x != 0.0 {
+                other.vel.x = -other.vel.x;
+               }
+               else {
+                other.vel.y = -other.vel.y;
+               }
 
-             
                return;    
            }
            if other.s{
-               self.vel = -other.vel;
-             
+               if normal_collision.x != 0.0 {
+                self.vel.x = -self.vel.x;
+               }
+               else {
+                self.vel.y = -self.vel.y;
+               }
                return;
            }
      
