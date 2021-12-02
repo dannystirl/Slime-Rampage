@@ -158,7 +158,6 @@ impl Rigidbody{
     }
     pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
-        //let a_to_b =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let mut closest_point = a_to_b;
         let self_x_extreme = (self.hitbox.right() - self.hitbox.left()) / 2.0;
@@ -210,7 +209,7 @@ impl Rigidbody{
     }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
-           /*// sink correction for static objects with infite mass
+           /*// sink correction for static objects with infinite mass
            
            let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 

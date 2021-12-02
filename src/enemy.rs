@@ -15,6 +15,8 @@ use crate::{power};
 use crate::gold::Gold;
 use crate::power::Power;
 use crate::power::PowerType;
+use crate::rigidbody::{Rigidbody, Rectangle};
+
 pub enum EnemyType{
 	Melee,
 	Ranged,
@@ -44,6 +46,7 @@ pub struct Enemy<'a> {
 	pub is_firing: bool,
 	pub enemy_type: EnemyType,
 	pub enemy_number: usize,
+	pub rb: Rigidbody,//added rigidbody
 }
 
  impl<'a> Enemy<'a> {
@@ -65,6 +68,7 @@ pub struct Enemy<'a> {
 		let is_stunned = false;
 		let is_firing =false;
 		let alive = true;
+		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0);//enemy rb
 
 		let hp: i32;
 		let stun_time: u128; 
@@ -98,41 +102,49 @@ pub struct Enemy<'a> {
 			is_firing,
 			enemy_type,
 			enemy_number,
+			rb,
 		}
 	}
 
 	// x values
 	pub fn set_x(&mut self, x:f64){
-		self.pos.x = x as i32;
+		//self.pos.x = x as i32;
+		self.rb.hitbox.x = x;
 	}
 	pub fn x(&self) -> f64 {
-		return self.pos.x.into();
+		return self.rb.hitbox.x;
 	}
 	pub fn set_x_vel(&mut self, x:f64){
-		self.vel_x = x;
+		//self.vel_x = x;
+		self.rb.vel.x = x;
 	}
 	pub fn x_vel(&self) -> f64 {
-		return self.vel_x;
+		//return self.vel_x;
+		return self.rb.vel.x;
 	}
 	pub fn width(&self) -> u32 {
-		self.pos.width()
+		//self.pos.width() 
+		self.rb.hitbox.w as u32
 	}
 
 	// y values
 	pub fn set_y(&mut self, y:f64){
-		self.pos.y = y as i32;
+		//self.pos.y = y as i32;
+		self.rb.hitbox.y = y;
 	}
 	pub fn y(&self) -> f64 {
-		return self.pos.y.into();
+		return self.rb.hitbox.y;//self.pos.y.into();
 	}
 	pub fn set_y_vel(&mut self, y:f64){
-		self.vel_y = y;
+		//self.vel_y = y;
+		self.rb.vel.y = y;
 	}
 	pub fn y_vel(&self) -> f64 {
-		return self.vel_y;
+		return self.rb.vel.y;//self.vel_y;
 	}
 	pub fn height(&self) -> u32 {
-		self.pos.height()
+		//self.pos.height()
+		self.rb.hitbox.h as u32
 	}
 	pub fn radius_from_point(&self,(x,y): (f64,f64))->f64{
 		let x_d = (self.x() - x).powf(2.0);
@@ -141,8 +153,10 @@ pub struct Enemy<'a> {
 	}
 	// movement stuff
 	pub fn update_pos(&mut self){
-		self.pos.set_x(self.x() as i32 +self.x_vel() as i32);
-		self.pos.set_y(self.y() as i32 + self.y_vel() as i32);
+		//self.pos.set_x(self.x() as i32 +self.x_vel() as i32);
+		//self.pos.set_y(self.y() as i32 + self.y_vel() as i32);
+		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
+		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
 	#[allow(unused_parens)]
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
@@ -186,20 +200,23 @@ pub struct Enemy<'a> {
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.pos();
+					let p_pos = self.rb.draw_pos();//self.pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+						//collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 					}
 				}
 			}
 		}
 		for c in &game_data.crates{
-			if GameData::check_collision(&self.pos,&c.pos()){
+			//if GameData::check_collision(&self.pos,&c.pos()){
+			  if GameData::check_collision(&self.rb.draw_pos(),&c.pos()){
 				// crate squishes enemy
 				if c.get_magnitude() > 0.0{
 					self.die();
 				}
-				collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
+				//collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
+				collisions.push(self.collect_col(self.rb.draw_pos(), self.rb.hitbox.center_point(), c.pos()));
 			}
 		}
 		self.resolve_col(&collisions);
@@ -316,7 +333,7 @@ pub struct Enemy<'a> {
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.pos();
+					let p_pos = self.rb.draw_pos();//self.pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
 						return true; 
 					}
