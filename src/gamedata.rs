@@ -13,7 +13,7 @@ use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
 use crate::crateobj::*;
-use crate::rigidbody::Rigidbody;
+
 
 // window globals
 pub const TITLE: &str = "Roguelike";

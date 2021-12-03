@@ -15,7 +15,7 @@ use crate::{power};
 use crate::gold::Gold;
 use crate::power::Power;
 use crate::power::PowerType;
-use crate::rigidbody::{Rigidbody, Rectangle};
+use crate::rigidbody::{Rigidbody};
 
 pub enum EnemyType{
 	Melee,
@@ -506,6 +506,7 @@ pub struct Enemy<'a> {
 								vec![x,y],
 								ProjectileType::Bullet,
 								0,//elapsed
+								0.0
 							);
 						game_data.enemy_projectiles.push(bullet);
 						}

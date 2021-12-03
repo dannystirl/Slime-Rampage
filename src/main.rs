@@ -63,7 +63,7 @@ impl Game for ROGUELIKE  {
 	fn run(&mut self) -> Result<(), String> {
 		// CREATE GAME CONSTANTS
         let texture_creator = self.core.wincan.texture_creator();
-		let mut rng = rand::thread_rng();
+		//let rng = rand::thread_rng();
 
 		// AUDIO SYSTEM
 		let frequency = 44_100;
@@ -91,7 +91,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		//music.play(1)?;
+		music.play(1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -847,7 +847,7 @@ impl ROGUELIKE {
 	}
 	
 	// check collisions
-	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, crate_textures: &Vec<Texture>) {
+	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, _crate_textures: &Vec<Texture>) {
 		let map = map_data.map;
 
 		// PLAYER VS ENEMY
@@ -992,9 +992,7 @@ impl ROGUELIKE {
 
 		// ALL ENEMY PROJECTILE COLLISIONS
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let pen = &mut 0.0;
-
+		
 			// ENEMY PROJECTILES vs PLAYER
 			// TODO: POSSIBLY ADD PLAYER KNOCKBACK
 			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
@@ -1108,8 +1106,7 @@ impl ROGUELIKE {
 					ProjectileType::Fireball=> {
 						let time = projectile.elapsed;
 
-						let angle = 0.0;
-						//println!("{}", angle);
+						
 						
 						//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
 						let s = ROGUELIKE::display_animation(time, 4, 6, 4, TILE_SIZE);
@@ -1119,6 +1116,11 @@ impl ROGUELIKE {
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
 							projectile.facing_right = false;//face left
 						}
+						if mousestate.y() > player.get_cam_pos().y() && time == 0{
+							projectile.facing_up = false;//face right
+						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
+							projectile.facing_up = true;//face left
+						}
 						/*
 						if player.facing_right == false && time == 0{
 							projectile.facing_right = false;//face left
@@ -1127,7 +1129,7 @@ impl ROGUELIKE {
 						}
 						*/
 						projectile.elapsed += 1;
-						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), angle, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player),projectile.angle, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();

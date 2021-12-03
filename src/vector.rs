@@ -1,5 +1,5 @@
 extern crate rogue_sdl;
-use std::{ops, process::Output};
+use std::{ops};
 pub struct Vector2D{
     pub x: f64,
     pub y: f64,
@@ -90,9 +90,6 @@ impl PartialEq for Vector2D {
 impl Vector2D{
     pub fn new(x:f64,y: f64)-> Vector2D{
         Vector2D{x,y}
-    }
-    pub fn set_vec(x: f64, y : f64){
-       // self.
     }
     pub fn length(self) -> f64{
         (self.x * self.x + self.y * self.y).sqrt()

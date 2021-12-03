@@ -72,10 +72,7 @@ impl Crate {
 		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
-	pub fn update_acceleration(&mut self, x: f64, y: f64){
-		// self.acceleration[0] = x;
-		// self.acceleration[1] = y;
-	}
+	
 	pub fn get_magnitude(&self) -> f64{
 		return ((self.x_vel() as f64).powf(2.0) + (self.y_vel() as f64).powf(2.0)).sqrt()
 	}
