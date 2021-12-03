@@ -132,7 +132,7 @@ impl<'a> Player<'a> {
 			_ => {
 				max_hp = 30; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::Slimeball; 
+				power = PowerType::Fireball; 
 				speed_delta = 1.5; 
 			}
 		}

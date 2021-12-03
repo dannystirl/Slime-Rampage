@@ -102,6 +102,7 @@ impl Game for ROGUELIKE  {
 
 		//test power
 		//player.set_power(PowerType:: Slimeball);
+		let mut rng = rand::thread_rng();
 
 		// create ui
 		let mut ui = ui::UI::new(
@@ -240,15 +241,14 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let mut rng = rand::thread_rng();
-							let roll= rng.gen_range(0..2);
+							let roll= rng.gen_range(0..10);
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE_CAM*2,
-										TILE_SIZE_CAM*2
+										TILE_SIZE_PLAYER*2,
+										TILE_SIZE_PLAYER*2
 									)
 								);
 								self.game_data.crates.push(c);
@@ -257,8 +257,8 @@ impl Game for ROGUELIKE  {
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE_CAM,
-										TILE_SIZE_CAM
+										TILE_SIZE_PLAYER,
+										TILE_SIZE_PLAYER
 									)
 								);
 								self.game_data.crates.push(c);
@@ -1072,11 +1072,10 @@ impl ROGUELIKE {
 				c.friction();
 			}
 		}
-		/*
-		for c in self.game_data.crates.iter_mut(){
-			c.update_crates(&mut self.core, &crate_textures, player, map);
-		}
-		*/
+
+		//for c in self.game_data.crates.iter_mut(){
+		//	c.update_crates(&mut self.core, &crate_textures, player, map);
+		//}
 	}
 
 	// draw player
