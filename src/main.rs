@@ -839,7 +839,6 @@ impl ROGUELIKE {
 		for enemy in enemies.iter_mut() {
 			if enemy.is_alive() {
 				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
-					println!("Player collides with Enemy");
 					player.minus_hp(5);
 				}
 			}
@@ -891,7 +890,6 @@ impl ROGUELIKE {
 			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let pen = &mut 0.0;
 			if player.rb.rect_vs_rect(c.rb, normal_collision, pen){
-				println!("Player collides with Crate");
 				// provide impulse
 				player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
 			} else {
@@ -936,7 +934,6 @@ impl ROGUELIKE {
 					let pen = &mut 0.0;
 						if enemy.is_alive() {
 							if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
-								println!("Player projectile hits Enemy");
 								match enemy.enemy_type {
 									EnemyType::Melee => {
 										enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
@@ -966,7 +963,6 @@ impl ROGUELIKE {
 				// PLAYER PROJECTILES vs ENEMY PROJECTILES
 				for enemy_projectile in self.game_data.enemy_projectiles.iter_mut(){
 					if enemy_projectile.is_active() {
-						println!("Player projectile hits Enemy Projectile");
 						let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 						let pen = &mut 0.0;
 						if projectile.rb.circle_vs_circle(enemy_projectile.rb, normal_collision, pen){
