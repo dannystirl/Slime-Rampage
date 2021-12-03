@@ -127,13 +127,15 @@ impl Game for ROGUELIKE  {
 		ability_textures.push(bullet_enemy);
 		ability_textures.push(shield);
 		ability_textures.push(wall);
+
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
-		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
-		
-		let heavy = texture_creator.load_texture("images/objects/metal_crate.png")?; 
+		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?;
+		let heavy = texture_creator.load_texture("images/objects/metal_crate.png")?;
+		let explosive = texture_creator.load_texture("images/objects/explosive_barrel_64.png")?;
 		crate_textures.push(crate_texture);
 		crate_textures.push(heavy);
+		crate_textures.push(explosive);
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
@@ -241,7 +243,8 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let roll= rng.gen_range(0..10);
+							//let roll= rng.gen_range(0..10);
+							let roll = 2;
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
@@ -249,6 +252,16 @@ impl Game for ROGUELIKE  {
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
 										TILE_SIZE_PLAYER*2,
 										TILE_SIZE_PLAYER*2
+									)
+								);
+								self.game_data.crates.push(c);
+							}else if roll == 1 || roll == 2 {
+								let c = crateobj::Crate::new_explosive(
+									Rect::new(
+										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+										TILE_SIZE,
+										TILE_SIZE_PLAYER*2 - 15
 									)
 								);
 								self.game_data.crates.push(c);
