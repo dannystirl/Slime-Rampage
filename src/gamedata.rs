@@ -11,7 +11,6 @@ use crate::power::*;
 use crate::weapon::*;
 use crate::projectile::*;
 use crate::room::*;
-//use crate::map::*;
 use crate::crateobj::*;
 
 
@@ -127,7 +126,6 @@ impl GameData {
 
     // speed values
     pub fn set_speed_limit(&mut self, speed_limit: f64) {
-        //println!("Speed limit adjusted: {}", speed_limit);
         self.speed_limit = speed_limit;
     }
 
@@ -136,7 +134,6 @@ impl GameData {
     }
 
     pub fn set_accel_rate(&mut self, accel_rate: f64) {
-        //println!("Acceleration rate adjusted: {}", accel_rate);
         self.accel_rate = accel_rate;
     }
 
@@ -157,10 +154,4 @@ impl GameData {
             true
         }
     }
-
-    /* pub fn go_to_next_floor() {
-        self.current_floor += 1;
-        self.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
-        self.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
-    } */
 }

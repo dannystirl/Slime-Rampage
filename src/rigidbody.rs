@@ -112,12 +112,9 @@ impl Rigidbody{
     }
     pub fn check_rect_col(self, other: Rigidbody) -> bool {
         if self.hitbox.bottom() < other.hitbox.top() || self.hitbox.top() > other.hitbox.bottom()|| self.hitbox.right() < other.hitbox.left()|| self.hitbox.left() > other.hitbox.right()
-        {
-            false
-        }else{
-            true
-        }
+        { false } else { true }
     }
+    
     pub fn rect_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
         
         let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
@@ -126,19 +123,18 @@ impl Rigidbody{
 
         let overlap_x = ((a.right() - a.left()) / 2.0) + ((b.right() - b.left())/2.0) - f64::abs(vec_from_a_to_b.x);
 
-        if  overlap_x > 0.0{
+        if overlap_x > 0.0{
             let overlap_y = ((a.bottom() - a.top())/2.0) + ((b.bottom() - b.top())/2.0) - f64::abs(vec_from_a_to_b.y);
             if overlap_y > 0.0{
                 if overlap_x < overlap_y{
                     if vec_from_a_to_b.x < 0.0 {
                         *normal_collision = Vector2D{x : -1.0, y : 0.0};
-                    }else{
+                    } else {
                         *normal_collision = Vector2D{x : 1.0, y : 0.0};
                     }
                     *pen = overlap_x;
                     return true;
-                }else
-                {
+                } else {
                     if vec_from_a_to_b.y < 0.0 {
                         *normal_collision = Vector2D{x : 0.0 , y : -1.0};
                     }else{
@@ -147,10 +143,10 @@ impl Rigidbody{
                     *pen = overlap_y;
                     return true;
                 }
-            }else{
+            } else {
                 return false
             }
-        }else{
+        } else {
             false
         }
 
@@ -184,6 +180,7 @@ impl Rigidbody{
             return true;
         }
     }
+
     pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
         let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
@@ -195,9 +192,7 @@ impl Rigidbody{
         closest_point.y = closest_point.y.clamp(-self_y_extreme,self_y_extreme);
         
         let mut inside = false;
-        //let inside = a_to_b == closest_point;
         if a_to_b == closest_point{
-            //println!("in");
             inside = true;
             if  f64::abs(a_to_b.x) > f64::abs(a_to_b.y) {
                 if closest_point.x > 0.0 {
@@ -213,11 +208,8 @@ impl Rigidbody{
                 }
             }
         }
-        //*normal_collision = a_to_b - closest_point;
         let normal = a_to_b - closest_point;
-        //println!("normal: {}, {}", normal.x, normal.y);
         let mut d = normal.length_squared();
-        //let mut d = normal_collision.length_squared();
         let r = other.radius;
         
         if d>r*r && !inside{
@@ -225,7 +217,7 @@ impl Rigidbody{
         }
         d = d.sqrt();
         if inside{
-            *normal_collision = -a_to_b.normalize();//normalize
+            *normal_collision = -a_to_b.normalize();
             *pen = r - d;
         }
         else{
@@ -237,8 +229,7 @@ impl Rigidbody{
     }
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
-           // sink correction for static objects with infite mass
-          
+        // sink correction for static objects with infite mass
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;
@@ -260,26 +251,20 @@ impl Rigidbody{
         self.hitbox.y -= (self.i_mass) * correction.y;
         other.hitbox.x += (self.i_mass) * correction.x;
         other.hitbox.y += (self.i_mass) * correction.y;    
-  /*  this if for bounce based on mass ratio   
-     let mass_sum = self.mass + other.mass;
+        /*  this if for bounce based on mass ratio   
+        let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
         self.vel = self.vel - ratio * impulse_vec; 
         ratio = other.mass / mass_sum;
         other.vel = other. vel + ratio * impulse_vec; */
-        
     }
-
-
-
 
     //might use later for very fast objects
     /* fn swept(self, other: Rigidbody,  normal_x : &mut f64,  normal_y : &mut f64 )-> f64{//moving self and other is static
-      
-      
         let inv_entry_x : f64;
-       let inv_entry_y : f64;
-       let inv_exit_x : f64;
-       let inv_exit_y: f64;
+        let inv_entry_y : f64;
+        let inv_exit_x : f64;
+        let inv_exit_y: f64;
 
         if self.vel.x > 0.0 {
             inv_entry_x = other.hitbox.x - (self.hitbox.x + self.hitbox.w);

@@ -14,7 +14,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
 use sdl2::rect::{Rect, Point};
 use sdl2::image::LoadTexture;
-use sdl2::render::{Texture};//,TextureCreator};
+use sdl2::render::{Texture};
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
 //use std::env;
@@ -219,6 +219,7 @@ impl Game for ROGUELIKE  {
 								texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
 								EnemyType::Melee,
 								enemy_count,
+								self.game_data.current_floor, 
 							);
 							enemies.push(e);
 							rngt.push(rng.gen_range(1..5));
@@ -235,6 +236,7 @@ impl Game for ROGUELIKE  {
 								texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
 								EnemyType::Ranged,
 								enemy_count,
+								self.game_data.current_floor, 
 							);
 							enemies.push(e);
 							rngt.push(rng.gen_range(1..5));
@@ -276,6 +278,7 @@ impl Game for ROGUELIKE  {
 								texture_creator.load_texture("images/enemies/Shield_skeleton.png")?,
 								EnemyType::Skeleton,
 								enemy_count,
+								self.game_data.current_floor, 
 							);
 							enemies.push(e);
 							rngt.push(rng.gen_range(1..5));
@@ -292,6 +295,7 @@ impl Game for ROGUELIKE  {
                                 texture_creator.load_texture("images/enemies/eyeball.png")?,
                                 EnemyType::Eyeball,
                                 enemy_count,
+								self.game_data.current_floor, 
                             );
                             enemies.push(e);
                             rngt.push(rng.gen_range(1..5));
@@ -308,6 +312,7 @@ impl Game for ROGUELIKE  {
 								texture_creator.load_texture("images/enemies/boss.png")?,
 								EnemyType::Boss,
 								enemy_count,
+								self.game_data.current_floor, 
 							);
 							enemies.push(e);
 							rngt.push(rng.gen_range(1..5));
@@ -1208,7 +1213,7 @@ impl ROGUELIKE {
 		let mut src_y = 0;
 
 		for i in 0..row{
-			if x < col*(i+1) {//1st line
+			if x < col*(i+1) {
 				src_x = (x-i*col)*size as i32;
 				src_y = i*size as i32;
 				break

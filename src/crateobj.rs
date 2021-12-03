@@ -89,7 +89,6 @@ impl Crate {
 		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-		// println!("{}, {}", c.velocity[0], c.velocity[1]);
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -116,7 +115,6 @@ impl Crate {
 						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
 					}
 					if GameData::check_collision(&p_pos, &w_pos) {
-						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
 						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 					}
 				}
@@ -289,12 +287,4 @@ impl Crate {
 			self.update_velocity(0.0, self.rb.friction);
 		}
 	}
-	// calculate velocity resistance
-	/* fn resist(vel: i32, delta: i32) -> i32 {
-		if delta == 0 {
-			if vel > 0 {-1}
-			else if vel < 0 {1}
-			else {delta}
-		} else {delta}
-	} */
 }

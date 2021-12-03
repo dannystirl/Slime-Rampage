@@ -127,8 +127,7 @@ impl<'a> Map<'a> {
 		self.create_enemies();
 		self.create_objects();
 		
-		//if DEBUG { self.print_map(self.map); }
-		self.print_map(self.map); 
+		if DEBUG { self.print_map(self.map); }
 	}
 
 	// 2: create randomized rooms
@@ -630,7 +629,7 @@ impl<'a> Map<'a> {
 
 			let mut tests = 0; 
 			let mut enemy_number = vec![0,0,0,0,0]; 
-			let enemy_number_max = vec![spawn_positions.len()/35 + rng.gen_range(1..4), 	// total enemies
+			let enemy_number_max = vec![spawn_positions.len()/32 + rng.gen_range(1..4), 	// total enemies
 										rng.gen_range(2..6), 	// ghosts
 										rng.gen_range(0..3), 	// gellems
 										rng.gen_range(1..3), 	// skeletons
