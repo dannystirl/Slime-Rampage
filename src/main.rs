@@ -119,7 +119,7 @@ impl Game for ROGUELIKE  {
 		let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let bullet_player = texture_creator.load_texture("images/abilities/bullet_player.png")?; 
 		let bullet_enemy = texture_creator.load_texture("images/abilities/bullet_enemy.png")?;
-		let fireball = texture_creator.load_texture("images/abilities/fireball.png")?;
+		let fireball = texture_creator.load_texture("images/abilities/new_fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
 		ability_textures.push(bullet_player);
@@ -1109,7 +1109,7 @@ impl ROGUELIKE {
 						
 						
 						//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
-						let s = ROGUELIKE::display_animation(time, 4, 6, 4, TILE_SIZE);
+						let s = ROGUELIKE::display_animation(time, 4, 6, 6, TILE_SIZE);
 
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
 							projectile.facing_right = true;//face right
@@ -1121,14 +1121,11 @@ impl ROGUELIKE {
 						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
 							projectile.facing_up = true;//face left
 						}
-						/*
-						if player.facing_right == false && time == 0{
-							projectile.facing_right = false;//face left
-						}else if player.facing_right == true && time == 0{
-							projectile.facing_right = true;//face right
-						}
-						*/
+					
 						projectile.elapsed += 1;
+						//println!("{}", projectile.elapsed);
+						if projectile.elapsed == 127 {projectile.die();}//fireball dies after a certain amount of time
+
 						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player),projectile.angle, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Shield => {
