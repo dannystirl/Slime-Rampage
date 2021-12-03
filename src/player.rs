@@ -121,13 +121,13 @@ impl<'a> Player<'a> {
 				max_hp = 50; 
 				weapon = WeaponType::Spear; 
 				power = PowerType::None; 
-				speed_delta = 1.0; 
+				speed_delta = 1.2; 
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::None; 
-				speed_delta = 2.0; 
+				power = PowerType::Dash; 
+				speed_delta = 1.8; 
 			}
 			_ => {
 				max_hp = 30; 
@@ -216,9 +216,8 @@ impl<'a> Player<'a> {
 		match self.get_power() {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
-
-				self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 , (speed_limit_adj*self.speed_delta*1.7) as i32).into();
-				self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 ,(speed_limit_adj*self.speed_delta*1.7) as i32).into();
+					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 , (speed_limit_adj*self.speed_delta*1.7) as i32).into();
+					self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 ,(speed_limit_adj*self.speed_delta*1.7) as i32).into();
 				}else{
 					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 , (speed_limit_adj*self.speed_delta) as i32).into();
 					self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
@@ -226,32 +225,9 @@ impl<'a> Player<'a> {
 			}
 			_ =>{
 				self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 , (speed_limit_adj*self.speed_delta) as i32).into();
-		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
-		}
-	}
-
-		//println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
-
-		// Don't exceed speed limit
-		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
-		//self.set_y_vel((self.y_vel()aaaaelf.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
-	 /* match self.get_power() {
-			PowerType::Dash => {
-				if self.get_dash_timer() <= 1000 {
-					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta * -1.0) as i32,
-																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
-					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta  * -1.0) as i32,
-																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
-				} else {
-					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
-					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
-				}
-			},
-			_ => {
-				self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
-				self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+				self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
 			}
-		} */
+		}
  
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
@@ -412,8 +388,8 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2,
-			self.y() as i32 - y - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2,
+			self.x() as i32 - x - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.y() as i32 - y - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
@@ -530,7 +506,7 @@ impl<'a> Player<'a> {
 			),
 			false,
 			match p_type {
-				ProjectileType::Fireball => { vec![x*0.65, y*0.65] }
+				ProjectileType::Fireball => { vec![x*0.60, y*0.60] }
 				_ => { vec![x, y] }
 			}, 
 			p_type,

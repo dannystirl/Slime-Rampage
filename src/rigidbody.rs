@@ -35,8 +35,7 @@ impl Rectangle{
         return Point::new(((self.left()+self.right())/2.0) as i32, ((self.top()+self.bottom())/2.0) as i32);
     }
 }
-pub struct Rigidbody{
-    
+pub struct Rigidbody{ 
     pub hitbox : Rectangle,
     pub vel: Vector2D,
     pub accel: Vector2D,
@@ -47,7 +46,6 @@ pub struct Rigidbody{
     pub s: bool,
     pub friction: f64,
     //pub circle_center: Vector2D,
-
 }
 impl Copy for Rigidbody { }
 impl Clone for Rigidbody {

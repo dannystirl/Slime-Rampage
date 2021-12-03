@@ -466,7 +466,11 @@ impl<'a> Map<'a> {
 								   continue;
 							}
 							if new_map[h as usize + k as usize - 1][w as usize + l as usize - 1] == 1 {
-								new_map[h as usize][w as usize] = 2;
+								//add wall
+								let moss = rand::thread_rng().gen_range(0..60);
+								if moss < 10 * self.current_floor {
+									new_map[h as usize][w as usize] = 5;		// moss walls
+								} else { new_map[h as usize][w as usize] = 2; }	// walls
 							}
 						}
 					}
