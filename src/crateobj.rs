@@ -1,5 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
+use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::render::{Texture};
 use crate::player::*;
@@ -96,6 +97,12 @@ impl Crate {
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
 					let p_pos = self.rb.draw_pos();//this kind of works?
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 2.0);
+					if wall.rect_vs_rect(self.rb, normal_collision,  pen){
+						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
+					}
 					if GameData::check_collision(&p_pos, &w_pos) {
 						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
 						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
