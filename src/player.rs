@@ -136,7 +136,7 @@ impl<'a> Player<'a> {
 			_ => {
 				max_hp = 30; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::None; 
+				power = PowerType::Fireball; 
 				speed_delta = 1.0; 
 			}
 		}
@@ -505,7 +505,7 @@ impl<'a> Player<'a> {
 			),
 			false,
 			match p_type {
-				ProjectileType::Fireball => { vec![x*0.65, y*0.65] }
+				ProjectileType::Fireball => { vec![x*0.60, y*0.60] }
 				_ => { vec![x, y] }
 			}, 
 			p_type,
