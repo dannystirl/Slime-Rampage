@@ -22,6 +22,7 @@ pub struct Projectile{
 	src: Rect,
 	pub facing_right: bool,
 	is_active: bool,
+	is_flammable: bool,
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
 	pub elapsed: u128,
@@ -35,16 +36,21 @@ impl Projectile {
 		let is_active = true;
 		let bounce_counter = 0;
 		let damage: i32;
+		let mut is_flammable = false;
 		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
-			ProjectileType::Fireball => { damage = 10; } 
+			ProjectileType::Fireball => {
+				damage = 10;
+				is_flammable = true;
+			}
 			ProjectileType::Shield => { damage = 0; }
 		}
 		Projectile {
 			src,
 			facing_right,
 			is_active,
+			is_flammable,
 			p_type,
 			bounce_counter,
 			elapsed,
@@ -137,16 +143,6 @@ impl Projectile {
 					}
 					self.resolve_col(&wall_collisions);
 				}
-			}
-		}
-
-		// PROJECTILE vs CRATES
-		for c in crates{
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let pen = &mut 0.0;
-			if c.rb.rect_vs_circle(self.rb, normal_collision,  pen){
-				c.rb.resolve_col(&mut self.rb, *normal_collision, *pen);
-				self.inc_bounce();
 			}
 		}
 	}
@@ -279,5 +275,9 @@ impl Projectile {
 
 	pub fn get_bounce(&mut self) -> i32 {
 		return self.bounce_counter;
+	}
+
+	pub fn is_flammable(&self) -> bool {
+		return self.is_flammable;
 	}
 }

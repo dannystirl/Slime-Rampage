@@ -260,8 +260,8 @@ impl Game for ROGUELIKE  {
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE,
-										TILE_SIZE_PLAYER*2 - 15
+										TILE_SIZE_64,
+										TILE_SIZE_PLAYER*2
 									)
 								);
 								self.game_data.crates.push(c);
@@ -984,7 +984,19 @@ impl ROGUELIKE {
 						}
 					}
 
-				// PLAYER PROJECTILE vs CRATES + WALLS
+				// PLAYER PROJECTILE vs CRATES
+				for c in self.game_data.crates.iter_mut(){
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					if c.rb.rect_vs_circle(projectile.rb, normal_collision,  pen){
+						if projectile.is_flammable(){
+							println!("KABOOOOOOOM!!!!!!!!");
+						} else {c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);}
+						projectile.inc_bounce();
+					}
+				}
+
+				// PLAYER PROJECTILE VS WALLS
 				projectile.check_bounce(&mut self.game_data.crates, map);
 
 
@@ -1015,7 +1027,17 @@ impl ROGUELIKE {
 				projectile.die();
 			}
 
-			// ENEMY PROJECTILE vs CRATES + WALLS
+			// ENEMY PROJECTILE vs CRATES
+			for c in self.game_data.crates.iter_mut(){
+				let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+				let pen = &mut 0.0;
+				if c.rb.rect_vs_circle(projectile.rb, normal_collision,  pen){
+					c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
+					projectile.inc_bounce();
+				}
+			}
+
+			// ENEMY PROJECTILE vs WALLS
 			projectile.check_bounce(&mut self.game_data.crates, map);
 		}
 
