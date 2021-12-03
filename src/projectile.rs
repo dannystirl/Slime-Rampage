@@ -87,7 +87,7 @@ impl Projectile {
 	}
 	
 	// check object bouncing 
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, projectiles: &mut Vec<Projectile>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
