@@ -12,7 +12,7 @@ use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
-use crate::rigidbody::{Rigidbody, Rectangle};
+use crate::rigidbody::{Rigidbody};
 
 #[derive(Copy, Clone)]
 pub enum Direction{
@@ -132,7 +132,7 @@ impl<'a> Player<'a> {
 			_ => {
 				max_hp = 30; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::Slimeball; 
+				power = PowerType::Fireball; 
 				speed_delta = 1.5; 
 			}
 		}
@@ -365,8 +365,8 @@ impl<'a> Player<'a> {
 
 	// Update Velocity
 	pub fn update_velocity(&mut self, x: f64, y: f64) {
-		self.rb.vel.x = (self.rb.vel.x + x as f64);
-		self.rb.vel.y = (self.rb.vel.y + y as f64);
+		self.rb.vel.x = self.rb.vel.x + x as f64;
+		self.rb.vel.y = self.rb.vel.y + y as f64;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -486,6 +486,7 @@ impl<'a> Player<'a> {
 
 		let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE_HALF) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE_HALF) as f64];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
+		
 		let speed: f64 = 2.0 * speed_limit;
 		let mut x = &speed * angle.sin();
 		let mut y = &speed * angle.cos();
@@ -495,6 +496,8 @@ impl<'a> Player<'a> {
 		if vec[1] < 0.0 {
 			y *= -1.0;
 		}
+		let angle = ((vec[1] / vec[0])).atan();
+
 
 		let p_type = p_type;
 		let bullet = projectile::Projectile::new(
@@ -511,6 +514,7 @@ impl<'a> Player<'a> {
 			}, 
 			p_type,
 			elapsed,
+			angle* 57.3,
 		);
 		return bullet;
 	}

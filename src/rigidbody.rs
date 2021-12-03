@@ -1,6 +1,6 @@
 extern crate rogue_sdl;
 
-use std::vec;
+
 use std::f64;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -249,7 +249,7 @@ impl Rigidbody{
         
         self.vel = self.vel - ((self.i_mass) * impulse_vec);
         other.vel = other.vel + ((other.i_mass) * impulse_vec);
-        
+
         let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
 
         let percent = 0.01; // usually 20% to 80%
