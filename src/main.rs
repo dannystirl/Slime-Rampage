@@ -751,7 +751,7 @@ impl ROGUELIKE {
 			if enemy.is_alive() {
 				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
 					println!("Player collides with Enemy");
-					player.minus_hp(5);
+					// player.minus_hp(5);
 				}
 			}
 		}

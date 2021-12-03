@@ -101,6 +101,10 @@ impl Projectile {
 			}
 		}
 
+		// WALL COLLISIONS :D
+		let mut wall_collisions: Vec<CollisionDecider> = Vec::with_capacity(69);
+
+
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
 
@@ -116,15 +120,22 @@ impl Projectile {
 				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
+
+					/*
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
 					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 2.0);
-					
 					if wall.rect_vs_circle(self.rb, normal_collision,  pen){
 						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
 						self.inc_bounce();
 					}
+					 */
+					if GameData::check_collision(&self.rb.draw_pos(), &w_pos) {
+						wall_collisions.push(self.collect_col(self.rb.draw_pos(), self.pos().center(), w_pos));
+					}
+					self.resolve_col(&wall_collisions);
 				}
 			}
 		}
