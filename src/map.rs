@@ -525,7 +525,7 @@ impl<'a> Map<'a> {
 					continue; 
 				}
 				else {
-					self.starting_position = (w as f64, h as f64);
+					if DEBUG { self.starting_position = (w as f64, h as f64); }
 					self.shop = self.numbered_map[h][w];
 					while self.shop_spawns.len() < 4 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..

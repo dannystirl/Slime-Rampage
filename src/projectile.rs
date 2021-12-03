@@ -217,8 +217,8 @@ impl Projectile {
 	pub fn update_pos(&mut self) {
 		self.set_x(self.x() + self.vector[0] as i32);
 		self.set_y(self.y() + self.vector[1] as i32);
-
 	}
+	
 	pub fn set_pos(&mut self, p:Rect){
 		self.pos = p;
 	}

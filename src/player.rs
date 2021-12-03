@@ -504,7 +504,10 @@ impl<'a> Player<'a> {
 				TILE_SIZE_PROJECTILE,
 			),
 			false,
-			vec![x, y],
+			match p_type {
+				ProjectileType::Fireball => { vec![x*0.65, y*0.65] }
+				_ => { vec![x, y] }
+			}, 
 			p_type,
 			elapsed,
 		);
