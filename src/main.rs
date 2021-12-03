@@ -118,8 +118,8 @@ impl Game for ROGUELIKE  {
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
 		let rock = texture_creator.load_texture("images/abilities/rock.png")?;
 		ability_textures.push(bullet_player);
-		ability_textures.push(bullet_enemy);
 		ability_textures.push(fireball);
+		ability_textures.push(bullet_enemy);
 		ability_textures.push(shield);
 		ability_textures.push(wall);
 		ability_textures.push(rock);
