@@ -121,19 +121,19 @@ impl<'a> Player<'a> {
 				max_hp = 50; 
 				weapon = WeaponType::Spear; 
 				power = PowerType::None; 
-				speed_delta = 0.75; 
+				speed_delta = 1.0; 
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
 				weapon = WeaponType::Sword; 
 				power = PowerType::None; 
-				speed_delta = 1.4; 
+				speed_delta = 2.0; 
 			}
 			_ => {
 				max_hp = 30; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::None; 
-				speed_delta = 1.0; 
+				power = PowerType::Dash; 
+				speed_delta = 1.5; 
 			}
 		}
 		let hp = max_hp; 
@@ -213,14 +213,28 @@ impl<'a> Player<'a> {
 		self.resist();
 
 		//to make the player move faster adj his speed limit by increaseing speed_limit_adj with a float value
-		self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*2.0) as i32 , (speed_limit_adj*2.0) as i32).into();
-		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*2.0) as i32 ,(speed_limit_adj*2.0) as i32).into();
+		match self.get_power() {
+			PowerType::Dash => {
+				if self.get_dash_timer() <= 1000 {
+
+				self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 , (speed_limit_adj*self.speed_delta*1.7) as i32).into();
+				self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 ,(speed_limit_adj*self.speed_delta*1.7) as i32).into();
+				}else{
+					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 , (speed_limit_adj*self.speed_delta) as i32).into();
+					self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
+				}
+			}
+			_ =>{
+				self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 , (speed_limit_adj*self.speed_delta) as i32).into();
+		self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
+		}
+	}
 
 		//println!("PLayer Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
-		//self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
+		//self.set_y_vel((self.y_vel()aaaaelf.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
 	 /* match self.get_power() {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
