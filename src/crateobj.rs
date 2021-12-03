@@ -23,7 +23,7 @@ pub struct Crate{
 impl Crate {
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.01);
 		Crate{
 			src,
 			rb,
@@ -258,14 +258,14 @@ impl Crate {
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
 		if self.x_vel() > 0.0 {
-			self.update_velocity(-0.1, 0.0);
+			self.update_velocity(-self.rb.friction, 0.0);
 		} else if self.x_vel() < 0.0 {
-			self.update_velocity(0.1, 0.0);
+			self.update_velocity(self.rb.friction, 0.0);
 		}
 		if self.y_vel() > 0.0 {
-			self.update_velocity(0.0, -0.1);
+			self.update_velocity(0.0, -self.rb.friction);
 		} else if self.y_vel() < 0.0 {
-			self.update_velocity(0.0, 0.1);
+			self.update_velocity(0.0, self.rb.friction);
 		}
 	}
 	// calculate velocity resistance

@@ -5,6 +5,7 @@ use std::f64;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 
+use crate::gamedata::TILE_SIZE_PROJECTILE;
 use crate::vector::*;
 
 #[derive(Copy,Clone)]
@@ -44,6 +45,7 @@ pub struct Rigidbody{
     pub i_mass: f64,
     pub radius: f64,
     pub s: bool,
+    pub friction: f64,
     //pub circle_center: Vector2D,
 
 }
@@ -56,13 +58,13 @@ impl Clone for Rigidbody {
 #[allow(dead_code)]
 
 impl Rigidbody{
-    pub fn new(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
+    pub fn new(rect : Rect, x:f64,y:f64, mass: f64, friction: f64)->Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
         let vel = Vector2D {x, y};
         let accel = Vector2D{x:0.0, y: 0.0};
         let i_mass = 1.0/mass;
         let elasticity  =1.0;
-        let radius = 32.0;
+        let radius = TILE_SIZE_PROJECTILE as f64/3.0;
         let s = false;
         Rigidbody{
             hitbox,
@@ -73,7 +75,7 @@ impl Rigidbody{
             i_mass,
             radius,
             s,
-            
+            friction,
         }
     }
     pub fn new_static(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
@@ -82,8 +84,9 @@ impl Rigidbody{
         let accel = Vector2D{x:0.0, y: 0.0};
         let i_mass = 1.0/mass;
         let elasticity  =1.0;
-        let radius = 32.0;
+        let radius = TILE_SIZE_PROJECTILE as f64/3.0;
         let s = true;
+        let friction = 0.0;
         Rigidbody{
            hitbox,
             vel,
@@ -93,6 +96,7 @@ impl Rigidbody{
             i_mass,
             radius,
             s,
+            friction,
 
         }
     }
@@ -158,8 +162,8 @@ impl Rigidbody{
         // Vector from A to B
         let r = self.radius + other.radius;//Ra + Rb
         let r_square = r * r;
-        let n =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0}
-                              - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
+        let n =  other.hitbox.center() - self.hitbox.center();
+                             
 
         let r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
 
