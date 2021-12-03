@@ -130,9 +130,9 @@ impl Game for ROGUELIKE  {
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
 		
-		let circle = texture_creator.load_texture("images/abilities/pink.png")?; 
+		let heavy = texture_creator.load_texture("images/objects/metal_crate.png")?; 
 		crate_textures.push(crate_texture);
-		crate_textures.push(circle);
+		crate_textures.push(heavy);
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
@@ -240,15 +240,30 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let c = crateobj::Crate::new(
-								Rect::new(
-									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-									TILE_SIZE_CAM,
-									TILE_SIZE_CAM
-								)
-							);
-							self.game_data.crates.push(c);
+							let mut rng = rand::thread_rng();
+							let roll= rng.gen_range(0..2);
+							if roll == 0 {
+								let c = crateobj::Crate::new_heavy(
+									Rect::new(
+										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+										TILE_SIZE_CAM*2,
+										TILE_SIZE_CAM*2
+									)
+								);
+								self.game_data.crates.push(c);
+							}else{
+								let c = crateobj::Crate::new(
+									Rect::new(
+										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+										TILE_SIZE_CAM,
+										TILE_SIZE_CAM
+									)
+								);
+								self.game_data.crates.push(c);
+							}
+							
 						}
 						4 => {
 							let e = enemy::Enemy::new(
@@ -1057,10 +1072,11 @@ impl ROGUELIKE {
 				c.friction();
 			}
 		}
-
+		/*
 		for c in self.game_data.crates.iter_mut(){
 			c.update_crates(&mut self.core, &crate_textures, player, map);
 		}
+		*/
 	}
 
 	// draw player

@@ -18,18 +18,33 @@ pub const MAX_CRATE_VEL: f64 = 6.0;
 pub struct Crate{
 	src: Rect,
 	pub rb:  Rigidbody,
-}
+	heavy: bool,
 
+}
+//impl Explosive for Crate{
+
+//}
 impl Crate {
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
+		let heavy= false;
 		Crate{
 			src,
 			rb,
+			heavy,
 		}
 	}
-
+	pub fn new_heavy(pos: Rect) -> Crate {
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,5.0, 0.1);
+		let heavy = true;
+		Crate{
+			src,
+			rb,
+			heavy,
+		}
+	}
 	pub fn src(&self) -> Rect {
 		self.src
 	}
@@ -113,7 +128,11 @@ impl Crate {
 		self.resolve_col(&collisions);
 		self.set_x(self.x() + self.rb.vel.x as i32);
 		self.set_y(self.y() + self.rb.vel.y as i32);
+		if self.heavy{
+		core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
+		}else{
 		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+		}
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
@@ -251,6 +270,11 @@ impl Crate {
 	}
 
 	pub fn offset_pos(&self, player:&Player)-> Rect{
+		if self.heavy{
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
+					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
+						 TILE_SIZE_PLAYER*2, TILE_SIZE_PLAYER*2);
+		}
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
 					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
@@ -258,14 +282,14 @@ impl Crate {
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
 		if self.x_vel() > 0.0 {
-			self.update_velocity(-0.1, 0.0);
+			self.update_velocity(-self.rb.friction, 0.0);
 		} else if self.x_vel() < 0.0 {
-			self.update_velocity(0.1, 0.0);
+			self.update_velocity(self.rb.friction, 0.0);
 		}
 		if self.y_vel() > 0.0 {
-			self.update_velocity(0.0, -0.1);
+			self.update_velocity(0.0, -self.rb.friction);
 		} else if self.y_vel() < 0.0 {
-			self.update_velocity(0.0, 0.1);
+			self.update_velocity(0.0, self.rb.friction);
 		}
 	}
 	// calculate velocity resistance

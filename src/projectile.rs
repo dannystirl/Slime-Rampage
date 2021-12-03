@@ -35,7 +35,7 @@ impl Projectile {
 		let is_active = true;
 		let bounce_counter = 0;
 		let damage: i32;
-		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0);
+		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
 			ProjectileType::Fireball => { damage = 10; } 
@@ -246,7 +246,14 @@ impl Projectile {
 			TILE_SIZE_PROJECTILE
 		);
     }
-
+	pub fn draw_pos(&self) -> Rect {
+		return Rect::new(
+			self.x() as i32,
+			self.y() as i32,
+			TILE_SIZE_PROJECTILE, 
+			TILE_SIZE_PROJECTILE
+		);
+    }
 	// screen coordinates
 	pub fn set_cam_pos(&self, player:&Player)-> Rect{
 		return Rect::new(

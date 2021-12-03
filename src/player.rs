@@ -154,7 +154,7 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
-		let rb = Rigidbody::new(src, 0.0, 0.0, 4.0);
+		let rb = Rigidbody::new(src, 0.0, 0.0, 4.0, 0.0);
 		let god_mode_timer = Instant::now();
 		let god_mode = false;
 
