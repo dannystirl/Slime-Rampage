@@ -795,6 +795,19 @@ impl ROGUELIKE {
 			}
 		}
 
+		// CRATES vs CRATES
+		for i in 0 .. self.game_data.crates.len(){
+			let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
+			let (source, after) = other_crates.split_first_mut().unwrap();
+			for target in sp.iter_muts().chain(after.iter_mut()){
+				let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
+				let pen = &mut 0.0;
+				if source.rb.rect_vs_rect(target.rb, normal_collision, pen){
+					source.rb.resolve_col(&mut target.rb, *normal_collision, *pen);
+				}
+			}
+		}
+
 		// ALL PLAYER PROJECTILE COLLISIONS
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
@@ -855,8 +868,6 @@ impl ROGUELIKE {
 
 			// ENEMY PROJECTILE vs CRATES + WALLS
 			projectile.check_bounce(&mut self.game_data.crates, map);
-
-			// ENEMY PROJECTILES
 		}
 
 		// COINS
