@@ -281,7 +281,6 @@ impl Game for ROGUELIKE  {
 							rngt.push(rng.gen_range(1..5));
 							enemy_count += 1;
 						}
-
 						5 => {
                             let e = enemy::Enemy::new(
                                 Rect::new(
