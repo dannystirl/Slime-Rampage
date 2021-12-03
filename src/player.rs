@@ -138,8 +138,11 @@ impl<'a> Player<'a> {
 		}
 		let hp = max_hp; 
 		let mana = 4;
-		if DEBUG {power = PowerType::Shield; }
-		let coins = 0;
+		let mut coins: u32 = 0; 
+		if DEBUG {
+			power = PowerType::Shield; 
+			coins = 30; 
+		}
 		// check values
 		let max_mana = 4;
 		let invincible = true;
@@ -512,7 +515,10 @@ impl<'a> Player<'a> {
 				TILE_SIZE_PROJECTILE,
 			),
 			false,
-			vec![x, y],
+			match p_type {
+				ProjectileType::Fireball => { vec![x*0.65, y*0.65] }
+				_ => { vec![x, y] }
+			}, 
 			p_type,
 			elapsed,
 		);

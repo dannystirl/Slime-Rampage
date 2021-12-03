@@ -224,6 +224,7 @@ impl Projectile {
 		self.set_y(self.y() + self.rb.vel.y as i32);
 
 	}
+	
 	pub fn set_pos(&mut self, p:Rect){
 		self.rb.hitbox.x = p.x() as f64;
 		self.rb.hitbox.y= p.y() as f64;
@@ -260,8 +261,8 @@ impl Projectile {
 		return Rect::new(
 			self.x() as i32 + (CENTER_W - player.x() as i32) - (TILE_SIZE_CAM/2) as i32,
 			self.y() as i32 + (CENTER_H - player.y() as i32) - (TILE_SIZE_CAM/2) as i32,
-			TILE_SIZE_PROJECTILE,
-			TILE_SIZE_PROJECTILE
+			TILE_SIZE_PROJECTILE*2,
+			TILE_SIZE_PROJECTILE*2
 		);
 	}
 
