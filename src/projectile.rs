@@ -97,12 +97,12 @@ impl Projectile {
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
-					self.die();
+					//self.die();
 				}
 			}
 			_ => {
 				if self.get_bounce() >= 4 {
-					self.die();
+					//self.die();
 				}
 			}
 		}
