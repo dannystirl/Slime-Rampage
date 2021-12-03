@@ -43,7 +43,7 @@ pub const BOSS_ROOM_W: usize = 31;
 pub const BOSS_ROOM_H: usize = 21;
 
 // game globals
-pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
+pub const SPEED_LIMIT: f64 = 3.1 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 
 // player globals
