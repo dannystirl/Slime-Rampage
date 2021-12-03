@@ -324,7 +324,30 @@ pub struct Enemy<'a> {
 		self.set_x_vel(x );
 		self.set_y_vel(y );
 	}
+	pub fn draw_pos(&self, x: i32, y:i32)-> Rect{
+		let r;
 
+		match self.enemy_type {
+			EnemyType::Boss => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM * 4,
+					TILE_SIZE_CAM * 4,
+				);
+			},
+			_ => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM,
+					TILE_SIZE_CAM,
+				);
+			}
+		}
+		return r;
+	}
+	
 	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, speed_limit_adj: f64) {
 		if self.is_stunned {
 			return;
