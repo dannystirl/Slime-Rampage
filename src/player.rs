@@ -127,12 +127,12 @@ impl<'a> Player<'a> {
 				max_hp = 20; 
 				weapon = WeaponType::Sword; 
 				power = PowerType::Dash; 
-				speed_delta = 2.0; 
+				speed_delta = 1.8; 
 			}
 			_ => {
 				max_hp = 30; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::Dash; 
+				power = PowerType::Slimeball; 
 				speed_delta = 1.5; 
 			}
 		}

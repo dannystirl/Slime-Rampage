@@ -97,7 +97,7 @@ impl Game for ROGUELIKE  {
 		// create player 
 		let mut player = player::Player::new(
 			texture_creator.load_texture("images/player/slime_sheet.png")?,
-			PlayerType::Assassin,
+			PlayerType::Classic,
 		);
 
 		//test power

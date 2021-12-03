@@ -34,8 +34,7 @@ impl Rectangle{
         return Point::new(((self.left()+self.right())/2.0) as i32, ((self.top()+self.bottom())/2.0) as i32);
     }
 }
-pub struct Rigidbody{
-    
+pub struct Rigidbody{ 
     pub hitbox : Rectangle,
     pub vel: Vector2D,
     pub accel: Vector2D,
@@ -45,7 +44,6 @@ pub struct Rigidbody{
     pub radius: f64,
     pub s: bool,
     //pub circle_center: Vector2D,
-
 }
 impl Copy for Rigidbody { }
 impl Clone for Rigidbody {
@@ -56,7 +54,7 @@ impl Clone for Rigidbody {
 #[allow(dead_code)]
 
 impl Rigidbody{
-    pub fn new(rect : Rect, x:f64,y:f64, mass: f64)->Rigidbody{
+    pub fn new(rect : Rect, x:f64, y:f64, mass: f64)->Rigidbody{
         let hitbox = Rectangle {x :rect.left() as f64, y: rect.top() as f64, w: rect.width() as f64, h: rect.height() as f64};
         let vel = Vector2D {x, y};
         let accel = Vector2D{x:0.0, y: 0.0};
@@ -158,8 +156,8 @@ impl Rigidbody{
         // Vector from A to B
         let r = self.radius + other.radius;//Ra + Rb
         let r_square = r * r;
-        let n =  Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0}
-                              - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
+        let n = Vector2D{x:other.hitbox.x + other.hitbox.w/2.0, y: other.hitbox.y + other.hitbox.h/2.0}
+              - Vector2D{x:self.hitbox.x + self.hitbox.w/2.0, y:self.hitbox.y + self.hitbox.h/2.0};
 
         let r = (self.hitbox.right() - self.hitbox.left() / 2.0) + (other.hitbox.right() - other.hitbox.left() / 2.0);
 
