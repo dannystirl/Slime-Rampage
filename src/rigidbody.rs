@@ -48,7 +48,6 @@ pub struct Rigidbody{
 
 }
 impl Copy for Rigidbody { }
-
 impl Clone for Rigidbody {
     fn clone(&self) -> Rigidbody {
         *self
@@ -86,7 +85,7 @@ impl Rigidbody{
         let radius = 32.0;
         let s = true;
         Rigidbody{
-            hitbox,
+           hitbox,
             vel,
             accel,
             elasticity, 
@@ -292,7 +291,7 @@ impl Rigidbody{
 
 
     //might use later for very fast objects
-    fn swept(self, other: Rigidbody,  normal_x : &mut f64,  normal_y : &mut f64 )-> f64{//moving self and other is static
+    /* fn swept(self, other: Rigidbody,  normal_x : &mut f64,  normal_y : &mut f64 )-> f64{//moving self and other is static
       
       
         let inv_entry_x : f64;
@@ -318,50 +317,6 @@ impl Rigidbody{
         let entry_y : f64;
         let exit_x : f64;
         let exit_y : f64;
-        
-        if self.vel.x == 0.0{
-            entry_x = -f64::INFINITY;
-            exit_x = f64::INFINITY;
-        }else{
-            entry_x = inv_entry_x/self.vel.x;
-            exit_x = inv_exit_x/self.vel.x;
-        }
-        if self.vel.y == 0.0{
-            entry_y = -f64::INFINITY;
-            exit_y = f64::INFINITY;
-        }else{
-            entry_y = inv_entry_y/self.vel.y;
-            exit_y = inv_exit_y/self.vel.y;
-        }
-        let time_of_entry = entry_x.max(entry_y);
-        let time_of_exit = exit_x.min(exit_y);
-
-        if time_of_entry > time_of_exit || entry_x < 0.0 && entry_y < 0.0 || entry_x > 1.0 || entry_y > 1.0{
-            *normal_x = 0.0;
-            *normal_y = 0.0;
-            return 1.0
-        }else{
-            if entry_x > entry_y{
-                if inv_entry_x < 0.0{
-                   *normal_x = 1.0;
-                   *normal_y = 0.0;
-                }else{
-                    *normal_x = -1.0;
-                    *normal_y = 0.0; 
-                }
-            }
-            else {
-                if inv_entry_x < 0.0{
-                    *normal_x = 0.0;
-                    *normal_y = 1.0;
-                }else{
-                    *normal_x = 0.0;
-                    *normal_y = -1.0; 
-                }
-            }
-        }
-        time_of_entry
     }
- 
+   */
 }
-

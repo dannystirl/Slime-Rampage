@@ -20,15 +20,19 @@ pub struct Map<'a> {
 	pub enemy_and_object_spawns: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub shop_spawns: Vec<(usize, usize)>, 
 	pub shop_items: Vec<(ShopItems, bool, u32)>, // item type, bought, cost
+	pub shop_creation: Vec<i32>, 
 }
 
 pub enum ShopItems{
 	Fireball, 
 	Slimeball,
 	Shield,
+	Dash,
 	HealthUpgrade, 
-	Health, 
-	None, 
+	Health,
+	Sword,
+	Spear,
+	None,
 }
 
 impl<'a> Map<'a> {
@@ -41,10 +45,11 @@ impl<'a> Map<'a> {
 		let starting_position = (0.0,0.0);
 		let ending_room = 2;
 		let ending_position = (0,0);
-		let shop = 6;
+		let shop = 3;
 		let enemy_and_object_spawns = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let shop_spawns = Vec::with_capacity(0);
 		let shop_items = Vec::with_capacity(0);
+		let shop_creation = Vec::with_capacity(0);
 
 		Map {
 			background, 
@@ -61,7 +66,44 @@ impl<'a> Map<'a> {
 			enemy_and_object_spawns, 
 			shop_spawns, 
 			shop_items, 
+			shop_creation, 
 		}
+	}
+
+	pub fn create_boss(&mut self) {
+		let mut rng = rand::thread_rng();
+		self.map = [[0; MAP_SIZE_W]; MAP_SIZE_H];
+
+		let mut new_map = self.map;
+		for h in 0..BOSS_ROOM_H {
+			for w in 0..BOSS_ROOM_W {
+				if h == 0 || h == BOSS_ROOM_H - 1 || w == 0 || w == BOSS_ROOM_W - 1 {
+					new_map[h][w] = 2;
+				} else {
+					new_map[h][w] = 1;
+				}
+			}
+		}
+
+		for h in 0..BOSS_ROOM_H {
+			for w in 0..BOSS_ROOM_W {
+				if (h > 0 && h < 6) || (h < BOSS_ROOM_H - 1 && h > BOSS_ROOM_H - 7) ||
+					(w > 0 && w < 6) || (w < BOSS_ROOM_W - 1 && w > BOSS_ROOM_W - 7) {
+					let pillar = rng.gen_range(0..8);
+					if pillar == 0 {
+						new_map[h][w] = 2;
+					}
+				}
+			}
+		}
+
+		self.map = new_map;
+
+		self.starting_position = (BOSS_ROOM_W as f64 / 2.0, BOSS_ROOM_H as f64 - 7.0);
+
+		self.enemy_and_object_spawns[7][BOSS_ROOM_W / 2] = 6;
+
+		self.print_map(self.map);
 	}
 
 	// 1: create a new map
@@ -484,11 +526,8 @@ impl<'a> Map<'a> {
 					continue; 
 				}
 				else {
-					new_map[h][w] = 6;
 					self.shop = self.numbered_map[h][w];
-					self.shop_spawns.push((h,w)); 
-					self.shop_items.push((ShopItems::None, true, 0)); 
-					while self.shop_spawns.len() <= 2 {
+					while self.shop_spawns.len() < 4 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..
 											  self.room_sizes[special_rooms].0+self.room_sizes[special_rooms].2-1);	
 						let w = rng.gen_range(self.room_sizes[special_rooms].1..
@@ -497,23 +536,44 @@ impl<'a> Map<'a> {
 							if !self.shop_spawns.contains(&(h,w)) {
 								new_map[h][w] = 6;
 								self.shop_spawns.push((h,w)); 
-								let item = rng.gen_range(1..6);
 								// should ensure no duplicate powers at some point
+								let mut item = rng.gen_range(1..9);
+								while self.shop_creation.contains(&item) {
+									item = rng.gen_range(1..20);
+								}
+								// type, purchased, cost
 								match item {
-									1 => {
+									1..=3 => {
 										self.shop_items.push((ShopItems::Fireball, false, 3)); 
+										self.shop_creation.extend(1..=3); 
 									}
-									2 => {
+									4..=5 => {
 										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
+										self.shop_creation.extend(4..=5); 
 									}
-									3 => {
-										self.shop_items.push((ShopItems::Shield, false, 4)); 
+									6 => {
+										self.shop_items.push((ShopItems::Shield, false, 5)); 
+										self.shop_creation.push(6); 
 									}
-									4 => {
+									7 => {
+										self.shop_items.push((ShopItems::Dash, false, 4));
+										self.shop_creation.push(7); 
+									}
+									8 => {
 										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
+										self.shop_creation.push(8); 
+									}
+									9..=10 => {
+										self.shop_items.push((ShopItems::Sword, false, 3));
+										self.shop_creation.extend(9..=10); 
+									}
+									11..=12 => {
+										self.shop_items.push((ShopItems::Spear, false, 5));
+										self.shop_creation.extend(11..=12); 
 									}
 									_ => {
-										self.shop_items.push((ShopItems::Health, false, 2)); 
+										self.shop_items.push((ShopItems::Health, false, 3)); 
+										self.shop_creation.push(item); 
 									}
 								}
 							}
@@ -529,12 +589,15 @@ impl<'a> Map<'a> {
 			let h = rng.gen_range(0..MAP_SIZE_H - 1);
 			let w = rng.gen_range(0..MAP_SIZE_W - 1);
 			if new_map[h][w] == 1 && corridors[h][w] != 1 && 
-			   self.surroundings_clear(w, h, vec![2], new_map) {
+			   self.surroundings_clear(w, h, vec![2], new_map) &&
+			   self.numbered_map[h][w] != self.starting_room &&
+			   self.numbered_map[h][w] != self.ending_room &&
+			   self.numbered_map[h][w] != self.shop {
 				//add wall
 				let moss = rng.gen_range(0..10);
 				if moss < 8 {
-					new_map[h][w] = 2;			// pilars
-				} else { new_map[h][w] = 5; }	// moss pilars
+					new_map[h][w] = 2;			// pillars
+				} else { new_map[h][w] = 5; }	// moss pillars
 			}
 		}
 
@@ -592,6 +655,17 @@ impl<'a> Map<'a> {
             	enemy_and_object_spawns[pos.0][pos.1] = 4;
             	skeleton_placed += 1;
             }
+
+            let eyeball = rng.gen_range(1..5);
+            let mut eyeball_placed = 0;
+            while eyeball_placed < eyeball {
+				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
+				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
+					continue;
+				}
+				enemy_and_object_spawns[pos.0][pos.1] = 5;
+				eyeball_placed += 1;
+			}
 		}
 		self.enemy_and_object_spawns = enemy_and_object_spawns;
 	}

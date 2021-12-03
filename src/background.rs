@@ -3,6 +3,7 @@ extern crate rogue_sdl;
 use sdl2::render::Texture;
 use sdl2::rect::Rect;
 use crate::gamedata::*;
+
 pub struct Background<'a> {
 	pub black: Texture<'a>,
 	pub texture_0: Texture<'a>,

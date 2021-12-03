@@ -8,6 +8,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
@@ -38,8 +39,11 @@ impl CollisionDecider{
 	}
 }
 
-pub enum Weapon{
-	Sword,
+#[derive(Copy, Clone)]
+pub enum PlayerType{
+	Classic, 
+	Warrior, 
+	Assassin, 
 }
 
 pub struct Player<'a> {
@@ -50,7 +54,7 @@ pub struct Player<'a> {
 	// display values
 	src: Rect,
 	attack_box: Rect,
-	texture_all: Texture<'a>,
+	texture: Texture<'a>,
 	// timers
 	attack_timer: Instant,
 	fire_timer: Instant,
@@ -58,26 +62,34 @@ pub struct Player<'a> {
 	mana_timer: Instant,
 	pickup_timer: Instant,
 	shield_timer: Instant,
+	dash_timer: Instant,
 	// player attributes
+	pub class: PlayerType, 
 	hp: u32,
 	mana: i32,
-	pub weapon: Weapon,
+	weapon: WeaponType,
 	power: PowerType,
 	coins: u32,
+	pub speed_delta: f64, 
 	// check values
 	max_mana: i32,
 	max_hp: u32, 
 	invincible: bool,
 	shielded: bool,
-	pub can_pickup: bool,
+	can_pickup: bool,
+	can_pickup_weapon: bool,
+	can_pickup_shop: bool,
+	shop_price: u32,
 	pub facing_right: bool,
 	is_attacking: bool,
 	pub is_firing: bool,
 	pub rb: Rigidbody,
+	pub god_mode_timer: Instant,
+	pub god_mode: bool,
 }
 
 impl<'a> Player<'a> {
-	pub fn new(texture_all: Texture<'a>) -> Player<'a> {
+	pub fn new( texture: Texture<'a>, class: PlayerType) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -98,23 +110,50 @@ impl<'a> Player<'a> {
 		let mana_timer = Instant::now();
 		let pickup_timer = Instant::now();
 		let shield_timer = Instant::now();
+		let dash_timer = Instant::now();
 		// player attributes
-		let hp = 30;
+		let max_hp: u32; 
+		let weapon: WeaponType; 
+		let mut power: PowerType;
+		let speed_delta: f64; 
+		match class {
+			PlayerType::Warrior => {
+				max_hp = 50; 
+				weapon = WeaponType::Spear; 
+				power = PowerType::None; 
+				speed_delta = 0.75; 
+			}
+			PlayerType::Assassin => {
+				max_hp = 20; 
+				weapon = WeaponType::Sword; 
+				power = PowerType::None; 
+				speed_delta = 1.4; 
+			}
+			_ => {
+				max_hp = 30; 
+				weapon = WeaponType::Sword; 
+				power = PowerType::None; 
+				speed_delta = 1.0; 
+			}
+		}
+		let hp = max_hp; 
 		let mana = 4;
-		let weapon = Weapon::Sword;
-		let power: PowerType;
-		if DEBUG { power = PowerType::Shield; } else { power = PowerType::None; }
+		if DEBUG {power = PowerType::Shield; }
 		let coins = 0;
 		// check values
 		let max_mana = 4;
-		let max_hp = 30;
 		let invincible = true;
 		let shielded = false;
 		let can_pickup = false;
+		let can_pickup_weapon = false;
+		let can_pickup_shop = false;
+		let shop_price = 0;
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
 		let rb = Rigidbody::new(src, 0.0, 0.0, 4.0);
+		let god_mode_timer = Instant::now();
+		let god_mode = false;
 
 		Player {
 			// position values
@@ -124,7 +163,7 @@ impl<'a> Player<'a> {
 			// display values
 			src,
 			attack_box,
-			texture_all,
+			texture,
 			// timers
 			attack_timer,
 			fire_timer,
@@ -132,22 +171,30 @@ impl<'a> Player<'a> {
 			mana_timer,
 			pickup_timer,
 			shield_timer,
+			dash_timer,
 			// player attributes
+			class, 
 			hp,
 			mana,
 			weapon,
 			power,
 			coins,
+			speed_delta, 
 			// check values
 			max_mana,
 			max_hp,
 			invincible,
 			shielded,
 			can_pickup,
+			can_pickup_weapon,
+			can_pickup_shop,
+			shop_price,
 			facing_right,
 			is_attacking,
 			is_firing,
 			rb,
+			god_mode_timer,
+			god_mode,
 		}
 	}
 
@@ -171,7 +218,24 @@ impl<'a> Player<'a> {
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
 		//self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
-
+		/* match self.get_power() {
+			PowerType::Dash => {
+				if self.get_dash_timer() <= 1000 {
+					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta * -1.0) as i32,
+																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
+					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta  * -1.0) as i32,
+																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
+				} else {
+					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+				}
+			},
+			_ => {
+				self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+				self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+			}
+		}
+ */
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -220,13 +284,24 @@ impl<'a> Player<'a> {
 			}
 		}
 		 */
-		self.update_pos();/* game_data.rooms[0].xbounds, game_data.rooms[0].ybounds */
+		self.update_pos();
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
-		if self.get_attack_timer() > ATTK_COOLDOWN {
-			self.is_attacking = false;
-			// clear attack box
-			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.get_attack_timer() > ATTK_COOLDOWN {
+					self.is_attacking = false;
+					// clear attack box
+					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+				}
+			},
+			WeaponType::Spear => {
+				if self.get_attack_timer() > ATTK_TIME_SPEAR {
+					self.is_attacking = false;
+					// clear attack box
+					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
+				}
+			},
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
@@ -288,7 +363,6 @@ impl<'a> Player<'a> {
 	}
 
 	// update position
-	#[allow(unused_variables)]
 	pub fn update_pos(&mut self) {
 		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
 		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
@@ -334,9 +408,9 @@ impl<'a> Player<'a> {
 
 	pub fn get_mass(&self) -> f64 { self.rb.mass }
 
-	pub fn texture_all(&self) -> &Texture {
-		&self.texture_all
-	}
+	pub fn texture(&self) -> &Texture {
+        &self.texture
+    }
 
 	pub fn get_frame_display(&mut self, gamedata: &mut GameData, fps_avg: f64) {
 		let elapsed = gamedata.frame_counter.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
@@ -366,16 +440,36 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		if self.facing_right {
-			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
-		} else {
-			self.attack_box = Rect::new(x - ATTACK_LENGTH as i32, y as i32, ATTACK_LENGTH, TILE_SIZE);
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.facing_right{
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
+				} else {
+					self.attack_box = Rect::new(x - ATTACK_LENGTH_SWORD as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
+				}
+			},
+			WeaponType::Spear => {
+				if self.facing_right{
+					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
+				} else {
+					self.attack_box = Rect::new(x - ATTACK_LENGTH_SPEAR as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
+				}
+			},
 		}
 	}
 
 	pub fn attack(&mut self) {
-		if self.get_attack_timer() < ATTK_COOLDOWN {
-			return;
+		match self.get_weapon() {
+			WeaponType::Sword => {
+				if self.get_attack_timer() < ATTK_COOLDOWN {
+					return;
+				}
+			},
+			WeaponType::Spear => {
+				if self.get_attack_timer() < ATTK_COOLDOWN_SPEAR {
+					return;
+				}
+			},
 		}
 		self.is_attacking = true;
 		self.set_attack_box(self.x() as i32, self.y() as i32);
@@ -386,7 +480,7 @@ impl<'a> Player<'a> {
 		self.is_firing = true;
 		match p_type {
 			ProjectileType::Shield => {
-				self.use_mana(3);
+				self.use_mana(4);
 			}
 			ProjectileType::Bullet => {
 				self.use_mana(2);
@@ -451,6 +545,14 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
+	pub fn get_weapon(&self) -> &WeaponType {
+		&self.weapon
+	}
+
+	pub fn set_weapon(&mut self, weapon: WeaponType) {
+		self.weapon = weapon;
+	}
+
 	// power functions
 	pub fn get_power(&self) -> &PowerType {
 		&self.power
@@ -466,6 +568,30 @@ impl<'a> Player<'a> {
 
 	pub fn set_can_pickup(&mut self, can: bool) {
 		self.can_pickup = can;
+	}
+
+	pub fn can_pickup_weapon(&self) -> bool {
+		self.can_pickup_weapon
+	}
+
+	pub fn set_can_pickup_weapon(&mut self, can: bool) {
+		self.can_pickup_weapon = can;
+	}
+
+	pub fn can_pickup_shop(&self) -> bool {
+		self.can_pickup_shop
+	}
+
+	pub fn set_can_pickup_shop(&mut self, can: bool) {
+		self.can_pickup_shop = can;
+	}
+
+	pub fn get_shop_price(&self) -> u32 {
+		self.shop_price
+	}
+
+	pub fn set_shop_price(&mut self, price: u32) {
+		self.shop_price = price;
 	}
 
 	pub fn get_pickup_timer(&self) -> u128 {
@@ -486,6 +612,15 @@ impl<'a> Player<'a> {
 		self.shielded
 	}
 
+	pub fn get_dash_timer(&self) -> u128 {
+		self.dash_timer.elapsed().as_millis()
+	}
+
+	pub fn set_dash_timer(&mut self) {
+		self.dash_timer = Instant::now();
+		self.mana -= 4;
+	}
+
 	// heatlh values
 	pub fn get_hp(&self) -> u32 {
 		return self.hp
@@ -496,7 +631,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: u32) {
-		if self.set_get_invincible() {
+		if self.set_get_invincible() || self.god_mode {
 			return;
 		}
 		let adjusted_dmg: u32;
@@ -688,6 +823,13 @@ impl<'a> Player<'a> {
 				self.update_velocity(0.0, 0.5);
 			}
 		}
+	}
+	pub fn get_god_mode_timer(&self) -> u128 {
+		self.god_mode_timer.elapsed().as_millis()
+	}
+
+	pub fn set_god_mode_timer(&mut self) {
+		self.god_mode_timer = Instant::now();
 	}
 }
 
