@@ -218,7 +218,7 @@ impl<'a> Player<'a> {
 		// Don't exceed speed limit
 		//self.set_x_vel((self.x_vel() + self.x_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
 		//self.set_y_vel((self.y_vel() + self.y_delta()).clamp(speed_limit_adj as i32 * -1, speed_limit_adj as i32).into());
-		/* match self.get_power() {
+	 /* match self.get_power() {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
 					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta * -1.0) as i32,
@@ -234,8 +234,8 @@ impl<'a> Player<'a> {
 				self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
 				self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
 			}
-		}
- */
+		} */
+ 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
