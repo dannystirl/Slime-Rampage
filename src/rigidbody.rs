@@ -60,7 +60,7 @@ impl Rigidbody{
         let accel = Vector2D{x:0.0, y: 0.0};
         let i_mass = 1.0/mass;
         let elasticity  =1.0;
-        let radius = 32.0;
+        let radius = 16.0;
         let s = false;
         Rigidbody{
             hitbox,
