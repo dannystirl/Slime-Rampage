@@ -784,14 +784,14 @@ impl ROGUELIKE {
 		}
 
 		// ENEMIES VS CRATES
-		// TODO: ADD RIGID COLLISION
 		for c in self.game_data.crates.iter_mut() {
 			for enemy in enemies.iter_mut() {
 				if enemy.is_alive() {
 					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 					let pen = &mut 0.0;
-					if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.get_magnitude() != 0.0 {//rb collision. rect vs rect
+					if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.rb.vel.length() > 1.5 {//rb collision. rect vs rect
 						//if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
+						println!("Crate Velocity: {}, {}", c.rb.vel.x, c.rb.vel.y);
 						println!("Enemy collides with Crate");
 						enemy.projectile_knockback(c.x_vel(), c.y_vel());
 					}
@@ -828,11 +828,8 @@ impl ROGUELIKE {
 				// PLAYER PROJECTILE vs CRATES + WALLS
 				projectile.check_bounce(&mut self.game_data.crates, map);
 
-				// PLAYER PROJECTILE vs PLAYER PROJECTILES
-				// TODO: ADD RIGID BODY COLLISION
 
 				// PLAYER PROJECTILES vs ENEMY PROJECTILES
-				// TODO: ADD RIGID BODY COLLISION
 				for enemy_projectile in self.game_data.enemy_projectiles.iter_mut(){
 					if enemy_projectile.is_active() {
 						println!("Player projectile hits Enemy Projectile");

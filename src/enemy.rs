@@ -206,7 +206,7 @@ pub struct Enemy<'a> {
 			//if GameData::check_collision(&self.pos,&c.pos()){
 			  if GameData::check_collision(&self.rb.draw_pos(),&c.pos()){
 				// crate squishes enemy
-				if c.get_magnitude() > 0.0{
+				if c.rb.vel.length() > 1.5{
 					self.die();
 				}
 				//collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
