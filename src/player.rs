@@ -399,7 +399,7 @@ impl<'a> Player<'a> {
 
 		let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE_HALF) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE_HALF) as f64];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
-		let speed: f64 = 3.0 * speed_limit;
+		let speed: f64 = 2.0 * speed_limit;
 		let mut x = &speed * angle.sin();
 		let mut y = &speed * angle.cos();
 		if vec[0] < 0.0 {

@@ -115,7 +115,7 @@ impl Game for ROGUELIKE  {
 		// LOAD TEXTURES
 		// projectile textures
 		let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
-		let bullet = texture_creator.load_texture("images/abilities/bullet.png")?; 
+		let bullet = texture_creator.load_texture("images/objects/crate.png")?; 
 		let enemy_bullet = texture_creator.load_texture("images/abilities/enemy_bullet.png")?;
 		let fireball = texture_creator.load_texture("images/abilities/old_fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield.png")?;
