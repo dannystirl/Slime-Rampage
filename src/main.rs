@@ -116,7 +116,7 @@ impl Game for ROGUELIKE  {
 		let fireball = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
-		let rock = texture_creator.loed_texuture("images/abilities/rock.png")?;
+		let rock = texture_creator.load_texture("images/abilities/rock.png")?;
 		ability_textures.push(bullet_player);
 		ability_textures.push(bullet_enemy);
 		ability_textures.push(fireball);
@@ -279,8 +279,7 @@ impl Game for ROGUELIKE  {
                             enemy_count += 1;
                         }
 
-                        //rock enemy
-                        5 => {
+                        6 => {
                             let e = enemy::Enemy::new(
                                 Rect::new(
                                     w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
@@ -297,7 +296,7 @@ impl Game for ROGUELIKE  {
                             enemy_count += 1;
                         }
 
-						6 => {
+						7 => {
 							let e = enemy::Enemy::new(
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
@@ -894,6 +893,10 @@ impl ROGUELIKE {
 						EnemyType::Skeleton=>{
 							enemy.minus_hp(projectile.damage / 2);
 						}
+						EnemyType::Rock =>{
+                            enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+                            enemy.minus_hp(projectile.damage);
+                        }
 						EnemyType::Boss => {
 							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
 							enemy.minus_hp(projectile.damage);

@@ -102,7 +102,7 @@ impl<'a> Map<'a> {
 
 		self.starting_position = (BOSS_ROOM_W as f64 / 2.0, BOSS_ROOM_H as f64 - 7.0);
 
-		self.enemy_and_object_spawns[7][BOSS_ROOM_W / 2] = 6;
+		self.enemy_and_object_spawns[6][BOSS_ROOM_W / 2] = 6;
 
 		self.print_map(self.map);
 	}
@@ -660,14 +660,14 @@ impl<'a> Map<'a> {
             	skeleton_placed += 1;
             }
 
-            let rock = rng.gen_range(1..5);
+            let rock = rng.gen_range(1..6);
             let mut rock_placed = 0;
             while rock_placed < rock {
                 let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
                 if enemy_and_object_spawns[pos.0][pos.1] != 0 {
                     continue;
                 }
-                enemy_and_object_spawns[pos.0][pos.1] = 4;
+                enemy_and_object_spawns[pos.0][pos.1] = 6;
                 rock_placed += 1;
             }
 

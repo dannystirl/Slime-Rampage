@@ -678,7 +678,8 @@ pub struct Enemy<'a> {
                     TILE_SIZE_POWER,
                 ),
                 PowerType::Slimeball,
-            );
+                );
+            },
 			EnemyType::Boss => {
 				power = power::Power::new(
 					Rect::new(
