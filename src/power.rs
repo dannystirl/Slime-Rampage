@@ -10,6 +10,7 @@ pub enum PowerType {
     Slimeball,
     Shield,
     Dash,
+    Rock,
 }
 
 pub struct Power {

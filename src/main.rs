@@ -116,11 +116,13 @@ impl Game for ROGUELIKE  {
 		let fireball = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
+		let rock = texture_creator.loed_texuture("images/abilities/rock.png")?;
 		ability_textures.push(bullet_player);
 		ability_textures.push(bullet_enemy);
 		ability_textures.push(fireball);
 		ability_textures.push(shield);
 		ability_textures.push(wall);
+		ability_textures.push(rock);
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
@@ -135,6 +137,7 @@ impl Game for ROGUELIKE  {
 		let spear_texture = texture_creator.load_texture("images/weapons/spear.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
+		let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?;
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -275,6 +278,25 @@ impl Game for ROGUELIKE  {
                             rngt.push(rng.gen_range(1..5));
                             enemy_count += 1;
                         }
+
+                        //rock enemy
+                        5 => {
+                            let e = enemy::Enemy::new(
+                                Rect::new(
+                                    w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+                                    TILE_SIZE_CAM,
+                                    TILE_SIZE_CAM
+                                ),
+                                texture_creator.load_texture("images/enemies/rock.png")?,
+                                EnemyType::Rock,
+                                enemy_count,
+                            );
+                            enemies.push(e);
+                            rngt.push(rng.gen_range(1..5));
+                            enemy_count += 1;
+                        }
+
 						6 => {
 							let e = enemy::Enemy::new(
 								Rect::new(
@@ -362,7 +384,7 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
 										&dash_texture, &health_texture, &health_upgrade_texture,
-										&sword_texture, &spear_texture);
+										&sword_texture, &spear_texture, &rock_texture,);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
@@ -488,7 +510,7 @@ impl ROGUELIKE {
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
 						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture,
-						sword_texture: &Texture, spear_texture: &Texture) {
+						sword_texture: &Texture, spear_texture: &Texture, rock_texture: &Texture,) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -529,6 +551,9 @@ impl ROGUELIKE {
 					PowerType::Dash => {
                     	self.core.wincan.copy_ex(&dash_texture, power.src(), pos, 0.0, None, false, false).unwrap();
                     },
+                    PowerType::Rock => {
+                        self.core.wincan.copy_ex(&rock_texture, power.src(), pos, 0.0, None, false, false).unwrap();
+                    					},
 					_ => {},
 				}
 			}
@@ -585,6 +610,9 @@ impl ROGUELIKE {
 				ShopItems::Health => {
 					self.core.wincan.copy_ex(&health_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
+				ShopItems::Rock => {
+                    self.core.wincan.copy_ex(&rock_texture, src, pos, 0.0, None, false, false).unwrap();
+                },
 				_ => {}
 			}
 			i += 1; 
@@ -648,6 +676,12 @@ impl ROGUELIKE {
                         player.set_dash_timer();
                     }
                 },
+                PowerType::Rock => {
+                    if !player.is_firing && player.get_mana() >= 4 {
+                        let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
+                        self.game_data.player_projectiles.push(bullet);
+                    }
+                },
 
 				_ => {},
 			}
@@ -673,6 +707,9 @@ impl ROGUELIKE {
 							},
 							PowerType::Dash => {
                                 player.set_power(PowerType::Dash);
+                            },
+                            PowerType::Rock => {
+                                player.set_power(PowerType::Rock);
                             },
 							_ => {}
 						}
@@ -730,6 +767,10 @@ impl ROGUELIKE {
 									player.plus_hp(10);
 									map_data.shop_items[i].1 = true;
 								}
+								ShopItems::Rock => {
+                                    player.set_power(PowerType::Rock);
+                                    map_data.shop_items[i].1 = true;
+                                },
 								_ => { }
 							}
 							picked_up = true;

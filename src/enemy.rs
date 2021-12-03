@@ -20,6 +20,7 @@ pub enum EnemyType{
 	Ranged,
 	Skeleton,
 	Eyeball,
+	Rock,
 	Boss,
 }
 pub struct Enemy<'a> {
@@ -83,6 +84,7 @@ pub struct Enemy<'a> {
 			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 5.0; }
 			EnemyType::Skeleton => { stun_time = 100; hp = 30; knockback_vel = 3.0; speed_delta = 0.7 ; aggro_range = 8.0; }
 			EnemyType::Eyeball => { stun_time = 200; hp = 10; knockback_vel = 10.0; speed_delta = 1.3 ; aggro_range = 6.0; }
+			EnemyType::Rock => { stun_time = 250; hp = 20; knockback_vel = 5.0; speed_delta = 0.7 ; aggro_range = 5.0; }
 			EnemyType::Boss => { stun_time = 50; hp = 100; knockback_vel = 0.0; speed_delta = 0.5 ; aggro_range = 100.0; }
 		}
 
@@ -182,6 +184,9 @@ pub struct Enemy<'a> {
                 EnemyType::Eyeball => {
                     self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
+				 EnemyType::Rock => {
+                    self.flee(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
+                }
 				EnemyType::Boss => {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
@@ -480,6 +485,40 @@ pub struct Enemy<'a> {
 					}
 				}
 			}
+            EnemyType::Rock=>{
+            if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < 8.0 {	// only fire if close enough
+                if self.get_fire_timer() > self.get_fire_cooldown() {
+                    self.set_fire_cooldown();
+                    let fire_chance = rng.gen_range(1..60);
+                    if fire_chance < 5 { // chance to fire
+                        self.fire(); // sets is firing true
+                        let vec = vec![x - self.x(), y - self.y()];
+                        let angle = ((vec[0] / vec[1]).abs()).atan();
+                        let mut x = &game_data.get_speed_limit() * angle.sin();
+                        let mut y = &game_data.get_speed_limit() * angle.cos();
+                        if vec[0] < 0.0 {
+                            x *= -1.0;
+                        }
+                        if vec[1] < 0.0  {
+                            y *= -1.0;
+                        }
+                        let bullet = Projectile::new(
+                            Rect::new(
+                                self.pos().x(),
+                                self.pos().y(),
+                                TILE_SIZE_PROJECTILE,
+                                TILE_SIZE_PROJECTILE,
+                            ),
+                            true,
+                            vec![x,y],
+                            ProjectileType::Bullet,
+                            0,//elapsed
+                        );
+                    game_data.enemy_projectiles.push(bullet);
+                    }
+                }
+            }
+        }
             EnemyType::Eyeball => {}
 			EnemyType::Melee => {}
 			EnemyType::Skeleton => {}
@@ -630,6 +669,16 @@ pub struct Enemy<'a> {
 					PowerType::Dash,
 				);
 			},
+			EnemyType::Rock => {
+            power = power::Power::new(
+                Rect::new(
+                    self.x() as i32,
+                    self.y() as i32,
+                    TILE_SIZE_POWER,
+                    TILE_SIZE_POWER,
+                ),
+                PowerType::Slimeball,
+            );
 			EnemyType::Boss => {
 				power = power::Power::new(
 					Rect::new(
