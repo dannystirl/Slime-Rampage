@@ -751,7 +751,7 @@ impl ROGUELIKE {
 			if enemy.is_alive() {
 				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
 					println!("Player collides with Enemy");
-					// player.minus_hp(5);
+					player.minus_hp(5);
 				}
 			}
 		}
@@ -777,7 +777,6 @@ impl ROGUELIKE {
 				println!("Player collides with Crate");
 				// provide impulse
 				player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
-				// c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
 			} else {
 				c.friction();
 			}
@@ -790,9 +789,6 @@ impl ROGUELIKE {
 					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 					let pen = &mut 0.0;
 					if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.rb.vel.length() > 1.5 {//rb collision. rect vs rect
-						//if check_collision(&c.pos(), &enemy.pos()) && c.get_magnitude() != 0.0{
-						println!("Crate Velocity: {}, {}", c.rb.vel.x, c.rb.vel.y);
-						println!("Enemy collides with Crate");
 						enemy.projectile_knockback(c.x_vel(), c.y_vel());
 					}
 				}
