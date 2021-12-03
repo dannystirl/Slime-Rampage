@@ -249,8 +249,10 @@ impl Rigidbody{
         
         self.vel = self.vel - ((self.i_mass) * impulse_vec);
         other.vel = other.vel + ((other.i_mass) * impulse_vec);
-        
+
+        /*
         let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+
 
         let percent = 0.01; // usually 20% to 80%
         let slop = 0.1; // usually 0.01 to 0.1
@@ -259,7 +261,9 @@ impl Rigidbody{
         self.hitbox.x -= (self.i_mass) * correction.x;
         self.hitbox.y -= (self.i_mass) * correction.y;
         other.hitbox.x += (self.i_mass) * correction.x;
-        other.hitbox.y += (self.i_mass) * correction.y;    
+        other.hitbox.y += (self.i_mass) * correction.y;
+
+         */
   /*  this if for bounce based on mass ratio   
      let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
