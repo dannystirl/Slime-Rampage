@@ -95,10 +95,10 @@ impl Crate {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
-					let p_pos = self.pos();//this kind of works?
+					let p_pos = self.rb.draw_pos();//this kind of works?
 					if GameData::check_collision(&p_pos, &w_pos) {
 						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 					}
 				}
 			}

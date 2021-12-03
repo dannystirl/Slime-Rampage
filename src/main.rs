@@ -799,7 +799,7 @@ impl ROGUELIKE {
 		for i in 0 .. self.game_data.crates.len(){
 			let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
 			let (source, after) = other_crates.split_first_mut().unwrap();
-			for target in sp.iter_muts().chain(after.iter_mut()){
+			for target in sp.iter_mut().chain(after.iter_mut()){
 				let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 				let pen = &mut 0.0;
 				if source.rb.rect_vs_rect(target.rb, normal_collision, pen){
