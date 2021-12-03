@@ -75,11 +75,6 @@ impl Crate {
 	pub fn set_y_vel(&mut self, y_vel: f64) {
 		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
-	pub fn set_rb(&mut self){
-		//self.rb.set_pos(self.pos);
-		//self.rb.set_vel(self.vel);
-
-	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		// println!("{}, {}", c.velocity[0], c.velocity[1]);
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
@@ -110,7 +105,6 @@ impl Crate {
 		self.resolve_col(&collisions);
 		self.set_x(self.x() + self.rb.vel.x as i32);
 		self.set_y(self.y() + self.rb.vel.y as i32);
-		self.set_rb();
 		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 	}
 

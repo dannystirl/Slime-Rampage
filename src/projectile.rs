@@ -123,11 +123,21 @@ impl Projectile {
 					
 					if wall.rect_vs_circle(self.rb, normal_collision,  pen){
 						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
+						self.inc_bounce();
 					}
 				}
 			}
 		}
-		
+
+		// PROJECTILE vs CRATES
+		for c in crates{
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let pen = &mut 0.0;
+			if c.rb.rect_vs_circle(self.rb, normal_collision,  pen){
+				c.rb.resolve_col(&mut self.rb, *normal_collision, *pen);
+				self.inc_bounce();
+			}
+		}
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {

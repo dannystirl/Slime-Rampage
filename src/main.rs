@@ -802,7 +802,6 @@ impl ROGUELIKE {
 		// ALL PLAYER PROJECTILE COLLISIONS
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-
 				// PLAYER PROJECTILE vs ENEMY
 				for enemy in enemies.iter_mut() {
 					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
@@ -827,12 +826,25 @@ impl ROGUELIKE {
 					}
 
 				// PLAYER PROJECTILE vs CRATES + WALLS
-				// TODO: ADD RIGID COLLISION
 				projectile.check_bounce(&mut self.game_data.crates, map);
 
 				// PLAYER PROJECTILE vs PLAYER PROJECTILES
+				// TODO: ADD RIGID BODY COLLISION
 
 				// PLAYER PROJECTILES vs ENEMY PROJECTILES
+				// TODO: ADD RIGID BODY COLLISION
+				for enemy_projectile in self.game_data.enemy_projectiles.iter_mut(){
+					if enemy_projectile.is_active() {
+						println!("Player projectile hits Enemy Projectile");
+						let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+						let pen = &mut 0.0;
+						if projectile.rb.circle_vs_circle(enemy_projectile.rb, normal_collision, pen){
+							projectile.rb.resolve_col(&mut enemy_projectile.rb, *normal_collision, *pen);
+							projectile.inc_bounce();
+							enemy_projectile.inc_bounce();
+						}
+					}
+				}
 			}
 		}
 
@@ -849,8 +861,9 @@ impl ROGUELIKE {
 			}
 
 			// ENEMY PROJECTILE vs CRATES + WALLS
-			// TODO: ADD RIGID COLLISION
 			projectile.check_bounce(&mut self.game_data.crates, map);
+
+			// ENEMY PROJECTILES
 		}
 
 		// COINS
