@@ -158,10 +158,9 @@ pub struct Enemy<'a> {
 			self.set_stunned(false);
 		} 
 		// distance should be very close to number of tiles
-		//if self.radius_from_point((x,y)) / TILE_SIZE as f64 > 5.0 {
+		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > 5.0 {
 			self.wander(rngt[i]);
-		//} 
-		/*
+		}
 		else {
 			match self.enemy_type {
 				EnemyType::Melee=>{
@@ -175,7 +174,6 @@ pub struct Enemy<'a> {
 				}
 			}
 		}
-		*/
 		// this should all be copied into force move once its simplified. checking new bounds will solve the bug where enemies will continuously run into a wall.
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
