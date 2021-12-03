@@ -238,37 +238,7 @@ impl Rigidbody{
 
     pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
            // sink correction for static objects with infite mass
-            let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
-
-            let percent = 0.01; // usually 20% to 80%
-            let slop = 0.1; // usually 0.01 to 0.1
-            let zero: f64 = 0.0;
-            let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
-      
-        //    if self.s {
-        //        if normal_collision.x != 0.0 {
-        //         other.vel.x = -other.vel.x;
-        //        }
-        //        else {
-        //         other.vel.y = -other.vel.y;
-        //        }
-
-        //        return;    
-        //    }
-        //    if other.s{
-        //        if normal_collision.x != 0.0 {
-        //         self.vel.x = -self.vel.x;
-        //        }
-        //        else {
-        //         self.vel.y = -self.vel.y;
-        //        }
-        //        return;
-        //    }
-     
-            self.hitbox.x -= (self.i_mass) * correction.x;
-            self.hitbox.y -= (self.i_mass) * correction.y;
-            other.hitbox.x += (self.i_mass) * correction.x;
-            other.hitbox.y += (self.i_mass) * correction.y;    
+          
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
             return;
@@ -280,6 +250,16 @@ impl Rigidbody{
         self.vel = self.vel - ((self.i_mass) * impulse_vec);
         other.vel = other.vel + ((other.i_mass) * impulse_vec);
         
+        let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+
+        let percent = 0.01; // usually 20% to 80%
+        let slop = 0.1; // usually 0.01 to 0.1
+        let zero: f64 = 0.0;
+        let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
+        self.hitbox.x -= (self.i_mass) * correction.x;
+        self.hitbox.y -= (self.i_mass) * correction.y;
+        other.hitbox.x += (self.i_mass) * correction.x;
+        other.hitbox.y += (self.i_mass) * correction.y;    
   /*  this if for bounce based on mass ratio   
      let mass_sum = self.mass + other.mass;
         let mut ratio = self.mass / mass_sum;
