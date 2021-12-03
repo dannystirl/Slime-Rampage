@@ -142,8 +142,11 @@ impl<'a> Player<'a> {
 		}
 		let hp = max_hp; 
 		let mana = 4;
-		if DEBUG {power = PowerType::Shield; }
-		let coins = 0;
+		let mut coins: u32 = 0; 
+		if DEBUG {
+			power = PowerType::Shield; 
+			coins = 30; 
+		}
 		// check values
 		let max_mana = 4;
 		let invincible = true;

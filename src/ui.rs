@@ -192,7 +192,7 @@ impl<'a> UI<'a> {
 						TILE_SIZE_64 as u32,
 						TILE_SIZE_64 as u32,
 					),
-					texture_creator.load_texture("images/abilities/bullet_pickup.png.png")?,
+					texture_creator.load_texture("images/abilities/bullet_pickup.png")?,
 				);
 				core.wincan.copy(ui_ability.texture(), ui_ability.src(), ui_ability.pos())?;
 			},
