@@ -13,6 +13,7 @@ use crate::projectile::*;
 use crate::room::*;
 //use crate::map::*;
 use crate::crateobj::*;
+use crate::rigidbody::Rigidbody;
 
 // window globals
 pub const TITLE: &str = "Roguelike";
@@ -120,6 +121,7 @@ impl GameData {
             speed_limit,
             accel_rate,
             crates,
+            
         }
     }
 
