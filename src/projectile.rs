@@ -95,6 +95,11 @@ impl Projectile {
 					self.die();
 				}
 			}
+			ProjectileType::Rock => {
+				if self.get_bounce() >= 1 {
+					self.die();
+				}
+			}
 			_ => {
 				if self.get_bounce() >= 4 {
 					self.die();

@@ -1139,8 +1139,12 @@ impl ROGUELIKE {
 
 	pub fn draw_enemy_projectile(&mut self,ability_textures: &Vec<Texture> , player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			if projectile.is_active(){
-				self.core.wincan.copy(&ability_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+			if projectile.is_active() {
+				if matches!(projectile.p_type, ProjectileType::Bullet) {
+					self.core.wincan.copy(&ability_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+				} else {
+					self.core.wincan.copy(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+				}
 			}
 		}
 	}
