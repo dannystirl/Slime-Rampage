@@ -646,7 +646,7 @@ impl<'a> Map<'a> {
 				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
 					continue;
 				}
-
+				
 				let enemy = rng.gen_range(1..19);
 				match enemy {
 					1..=3 => { // gellems
