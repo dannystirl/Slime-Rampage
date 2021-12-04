@@ -245,8 +245,8 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							//let roll= rng.gen_range(0..10);
-							let roll = 2;
+							let roll= rng.gen_range(0..10);
+							//let roll = 2;
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
@@ -257,7 +257,7 @@ impl Game for ROGUELIKE  {
 									)
 								);
 								self.game_data.crates.push(c);
-							}else if roll == 1 || roll == 2 {
+							}else if roll == 1 {
 								let c = crateobj::Crate::new_explosive(
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
