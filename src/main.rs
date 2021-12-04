@@ -245,15 +245,15 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let roll= rng.gen_range(0..10);
-							//let roll = 2;
+							//let roll= rng.gen_range(0..10);
+							let roll = 0;
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE_PLAYER*2,
-										TILE_SIZE_PLAYER*2
+										TILE_SIZE_PLAYER,
+										TILE_SIZE_PLAYER
 									)
 								);
 								self.game_data.crates.push(c);
@@ -262,8 +262,9 @@ impl Game for ROGUELIKE  {
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE_64,
-										TILE_SIZE_PLAYER*2
+										//TILE_SIZE_64,
+										TILE_SIZE_PLAYER,
+										TILE_SIZE_PLAYER
 									)
 								);
 								self.game_data.crates.push(c);
