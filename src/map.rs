@@ -548,14 +548,14 @@ impl<'a> Map<'a> {
 										self.shop_items.push((ShopItems::Fireball, false, 3)); 
 										self.shop_creation.extend(1..=3); 
 									}
-									4..=5 => {
-										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
-										self.shop_creation.extend(4..=5); 
-									}
 									3..=4 => {
                                         self.shop_items.push((ShopItems::Rock, false, 4));
                                         self.shop_creation.extend(3..=4);
                                     }
+									4..=5 => {
+										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
+										self.shop_creation.extend(4..=5); 
+									}
 									6 => {
 										self.shop_items.push((ShopItems::Shield, false, 5)); 
 										self.shop_creation.push(6); 

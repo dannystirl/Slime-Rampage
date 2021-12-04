@@ -502,7 +502,7 @@ pub struct Enemy<'a> {
                         if vec[1] < 0.0  {
                             y *= -1.0;
                         }
-                        let bullet = Projectile::new(
+                        let rock = Projectile::new(
                             Rect::new(
                                 self.pos().x(),
                                 self.pos().y(),
@@ -511,10 +511,10 @@ pub struct Enemy<'a> {
                             ),
                             true,
                             vec![x,y],
-                            ProjectileType::Bullet,
+                            ProjectileType::Rock,
                             0,//elapsed
                         );
-                    game_data.enemy_projectiles.push(bullet);
+                    game_data.enemy_projectiles.push(rock);
                     }
                 }
             }
@@ -677,7 +677,7 @@ pub struct Enemy<'a> {
                     TILE_SIZE_POWER,
                     TILE_SIZE_POWER,
                 ),
-                PowerType::Slimeball,
+                PowerType::Rock,
                 );
             },
 			EnemyType::Boss => {
