@@ -311,9 +311,11 @@ impl Crate {
 					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 						 TILE_SIZE_PLAYER*2, TILE_SIZE_PLAYER*2);
 		}
+		else{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
 					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
+		}
 	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
