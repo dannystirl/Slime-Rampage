@@ -243,7 +243,7 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let roll= rng.gen_range(0..10);
+							let roll= rng.gen_range(0..3);
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
