@@ -9,7 +9,6 @@ use sdl2::rect::Point;
 use crate::gamedata::*;
 use crate::projectile::Direction::{Down, Up, Left, Right};
 use crate::player::*;
-use crate::crateobj::*;
 use crate::rigidbody::Rigidbody;
 
 pub enum ProjectileType{
@@ -93,7 +92,7 @@ impl Projectile {
 	}
 	
 	// check object bouncing 
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {

@@ -8,18 +8,22 @@ use crate::rigidbody::*;
 use crate::player::Direction::{Down, Up, Left, Right};
 //use crate::rigidbody::*;
 use sdl2::rect::Point;
+use crate::projectile;
+use crate::projectile::*;
 
 //use sdl2::pixels;
 use crate::SDLCore;
 
 pub const MAX_CRATE_SPEED: f64 = 2.0; 
-pub const MAX_CRATE_VEL: f64 = 6.0; 
+pub const MAX_CRATE_VEL: f64 = 6.0;
+pub const EXPLODE_SPEED: f64 = 6.0;
 
 pub struct Crate{
 	src: Rect,
 	pub rb:  Rigidbody,
 	heavy: bool,
 	explosive: bool,
+	active: bool,
 }
 //impl Explosive for Crate{
 
@@ -30,11 +34,13 @@ impl Crate {
 		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
 		let heavy= false;
 		let explosive = false;
+		let active = true;
 		Crate{
 			src,
 			rb,
 			heavy,
 			explosive,
+			active,
 		}
 	}
 	pub fn new_heavy(pos: Rect) -> Crate {
@@ -42,11 +48,13 @@ impl Crate {
 		let rb = Rigidbody::new(pos, 0.0, 0.0, 5.0, 0.1);
 		let heavy = true;
 		let explosive = false;
+		let active = true;
 		Crate{
 			src,
 			rb,
 			heavy,
 			explosive,
+			active,
 		}
 	}
 	pub fn new_explosive(pos: Rect) -> Crate {
@@ -54,13 +62,18 @@ impl Crate {
 		let rb = Rigidbody::new(pos, 0.0, 0.0, 5.0, 0.1);
 		let heavy = false;
 		let explosive = true;
+		let active = true;
 		Crate{
 			src,
 			rb,
 			heavy,
 			explosive,
+			active,
 		}
 	}
+
+	pub fn is_active(&self) -> bool{self.active}
+
 	pub fn src(&self) -> Rect {
 		self.src
 	}
@@ -315,6 +328,112 @@ impl Crate {
 			self.update_velocity(0.0, self.rb.friction);
 		}
 	}
+
+	// Method for explosive crate.
+	pub fn explode(&mut self, elapsed: u128) -> Vec<Projectile>{
+		self.active = false;
+		let mut shrapnel: Vec<Projectile> = Vec::with_capacity(69);
+		for i in 0..8 {
+			// N
+			if i == 0 {
+				let scrap = projectile::Projectile::new(
+					Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y - 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![0.0, -EXPLODE_SPEED],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// NE
+			if i == 1 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x + 40.0) as i32, (self.rb.hitbox.y - 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![EXPLODE_SPEED, -EXPLODE_SPEED],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// E
+			if i == 2 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x + 40.0) as i32, self.rb.hitbox.y as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![EXPLODE_SPEED, 0.0],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// SE
+			if i == 3 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x + 40.0) as i32, (self.rb.hitbox.y + 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![EXPLODE_SPEED, EXPLODE_SPEED],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// S
+			if i == 4 {
+				let scrap = projectile::Projectile::new(
+					Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y + 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![0.0, EXPLODE_SPEED],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// SW
+			if i == 5 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x - 40.0) as i32, (self.rb.hitbox.y + 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![-EXPLODE_SPEED, EXPLODE_SPEED],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// W
+			if i == 6 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x - 40.0) as i32, self.rb.hitbox.y as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![-EXPLODE_SPEED, 0.0],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+			// NW
+			if i == 7 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x - 40.0) as i32, (self.rb.hitbox.y - 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![-EXPLODE_SPEED, -EXPLODE_SPEED],
+					ProjectileType::Bullet,
+					elapsed,
+				);
+				shrapnel.push(scrap);
+			}
+		}
+		return shrapnel
+	}
+
 	// calculate velocity resistance
 	/* fn resist(vel: i32, delta: i32) -> i32 {
 		if delta == 0 {

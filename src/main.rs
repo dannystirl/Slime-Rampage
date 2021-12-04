@@ -356,6 +356,11 @@ impl Game for ROGUELIKE  {
 				player.set_x_accel(0);
 				player.set_y_accel(0);
 
+				// Array that adds newly spawned shrapnel to projectiles
+				// I had to do this because i cant add to a list while iterating over it (thanks Rust)
+				let mut explosion_shrapnel = Vec::<Projectile>::with_capacity(0);
+
+				// Draw background
 				self.core.wincan.copy(&map_data.background.black, None, None)?;
 
 				// GET INPUT
@@ -402,8 +407,15 @@ impl Game for ROGUELIKE  {
 										&sword_texture, &spear_texture);
 
 				// CHECK COLLISIONS
-				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
+				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
 				if player.is_dead(){break 'gameloop;}
+
+				// Check if any shrapnel has been added and append
+				if explosion_shrapnel.len() > 0{
+					for scrap in explosion_shrapnel{
+						self.game_data.player_projectiles.push(scrap);
+					}
+				}
 
 				// UPDATE UI
 				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
@@ -519,7 +531,9 @@ impl ROGUELIKE {
 
 	pub fn update_crates(&mut self, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		for c in self.game_data.crates.iter_mut(){
-			c.update_crates( &mut self.core, crate_textures, player, map);
+			if c.is_active() {
+				c.update_crates(&mut self.core, crate_textures, player, map);
+			}
 		}
 	}
 	
@@ -860,7 +874,7 @@ impl ROGUELIKE {
 	}
 	
 	// check collisions
-	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, crate_textures: &Vec<Texture>) {
+	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, crate_textures: &Vec<Texture>, fps_avg: f64, explosion_shrapnel: &mut Vec<Projectile>) {
 		let map = map_data.map;
 
 		// PLAYER VS ENEMY
@@ -915,13 +929,15 @@ impl ROGUELIKE {
 
 		// PLAYER VS CRATE
 		for c in self.game_data.crates.iter_mut(){
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let pen = &mut 0.0;
-			if player.rb.rect_vs_rect(c.rb, normal_collision, pen){
-				// provide impulse
-				player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
-			} else {
-				c.friction();
+			if c.is_active() {
+				let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
+				let pen = &mut 0.0;
+				if player.rb.rect_vs_rect(c.rb, normal_collision, pen) {
+					// provide impulse
+					player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
+				} else {
+					c.friction();
+				}
 			}
 		}
 			
@@ -929,12 +945,14 @@ impl ROGUELIKE {
 
 		// ENEMIES VS CRATES
 		for c in self.game_data.crates.iter_mut() {
-			for enemy in enemies.iter_mut() {
-				if enemy.is_alive() {
-					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
-					let pen = &mut 0.0;
-					if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.rb.vel.length() > 1.5 {//rb collision. rect vs rect
-						enemy.projectile_knockback(c.x_vel(), c.y_vel());
+			if c.is_active() {
+				for enemy in enemies.iter_mut() {
+					if enemy.is_alive() {
+						let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
+						let pen = &mut 0.0;
+						if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.rb.vel.length() > 1.5 {//rb collision. rect vs rect
+							enemy.projectile_knockback(c.x_vel(), c.y_vel());
+						}
 					}
 				}
 			}
@@ -942,15 +960,17 @@ impl ROGUELIKE {
 
 		// CRATES vs CRATES
 		for i in 0 .. self.game_data.crates.len(){
-			let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
-			let (source, after) = other_crates.split_first_mut().unwrap();
-			for target in sp.iter_mut().chain(after.iter_mut()){
-				let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
-				let pen = &mut 0.0;
-				if source.rb.rect_vs_rect(target.rb, normal_collision, pen){
-					source.rb.resolve_col(&mut target.rb, *normal_collision, *pen);
+				let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
+				let (source, after) = other_crates.split_first_mut().unwrap();
+				for target in sp.iter_mut().chain(after.iter_mut()) {
+					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
+					let pen = &mut 0.0;
+					if source.is_active() && target.is_active(){
+						if source.rb.rect_vs_rect(target.rb, normal_collision, pen) {
+							source.rb.resolve_col(&mut target.rb, *normal_collision, *pen);
+						}
+					}
 				}
-			}
 		}
 
 		// ALL PLAYER PROJECTILE COLLISIONS
@@ -988,17 +1008,23 @@ impl ROGUELIKE {
 				for c in self.game_data.crates.iter_mut(){
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
-					if c.rb.rect_vs_circle(projectile.rb, normal_collision,  pen){
-						if projectile.is_flammable(){
-							println!("KABOOOOOOOM!!!!!!!!");
-						} else {c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);}
-						projectile.inc_bounce();
+					if c.is_active() {
+						if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
+							if projectile.is_flammable() {
+								// Explode
+								let mut scraps = c.explode(0);
+								for scrap in scraps {
+									explosion_shrapnel.push(scrap);
+								}
+								println!("KABOOOOOOOM!!!!!!!!");
+							} else { c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen); }
+							projectile.inc_bounce();
+						}
 					}
 				}
 
 				// PLAYER PROJECTILE VS WALLS
-				projectile.check_bounce(&mut self.game_data.crates, map);
-
+				projectile.check_bounce(map);
 
 				// PLAYER PROJECTILES vs ENEMY PROJECTILES
 				for enemy_projectile in self.game_data.enemy_projectiles.iter_mut(){
@@ -1029,16 +1055,18 @@ impl ROGUELIKE {
 
 			// ENEMY PROJECTILE vs CRATES
 			for c in self.game_data.crates.iter_mut(){
-				let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-				let pen = &mut 0.0;
-				if c.rb.rect_vs_circle(projectile.rb, normal_collision,  pen){
-					c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
-					projectile.inc_bounce();
+				if c.is_active() {
+					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
+					let pen = &mut 0.0;
+					if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
+						c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
+						projectile.inc_bounce();
+					}
 				}
 			}
 
 			// ENEMY PROJECTILE vs WALLS
-			projectile.check_bounce(&mut self.game_data.crates, map);
+			projectile.check_bounce(map);
 		}
 
 		// COINS
@@ -1098,19 +1126,6 @@ impl ROGUELIKE {
 		}
 		player.set_can_pickup_shop(can_pickup_shop);
 		player.set_shop_price(price);
-		//check collision between crates and player
-		for c in self.game_data.crates.iter_mut(){
-			if check_collision(&player.pos(), &c.pos()){
-				// provide impulse
-				c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
-			} else {
-				c.friction();
-			}
-		}
-
-		//for c in self.game_data.crates.iter_mut(){
-		//	c.update_crates(&mut self.core, &crate_textures, player, map);
-		//}
 	}
 
 	// draw player
