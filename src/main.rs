@@ -89,7 +89,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(1)?;
+		//music.play(1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -1044,7 +1044,7 @@ impl ROGUELIKE {
 						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Rock=> {
-                        self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
+                        self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
                     }
 					ProjectileType::Fireball=> {
 						let time = projectile.elapsed;
