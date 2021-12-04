@@ -69,7 +69,7 @@ pub struct Enemy<'a> {
 		let is_stunned = false;
 		let is_firing =false;
 		let alive = true;
-		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0,0.0);//enemy rb
+		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0, 0.0);//enemy rb
 
 		let hp: i32;
 		let stun_time: u128; 

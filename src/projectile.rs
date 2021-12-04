@@ -46,7 +46,7 @@ impl Projectile {
 			}
 			ProjectileType::Shield => { damage = 0; }
 			ProjectileType::Shrapnel => {
-				damage = 10;
+				damage = 15;
 				is_flammable = true;
 			}
 		}
