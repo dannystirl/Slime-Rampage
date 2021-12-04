@@ -677,8 +677,8 @@ impl ROGUELIKE {
                 },
                 PowerType::Rock => {
                     if !player.is_firing && player.get_mana() >= 4 {
-                        let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
-                        self.game_data.player_projectiles.push(bullet);
+                        let rock = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Rock, 0);
+                        self.game_data.player_projectiles.push(rock);
                     }
                 },
 
@@ -1043,6 +1043,9 @@ impl ROGUELIKE {
 					ProjectileType::Bullet=> {
 						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
+					ProjectileType::Rock=> {
+                        self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
+                    }
 					ProjectileType::Fireball=> {
 						let time = projectile.elapsed;
 
