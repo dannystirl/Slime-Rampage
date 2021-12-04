@@ -341,7 +341,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![0.0, -EXPLODE_SPEED],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -353,7 +353,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![EXPLODE_SPEED, -EXPLODE_SPEED],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -365,7 +365,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![EXPLODE_SPEED, 0.0],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -377,7 +377,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![EXPLODE_SPEED, EXPLODE_SPEED],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -389,7 +389,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![0.0, EXPLODE_SPEED],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -401,7 +401,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![-EXPLODE_SPEED, EXPLODE_SPEED],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -413,7 +413,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![-EXPLODE_SPEED, 0.0],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);
@@ -425,7 +425,7 @@ impl Crate {
 							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
 					false,
 					vec![-EXPLODE_SPEED, -EXPLODE_SPEED],
-					ProjectileType::Bullet,
+					ProjectileType::Shrapnel,
 					elapsed,
 				);
 				shrapnel.push(scrap);

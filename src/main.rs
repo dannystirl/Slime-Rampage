@@ -122,11 +122,13 @@ impl Game for ROGUELIKE  {
 		let fireball = texture_creator.load_texture("images/abilities/fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
+		let shrapnel = texture_creator.load_texture("images/objects/shrapnel.png")?;
 		ability_textures.push(bullet_player);
 		ability_textures.push(fireball);
 		ability_textures.push(bullet_enemy);
 		ability_textures.push(shield);
 		ability_textures.push(wall);
+		ability_textures.push(shrapnel);
 
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
@@ -1038,6 +1040,17 @@ impl ROGUELIKE {
 						}
 					}
 				}
+
+				// SHRAPNEL vs PLAYER
+				if projectile.is_shrapnel(){
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					if player.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
+						player.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
+						player.minus_hp(10);
+						projectile.die();
+					}
+				}
 			}
 		}
 
@@ -1182,6 +1195,8 @@ impl ROGUELIKE {
 					ProjectileType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
+					ProjectileType::Shrapnel => {
+						self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();					}
 				}	
 			}
 		}

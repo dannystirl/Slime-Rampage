@@ -15,6 +15,7 @@ pub enum ProjectileType{
 	Bullet,
 	Fireball,
 	Shield,
+	Shrapnel,
 }
 
 pub struct Projectile{
@@ -44,6 +45,10 @@ impl Projectile {
 				is_flammable = true;
 			}
 			ProjectileType::Shield => { damage = 0; }
+			ProjectileType::Shrapnel => {
+				damage = 10;
+				is_flammable = true;
+			}
 		}
 		Projectile {
 			src,
@@ -96,6 +101,11 @@ impl Projectile {
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
+					self.die();
+				}
+			}
+			ProjectileType::Shrapnel => {
+				if self.get_bounce() >= 2 {
 					self.die();
 				}
 			}
@@ -279,4 +289,7 @@ impl Projectile {
 	pub fn is_flammable(&self) -> bool {
 		return self.is_flammable;
 	}
+
+	pub fn is_shrapnel(&self) -> bool{return matches!(self.p_type,  ProjectileType::Shrapnel)}
+
 }
