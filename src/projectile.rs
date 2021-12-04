@@ -37,7 +37,6 @@ impl Projectile {
 		let is_active = true;
 		let bounce_counter = 0;
 		let damage: i32;
-		println!("{}", angle);
 		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
 		let facing_up = false;
 		match p_type {

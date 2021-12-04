@@ -156,8 +156,7 @@ impl Game for ROGUELIKE  {
 				texture_creator.load_texture("images/background/skull.png")?,
 				texture_creator.load_texture("images/background/upstairs.png")?,
 				texture_creator.load_texture("images/background/downstairs.png")?,
-				self.game_data.rooms[self.game_data.current_room].xwalls,
-				self.game_data.rooms[self.game_data.current_room].ywalls,
+				texture_creator.load_texture("images/background/dirt_sheet.png")?,
 				Rect::new(
 					(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_W / 2) as i32),
 					(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_H / 2) as i32),
@@ -362,15 +361,13 @@ impl Game for ROGUELIKE  {
 					TILE_SIZE, TILE_SIZE);
 					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 					if check_collision(&ppos, &mpos) {
-						println!("c: {} {}", player.x(), player.y());
-						println!("c: {} {}", mpos.x, mpos.y);
 						break 'level
 					}
 				}
 				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
 
 				// UPDATE BACKGROUND
-				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map)?;
+				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map, map_data.colored_map)?;
 
 				// UPDATE PLAYER
 				player.update_player(&self.game_data, map_data.map, &mut self.core)?;
@@ -434,10 +431,10 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 // Create map
 impl ROGUELIKE {
 	// draw background
-	
-	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
+	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], dirt_map: [[(i32,i32); MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+		let dirt_sheet = texture_creator.load_texture("images/background/dirt_sheet.png")?;
 		let shop = texture_creator.load_texture("images/background/floor_tile_maroon.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
 		let moss_tile = texture_creator.load_texture("images/background/moss_tile.png")?;
@@ -448,43 +445,33 @@ impl ROGUELIKE {
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (player.x() / TILE_SIZE as f64) as i32;
 	
-		if !DEVELOP {
-			for h in 0..(CAM_H / TILE_SIZE) + 1 {
-				for w in 0..(CAM_W / TILE_SIZE) + 1 {
-					let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
-					let pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32,
-										(h as i32 + 0 as i32) * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32,
-										TILE_SIZE, TILE_SIZE);
-					if h as i32 + h_bounds_offset < 0 ||
-					   w as i32 + w_bounds_offset < 0 ||
-					   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-					   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-					   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
-						continue;
-					} else{
-						let num = map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize];
-						match num {
-							1 => { self.core.wincan.copy_ex(&floor, src, pos, 0.0, None, false, false).unwrap(); }, 		// floor tiles
-							2 => { self.core.wincan.copy_ex(&tile, src, pos, 0.0, None, false, false).unwrap(); },  		// tile tiles
-							5 => { self.core.wincan.copy_ex(&moss_tile, src, pos, 0.0, None, false, false).unwrap(); },  		// tile tiles
-							6 => { self.core.wincan.copy_ex(&shop, src, pos, 0.0, None, false, false).unwrap(); },  	// shop tile
-							3 => { self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// upstairs tile
-							_ => { self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// downstairs tile
-						}
-					}					
-				}
-			}
-		} else {
-			let tiles = &self.game_data.rooms[self.game_data.current_room].tiles;
-			let mut n = 0;
-			for i in 0..self.game_data.rooms[0].xwalls.1+1 {
-				for j in 0..self.game_data.rooms[0].ywalls.1+1 {
-					if tiles[n].0 {
-						let t = background.get_tile_info(tiles[n].1, i, j, player.x(), player.y());
-						self.core.wincan.copy_ex(t.0, t.1, t.2, 0.0, None, false, false).unwrap();
+		for h in 0..(CAM_H / TILE_SIZE) + 1 {
+			for w in 0..(CAM_W / TILE_SIZE) + 1 {
+				let mut src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+				let pos = Rect::new(w as i32 * TILE_SIZE as i32 - (player.x() % TILE_SIZE as f64) as i32,
+									h as i32 * TILE_SIZE as i32 - (player.y() % TILE_SIZE as f64) as i32,
+									TILE_SIZE, TILE_SIZE);
+				if h as i32 + h_bounds_offset < 0 ||
+					w as i32 + w_bounds_offset < 0 ||
+					h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+					w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					continue;
+				} else{
+					let num = map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize];
+					match num {
+						1 => { // floor tiles
+							/* src.x = dirt_map[h as usize][w as usize].0*64 + dirt_map[h as usize][w as usize].0*8; 
+							src.y = dirt_map[h as usize][w as usize].1*64 + dirt_map[h as usize][w as usize].1*8;  */
+							self.core.wincan.copy_ex(&dirt_sheet, src, pos, 0.0, None, false, false).unwrap(); 
+						},
+						2 => { self.core.wincan.copy_ex(&tile, src, pos, 0.0, None, false, false).unwrap(); },  		// tile tiles
+						5 => { self.core.wincan.copy_ex(&moss_tile, src, pos, 0.0, None, false, false).unwrap(); },  	// moss tiles
+						6 => { self.core.wincan.copy_ex(&shop, src, pos, 0.0, None, false, false).unwrap(); },  		// shop tile
+						3 => { self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// upstairs tile
+						_ => { self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// downstairs tile
 					}
-					n+=1;
-				}
+				}					
 			}
 		}
 		Ok(())
@@ -802,17 +789,6 @@ impl ROGUELIKE {
 				}
 			}
 		}
-		// Go to next level
-		if keystate.contains(&Keycode::E) {
-			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
-								 map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
-								 TILE_SIZE, TILE_SIZE);
-			let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE, TILE_SIZE);
-			if check_collision(&ppos, &mpos) {
-				println!("c: {} {}", player.x(), player.y());
-				println!("c: {} {}", mpos.x, mpos.y);
-			}
-		}
 		// Toggle god mode
 		if keystate.contains(&Keycode::G) {
 			if player.get_god_mode_timer() > 250 {
@@ -845,7 +821,6 @@ impl ROGUELIKE {
 		for projectile in enemy_projectiles {
 			if projectile.is_active() {
 				projectile.update_pos();
-
 			}
 		}
 	}

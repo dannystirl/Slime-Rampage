@@ -41,7 +41,7 @@ pub fn create_new_map(xwalls: (i32,i32), ywalls: (i32,i32), tiles: &mut Vec<(boo
                 let num = rand::thread_rng().gen_range(0..5);
                 tiles[n].0 = true;
                 tiles[n].1 = num;
-            } else { // obstacles / nothing
+            } else { // pillars || nothing
                 let num = rand::thread_rng().gen_range(0..75);
                 if num==7 && tiles[n].0==true { 
                     obs.push((i,j));

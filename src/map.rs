@@ -10,6 +10,7 @@ pub struct Map<'a> {
 	pub current_floor: i32, 
 	pub map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
 	pub numbered_map: [[i32; MAP_SIZE_W]; MAP_SIZE_H],
+	pub colored_map: [[(i32,i32); MAP_SIZE_W]; MAP_SIZE_H],
 	pub room_sizes: Vec<(usize,usize,usize,usize)>,
 	pub num_rooms: i32, 
 	pub starting_room: i32, 
@@ -39,6 +40,7 @@ impl<'a> Map<'a> {
 	pub fn new(current_floor: i32, background: Background<'a>) -> Map<'a> { 
 		let map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
+		let colored_map = [[(8,8); MAP_SIZE_W]; MAP_SIZE_H]; 
 		let room_sizes = Vec::with_capacity(0);
 		let num_rooms=1; 
 		let starting_room = 1;
@@ -56,6 +58,7 @@ impl<'a> Map<'a> {
 			current_floor, 
 			map, 
 			numbered_map, 
+			colored_map, 
 			room_sizes, 
 			num_rooms, 
 			starting_room, 
@@ -126,7 +129,8 @@ impl<'a> Map<'a> {
 		self.create_obstacles(corridors);
 		self.create_enemies();
 		self.create_objects();
-		
+		self.add_color(); 
+
 		if DEBUG { self.print_map(self.map); }
 	}
 
@@ -467,9 +471,12 @@ impl<'a> Map<'a> {
 							if new_map[h as usize + k as usize - 1][w as usize + l as usize - 1] == 1 {
 								//add wall
 								let moss = rand::thread_rng().gen_range(0..60);
+								// moss walls
 								if moss < 10 * self.current_floor {
-									new_map[h as usize][w as usize] = 5;		// moss walls
-								} else { new_map[h as usize][w as usize] = 2; }	// walls
+									new_map[h as usize][w as usize] = 5;		
+								} else { // walls
+									new_map[h as usize][w as usize] = 2; 
+								}	
 							}
 						}
 					}
@@ -708,6 +715,17 @@ impl<'a> Map<'a> {
 			}
 		}
 		self.enemy_and_object_spawns = enemy_and_object_spawns;
+	}
+
+	// create better background
+	pub fn add_color(&mut self) {
+		for h in 0..MAP_SIZE_H as i32 {
+			for w in 0..MAP_SIZE_W as i32 {
+				if self.map[h as usize][w as usize] == 1 {
+					self.colored_map[h as usize][w as usize] = (rand::thread_rng().gen_range(0..7), rand::thread_rng().gen_range(0..7)); 
+				}
+			}
+		}
 	}
 
 	// check blocks around (w,h) for tile number

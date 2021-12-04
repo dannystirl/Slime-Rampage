@@ -267,16 +267,6 @@ impl<'a> Player<'a> {
 		}
 		self.resolve_col(&collisions);
 
-		/*
-		for c in &game_data.crates{
-			/* let crate_pos = c.pos();
-			let p_pos =self.pos(); */
-			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
-				//println!("welcome to hell");
-				self.collect_col(self.pos(), self.pos().center(), c.pos());
-			}
-		}
-		 */
 		self.update_pos();
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
@@ -357,8 +347,6 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self) {
-		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
-		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
 		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
