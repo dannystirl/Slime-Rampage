@@ -3,12 +3,14 @@ extern crate rogue_sdl;
 //use std::sync::Mutex;
 
 use crate::Player;
+use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;
 use crate::projectile::Direction::{Down, Up, Left, Right};
 use crate::player::*;
 use crate::crateobj::*;
+use crate::rigidbody::Rigidbody;
 
 pub enum ProjectileType{
 	Bullet,
@@ -19,22 +21,26 @@ pub enum ProjectileType{
 
 pub struct Projectile{
 	src: Rect,
-	pos: Rect,
 	pub facing_right: bool,
 	is_active: bool,
-	vector: Vec<f64>,
 	pub p_type: ProjectileType,
 	pub bounce_counter: i32,
 	pub elapsed: u128,
-	pub damage: i32, 
+	pub damage: i32,
+	pub rb: Rigidbody,
+	pub angle: f64,
+	pub facing_up: bool,
 }
 
 impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, vector: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
+	pub fn new(pos: Rect, facing_right: bool, velocity: Vec<f64>, p_type: ProjectileType, elapsed: u128, angle: f64) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
-		let damage: i32; 
+		let damage: i32;
+		println!("{}", angle);
+		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
+		let facing_up = false;
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
 			ProjectileType::Fireball => { damage = 10; } 
@@ -43,56 +49,57 @@ impl Projectile {
 		}
 		Projectile {
 			src,
-			pos,
 			facing_right,
 			is_active,
-			vector,
 			p_type,
 			bounce_counter,
 			elapsed,
-			damage, 
+			damage,
+			rb,
+			angle,
+			facing_up,
 		}
 	}
 	pub fn x(&self) -> i32 {
-		return self.pos.x;
+		return self.rb.hitbox.x as i32;
 	}
 
 	pub fn y(&self) -> i32 {
-		return self.pos.y;
+		return self.rb.hitbox.y as i32;
 	}
 
 	pub fn set_x_vel(&mut self, vel: f64) {
-		self.vector[0] = vel;
+		self.rb.vel.x = vel;
 	}
 
 	pub fn set_y_vel(&mut self, vel: f64) {
-		self.vector[1] = vel;
+		self.rb.vel.y = vel;
 	}
 
 	pub fn x_vel(&self) -> f64 {
-		return self.vector[0];
+		return self.rb.vel.x;
 	}
 
 	pub fn y_vel(&self) -> f64 {
-		return self.vector[1];
+		return self.rb.vel.y;
 	}
 
 	 pub fn set_x(&mut self, x: i32){
-		 self.pos.x = x;
+		 self.rb.hitbox.x = x as f64;
 	 }
 	 pub fn set_y(&mut self, y: i32){
-		 self.pos.y = y;
+		 self.rb.hitbox.y = y as f64;
 	 }
 	pub fn is_active(&self) -> bool{
 		return self.is_active;
 	}
 	
 	// check object bouncing 
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, projectiles: &mut Vec<Projectile>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
-					self.die();
+					//self.die();
 				}
 			}
 			ProjectileType::Rock => {
@@ -102,14 +109,17 @@ impl Projectile {
 			}
 			_ => {
 				if self.get_bounce() >= 4 {
-					self.die();
+					//self.die();
 				}
 			}
 		}
 
+		// WALL COLLISIONS :D
+		let mut wall_collisions: Vec<CollisionDecider> = Vec::with_capacity(69);
+
+
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
-		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -124,33 +134,34 @@ impl Projectile {
 				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
-							map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-					let p_pos = self.pos();
-					if GameData::check_collision(&p_pos, &w_pos) {
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
+
+					/*
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 2.0);
+					if wall.rect_vs_circle(self.rb, normal_collision,  pen){
+						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
+						self.inc_bounce();
 					}
+					 */
+					if GameData::check_collision(&self.rb.draw_pos(), &w_pos) {
+						wall_collisions.push(self.collect_col(self.rb.draw_pos(), self.pos().center(), w_pos));
+					}
+					self.resolve_col(&wall_collisions);
 				}
 			}
 		}
 
-		for c in crates {
-			if GameData::check_collision(&self.pos(), &c.pos()) { //I hate collisions
-				//println!("welcome to hell");
-				collisions.push(self.collect_col(self.pos(), self.pos().center(), c.pos()));
+		// PROJECTILE vs CRATES
+		for c in crates{
+			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+			let pen = &mut 0.0;
+			if c.rb.rect_vs_circle(self.rb, normal_collision,  pen){
+				c.rb.resolve_col(&mut self.rb, *normal_collision, *pen);
+				self.inc_bounce();
 			}
 		}
-
-		for p in 0..projectiles.len() {
-			if projectiles[p].is_active() {
-				if GameData::check_collision(&self.pos(), &projectiles[p].pos()) {
-					collisions.push(self.collect_col(self.pos(), self.pos().center(), projectiles[p].pos()));
-					projectiles[p].die();
-					self.die();
-				}
-			}
-		}
-
-		self.resolve_col(&collisions);
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
@@ -222,12 +233,14 @@ impl Projectile {
 	}
 	
 	pub fn update_pos(&mut self) {
-		self.set_x(self.x() + self.vector[0] as i32);
-		self.set_y(self.y() + self.vector[1] as i32);
+		self.set_x(self.x() + self.rb.vel.x as i32);
+		self.set_y(self.y() + self.rb.vel.y as i32);
 
 	}
+	
 	pub fn set_pos(&mut self, p:Rect){
-		self.pos = p;
+		self.rb.hitbox.x = p.x() as f64;
+		self.rb.hitbox.y= p.y() as f64;
 	}
 	pub fn src(&self) -> Rect{
 		return self.src;
@@ -246,7 +259,14 @@ impl Projectile {
 			TILE_SIZE_PROJECTILE
 		);
     }
-
+	pub fn draw_pos(&self) -> Rect {
+		return Rect::new(
+			self.x() as i32,
+			self.y() as i32,
+			TILE_SIZE_PROJECTILE, 
+			TILE_SIZE_PROJECTILE
+		);
+    }
 	// screen coordinates
 	pub fn set_cam_pos(&self, player:&Player)-> Rect{
 		return Rect::new(

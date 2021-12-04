@@ -1,6 +1,6 @@
 pub const DEVELOP: bool = false; 
-pub const DEBUG: bool = true; 
-pub const DEBUG_NO_WALLS: bool = false; 
+pub const DEBUG: bool = false; 
+pub const DEBUG_NO_WALLS: bool = true; 
 
 use rand::Rng;
 use sdl2::rect::Rect;
@@ -11,8 +11,8 @@ use crate::power::*;
 use crate::weapon::*;
 use crate::projectile::*;
 use crate::room::*;
-//use crate::map::*;
 use crate::crateobj::*;
+
 
 // window globals
 pub const TITLE: &str = "Roguelike";
@@ -42,7 +42,7 @@ pub const BOSS_ROOM_W: usize = 31;
 pub const BOSS_ROOM_H: usize = 21;
 
 // game globals
-pub const SPEED_LIMIT: f64 = 3.5 * TILE_SIZE as f64;
+pub const SPEED_LIMIT: f64 = 3.1 * TILE_SIZE as f64;
 pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 
 // player globals
@@ -120,12 +120,12 @@ impl GameData {
             speed_limit,
             accel_rate,
             crates,
+            
         }
     }
 
     // speed values
     pub fn set_speed_limit(&mut self, speed_limit: f64) {
-        //println!("Speed limit adjusted: {}", speed_limit);
         self.speed_limit = speed_limit;
     }
 
@@ -134,7 +134,6 @@ impl GameData {
     }
 
     pub fn set_accel_rate(&mut self, accel_rate: f64) {
-        //println!("Acceleration rate adjusted: {}", accel_rate);
         self.accel_rate = accel_rate;
     }
 
@@ -155,10 +154,4 @@ impl GameData {
             true
         }
     }
-
-    /* pub fn go_to_next_floor() {
-        self.current_floor += 1;
-        self.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
-        self.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
-    } */
 }
