@@ -15,6 +15,8 @@ use crate::{power};
 use crate::gold::Gold;
 use crate::power::Power;
 use crate::power::PowerType;
+use crate::rigidbody::{Rigidbody};
+
 pub enum EnemyType{
 	Melee,
 	Ranged,
@@ -24,10 +26,6 @@ pub enum EnemyType{
 	Boss,
 }
 pub struct Enemy<'a> {
-	// position values
-	vel_x: f64,
-	vel_y: f64,
-	pos: Rect,
 	src: Rect,
 	angle: f64,
 	txtre: Texture<'a>,
@@ -46,6 +44,7 @@ pub struct Enemy<'a> {
 	pub is_firing: bool,
 	pub enemy_type: EnemyType,
 	pub enemy_number: usize,
+	pub rb: Rigidbody,
 	// enemy attributes
 	pub alive: bool,
 	pub hp: i32,
@@ -56,9 +55,7 @@ pub struct Enemy<'a> {
 }
 
  impl<'a> Enemy<'a> {
-	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, enemy_number: usize) -> Enemy<'a> {
-		let vel_x = 0.0;
-		let vel_y = 0.0;
+	pub fn new(pos: Rect, txtre: Texture<'a>, enemy_type: EnemyType, enemy_number: usize, floor_modifier: i32) -> Enemy<'a> {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
@@ -73,25 +70,24 @@ pub struct Enemy<'a> {
 		let is_stunned = false;
 		let is_firing =false;
 		let alive = true;
-		
+		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0,0.0);
+
 		let hp: i32;
 		let stun_time: u128; 
 		let knockback_vel: f64; 
 		let speed_delta: f64; // multiplicitive value
 		let aggro_range: f64; // ~ number of tiles
 		match enemy_type {
-			EnemyType::Melee => { stun_time = 500; hp = 15; knockback_vel = 20.0; speed_delta = 1.0 ; aggro_range = 5.0; }
-			EnemyType::Ranged => { stun_time = 250; hp = 10; knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 5.0; }
-			EnemyType::Skeleton => { stun_time = 100; hp = 30; knockback_vel = 3.0; speed_delta = 0.7 ; aggro_range = 8.0; }
-			EnemyType::Eyeball => { stun_time = 200; hp = 10; knockback_vel = 10.0; speed_delta = 1.3 ; aggro_range = 6.0; }
+
+			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 20.0; speed_delta = 0.5 ; aggro_range = 5.0; }
+			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 0.5 ; aggro_range = 5.0; }
+			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 8.0; }
+			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; }
 			EnemyType::Rock => { stun_time = 250; hp = 20; knockback_vel = 5.0; speed_delta = 0.7 ; aggro_range = 5.0; }
-			EnemyType::Boss => { stun_time = 50; hp = 100; knockback_vel = 0.0; speed_delta = 0.5 ; aggro_range = 100.0; }
+			EnemyType::Boss => { stun_time = 50; hp = 100; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; }
 		}
 
 		Enemy {
-			vel_x,
-			vel_y,
-			pos,
 			src,
 			txtre,
 			stun_time, 
@@ -112,6 +108,7 @@ pub struct Enemy<'a> {
 			is_firing,
 			enemy_type,
 			enemy_number,
+			rb,
 			speed_delta, 
 			aggro_range, 
 		}
@@ -119,36 +116,36 @@ pub struct Enemy<'a> {
 
 	// x values
 	pub fn set_x(&mut self, x:f64){
-		self.pos.x = x as i32;
+		self.rb.hitbox.x = x;
 	}
 	pub fn x(&self) -> f64 {
-		return self.pos.x.into();
+		return self.rb.hitbox.x;
 	}
 	pub fn set_x_vel(&mut self, x:f64){
-		self.vel_x = x;
+		self.rb.vel.x = x;
 	}
 	pub fn x_vel(&self) -> f64 {
-		return self.vel_x;
+		return self.rb.vel.x;
 	}
 	pub fn width(&self) -> u32 {
-		self.pos.width()
+		self.rb.hitbox.w as u32
 	}
 
 	// y values
 	pub fn set_y(&mut self, y:f64){
-		self.pos.y = y as i32;
+		self.rb.hitbox.y = y;
 	}
 	pub fn y(&self) -> f64 {
-		return self.pos.y.into();
+		return self.rb.hitbox.y;
 	}
 	pub fn set_y_vel(&mut self, y:f64){
-		self.vel_y = y;
+		self.rb.vel.y = y;
 	}
 	pub fn y_vel(&self) -> f64 {
-		return self.vel_y;
+		return self.rb.vel.y;
 	}
 	pub fn height(&self) -> u32 {
-		self.pos.height()
+		self.rb.hitbox.h as u32
 	}
 	pub fn radius_from_point(&self,(x,y): (f64,f64))->f64{
 		let x_d = (self.x() - x).powf(2.0);
@@ -157,8 +154,8 @@ pub struct Enemy<'a> {
 	}
 	// movement stuff
 	pub fn update_pos(&mut self){
-		self.pos.set_x(self.x() as i32 + self.x_vel() as i32);
-		self.pos.set_y(self.y() as i32 + self.y_vel() as i32);
+		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
+		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
 	
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
@@ -170,7 +167,8 @@ pub struct Enemy<'a> {
 		
 		if self.radius_from_point((x,y)) / TILE_SIZE as f64 > self.aggro_range {
 			self.wander(rngt[i]);
-		} else {
+		}
+		else {
 			match self.enemy_type {
 				EnemyType::Melee => {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
@@ -221,14 +219,13 @@ pub struct Enemy<'a> {
 			}
 		}
 		for c in &game_data.crates{
-			if GameData::check_collision(&self.pos,&c.pos()){
+			//if GameData::check_collision(&self.pos,&c.pos()){
+			  if GameData::check_collision(&self.rb.draw_pos(),&c.pos()){
 				// crate squishes enemy
-
-				if c.get_magnitude() > 1.0 {
-					println!("MAG: {}", c.get_magnitude());
+				if c.rb.vel.length() > 1.5{
 					self.die();
 				}
-				collisions.push(self.collect_col(self.pos, self.pos().center(), c.pos()));
+				collisions.push(self.collect_col(self.rb.draw_pos(), self.rb.hitbox.center_point(), c.pos()));
 			}
 		}
 		self.resolve_col(&collisions);
@@ -323,7 +320,30 @@ pub struct Enemy<'a> {
 		self.set_x_vel(x );
 		self.set_y_vel(y );
 	}
+	pub fn draw_pos(&self, x: i32, y:i32)-> Rect{
+		let r;
 
+		match self.enemy_type {
+			EnemyType::Boss => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM * 4,
+					TILE_SIZE_CAM * 4,
+				);
+			},
+			_ => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM,
+					TILE_SIZE_CAM,
+				);
+			}
+		}
+		return r;
+	}
+	
 	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, speed_limit_adj: f64) {
 		if self.is_stunned {
 			return;
@@ -363,7 +383,7 @@ pub struct Enemy<'a> {
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.pos();
+					let p_pos = self.rb.draw_pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
 						return true; 
 					}
@@ -389,6 +409,7 @@ pub struct Enemy<'a> {
 		if vec[1] < 0.0 {
 			y *= -1.0;
 			self.y_flipped = true;
+			self.y_flipped = true;
 		}
 		self.set_x_vel((self.x_vel() + x).clamp(-self.knockback_vel, self.knockback_vel));
 		self.set_y_vel((self.y_vel() + y).clamp(-self.knockback_vel, self.knockback_vel));
@@ -413,7 +434,7 @@ pub struct Enemy<'a> {
     }
 
     pub fn pos(&self) -> Rect {
-        self.pos
+        self.rb.draw_pos()
     }
 
 	pub fn get_vel(&self) -> f64 {
@@ -470,8 +491,8 @@ pub struct Enemy<'a> {
 							}
 							let bullet = Projectile::new(
 								Rect::new(
-									self.pos().x(),
-									self.pos().y(),
+									self.rb.hitbox.x as i32,
+									self.rb.hitbox.y as i32,
 									TILE_SIZE_PROJECTILE,
 									TILE_SIZE_PROJECTILE,
 								),
@@ -479,6 +500,7 @@ pub struct Enemy<'a> {
 								vec![x,y],
 								ProjectileType::Bullet,
 								0,//elapsed
+								0.0
 							);
 						game_data.enemy_projectiles.push(bullet);
 						}
@@ -513,6 +535,7 @@ pub struct Enemy<'a> {
                             vec![x,y],
                             ProjectileType::Rock,
                             0,//elapsed
+                            0.0
                         );
                     game_data.enemy_projectiles.push(rock);
                     }

@@ -12,6 +12,7 @@ use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
 use crate::player::Direction::{Down, Up, Left, Right};
+use crate::rigidbody::{Rigidbody};
 
 #[derive(Copy, Clone)]
 pub enum Direction{
@@ -47,11 +48,7 @@ pub enum PlayerType{
 
 pub struct Player<'a> {
 	// position values
-	pos: (f64, f64),
 	cam_pos: Rect,
-	mass: f64,
-	vel: (i32, i32),
-	delta: (i32, i32),
 	height: u32,
 	width: u32,
 	// display values
@@ -86,12 +83,13 @@ pub struct Player<'a> {
 	pub facing_right: bool,
 	is_attacking: bool,
 	pub is_firing: bool,
+	pub rb: Rigidbody,
 	pub god_mode_timer: Instant,
 	pub god_mode: bool,
 }
 
 impl<'a> Player<'a> {
-	pub fn new(pos: (f64, f64), texture: Texture<'a>, class: PlayerType) -> Player<'a> {
+	pub fn new( texture: Texture<'a>, class: PlayerType) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -99,14 +97,12 @@ impl<'a> Player<'a> {
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
-		let mass = 1.5;
-		let vel = (0, 0);
-		let delta = (0, 0);
 		let height = TILE_SIZE;
 		let width = TILE_SIZE;
 		// display values
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let attack_box = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
+
 		// timers
 		let attack_timer = Instant::now();
 		let fire_timer = Instant::now();
@@ -125,19 +121,19 @@ impl<'a> Player<'a> {
 				max_hp = 50; 
 				weapon = WeaponType::Spear; 
 				power = PowerType::None; 
-				speed_delta = 0.75; 
+				speed_delta = 1.2; 
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::None; 
-				speed_delta = 1.4; 
+				power = PowerType::Dash; 
+				speed_delta = 1.8; 
 			}
 			_ => {
 				max_hp = 30; 
 				weapon = WeaponType::Sword; 
-				power = PowerType::None; 
-				speed_delta = 1.0; 
+				power = PowerType::Rock;
+				speed_delta = 1.5; 
 			}
 		}
 		let hp = max_hp; 
@@ -150,7 +146,7 @@ impl<'a> Player<'a> {
 		// check values
 		let max_mana = 4;
 		let invincible = true;
-		let shielded = false; 
+		let shielded = false;
 		let can_pickup = false;
 		let can_pickup_weapon = false;
 		let can_pickup_shop = false;
@@ -158,16 +154,13 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
+		let rb = Rigidbody::new_static(src, 0.0, 0.0, 4.0);
 		let god_mode_timer = Instant::now();
 		let god_mode = false;
 
 		Player {
 			// position values
-			pos,
 			cam_pos,
-			mass,
-			vel,
-			delta,
 			height,
 			width,
 			// display values
@@ -192,7 +185,7 @@ impl<'a> Player<'a> {
 			speed_delta, 
 			// check values
 			max_mana,
-			max_hp, 
+			max_hp,
 			invincible,
 			shielded,
 			can_pickup,
@@ -202,42 +195,40 @@ impl<'a> Player<'a> {
 			facing_right,
 			is_attacking,
 			is_firing,
+			rb,
 			god_mode_timer,
 			god_mode,
 		}
 	}
 
 	// update player
-	pub fn update_player(&mut self, game_data: &GameData, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], core: &mut SDLCore) -> Result<(), String>  {
+	pub fn update_player(&mut self, game_data: &GameData, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], core: &mut SDLCore) -> Result<(), String> {
 		// debug stuff
 		let tc = core.wincan.texture_creator();
-		let hitbox =tc.load_texture("images/objects/crate.png")?;
+		let hitbox = tc.load_texture("images/objects/crate.png")?;
 		let src = Rect::new(0, 0, TILE_SIZE_CAM, TILE_SIZE_CAM);
 		let speed_limit_adj = game_data.get_speed_limit();
 
 		// Slow down to 0 vel if no input and non-zero velocity
-		self.set_x_delta(resist(self.x_vel() as i32, self.x_delta() as i32));
-		self.set_y_delta(resist(self.y_vel() as i32, self.y_delta() as i32));
+		self.resist();
 
-		// Don't exceed speed limit
+		//to make the player move faster adj his speed limit by increaseing speed_limit_adj with a float value
 		match self.get_power() {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
-					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta * -1.0) as i32,
-																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
-					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj as f64 * 1.7 * self.speed_delta  * -1.0) as i32,
-																		 (speed_limit_adj as f64 * 1.7 * self.speed_delta) as i32));
-				} else {
-					self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
-					self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 , (speed_limit_adj*self.speed_delta*1.7) as i32).into();
+					self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 ,(speed_limit_adj*self.speed_delta*1.7) as i32).into();
+				}else{
+					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 , (speed_limit_adj*self.speed_delta) as i32).into();
+					self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
 				}
-			},
-			_ => {
-				self.set_x_vel((self.x_vel() + self.x_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
-				self.set_y_vel((self.y_vel() + self.y_delta()).clamp((speed_limit_adj * self.speed_delta) as i32 * -1, (speed_limit_adj * self.speed_delta) as i32));
+			}
+			_ =>{
+				self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 , (speed_limit_adj*self.speed_delta) as i32).into();
+				self.rb.vel.y = (self.rb.vel.y as i32 + self.rb.accel.y as i32).clamp((-speed_limit_adj*self.speed_delta) as i32 ,(speed_limit_adj*self.speed_delta) as i32).into();
 			}
 		}
-
+ 
 		let h_bounds_offset = (self.y() / TILE_SIZE as f64) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as f64) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -246,21 +237,21 @@ impl<'a> Player<'a> {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
 				let w_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32 - (CENTER_W - self.x() as i32),
 									  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32 - (CENTER_H - self.y() as i32),
-									   TILE_SIZE, TILE_SIZE);
+									  TILE_SIZE, TILE_SIZE);
 
 				let debug_pos = Rect::new((w as i32 + 0 as i32) * TILE_SIZE as i32 - (self.x() % TILE_SIZE as f64) as i32,
 										  (h as i32 + 0 as i32) * TILE_SIZE as i32 - (self.y() % TILE_SIZE as f64) as i32,
-										   TILE_SIZE, TILE_SIZE);
+										  TILE_SIZE, TILE_SIZE);
 
 				if h as i32 + h_bounds_offset < 0 ||
-				   w as i32 + w_bounds_offset < 0 ||
-				   h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
-				   w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
-				   map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
+					w as i32 + w_bounds_offset < 0 ||
+					h as i32 + h_bounds_offset >= MAP_SIZE_H as i32 ||
+					w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 || 
-						  map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-					let p_pos = self.pos();
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
+					let p_pos = self.rb.draw_pos();
 
 					if !DEBUG_NO_WALLS {
 						if GameData::check_collision(&p_pos, &w_pos) {
@@ -268,7 +259,7 @@ impl<'a> Player<'a> {
 								core.wincan.copy(&hitbox, src, self.cam_pos)?;
 								core.wincan.copy(&hitbox, src, debug_pos)?;
 							}
-							collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+							collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 						}
 					}
 				}
@@ -276,6 +267,7 @@ impl<'a> Player<'a> {
 		}
 		self.resolve_col(&collisions);
 
+		/*
 		for c in &game_data.crates{
 			/* let crate_pos = c.pos();
 			let p_pos =self.pos(); */
@@ -284,6 +276,7 @@ impl<'a> Player<'a> {
 				self.collect_col(self.pos(), self.pos().center(), c.pos());
 			}
 		}
+		 */
 		self.update_pos();
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
@@ -305,11 +298,11 @@ impl<'a> Player<'a> {
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
-			self.is_firing =false;
+			self.is_firing = false;
 		}
 		// should the player be shielded
 		if self.shield_timer.elapsed().as_millis() > SHIELD_TIME {
-			self.shielded =false;
+			self.shielded = false;
 		}
 
 		self.restore_mana();
@@ -317,46 +310,46 @@ impl<'a> Player<'a> {
 	}
 
 	// player x values
-	pub fn set_x(&mut self, x: f64){
-		self.pos.0 = x;
+	pub fn set_x(&mut self, x: f64) {
+		self.rb.hitbox.x = x;
 	}
 	pub fn x(&self) -> f64 {
-		return self.pos.0;
+		return self.rb.hitbox.x;
 	}
-	pub fn set_x_vel(&mut self, x: i32){
-		self.vel.0 = x;
+	pub fn set_x_vel(&mut self, x: i32) {
+		self.rb.vel.x = x as f64;
 	}
 	pub fn x_vel(&self) -> i32 {
-		return self.vel.0;
+		return self.rb.vel.x as i32;
 	}
-	pub fn set_x_delta(&mut self, x: i32){
-		self.delta.0 = x;
+	pub fn set_x_accel(&mut self, x: i32) {
+		self.rb.accel.x = x as f64;
 	}
-	pub fn x_delta(&self) -> i32 {
-		return self.delta.0;
+	pub fn x_accel(&self) -> i32 {
+		return self.rb.accel.x as i32;
 	}
 	pub fn width(&self) -> u32 {
 		self.width
 	}
 
 	// player y values
-	pub fn set_y(&mut self, y: f64){
-		self.pos.1 = y;
+	pub fn set_y(&mut self, y: f64) {
+		self.rb.hitbox.y = y;
 	}
 	pub fn y(&self) -> f64 {
-		return self.pos.1;
+		return self.rb.hitbox.y;
 	}
-	pub fn set_y_vel(&mut self, y: i32){
-		self.vel.1 = y;
+	pub fn set_y_vel(&mut self, y: f64){
+		self.rb.vel.y = y;
 	}
 	pub fn y_vel(&self) -> i32 {
-		return self.vel.1;
+		return self.rb.vel.y as i32;
 	}
-	pub fn set_y_delta(&mut self, y: i32){
-		self.delta.1 = y;
+	pub fn set_y_accel(&mut self, y: i32) {
+		self.rb.accel.y  = y as f64;
 	}
-	pub fn y_delta(&self) -> i32 {
-		return self.delta.1;
+	pub fn y_accel(&self) -> i32 {
+		return self.rb.accel.y as i32;
 	}
 	pub fn height(&self) -> u32 {
 		self.height
@@ -364,8 +357,16 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self) {
-		self.pos.0 = self.x() + self.x_vel() as f64 * 2.0;
-		self.pos.1 = self.y() + self.y_vel() as f64 * 2.0;
+		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
+		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
+		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
+		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
+	}
+
+	// Update Velocity
+	pub fn update_velocity(&mut self, x: f64, y: f64) {
+		self.rb.vel.x = self.rb.vel.x + x as f64;
+		self.rb.vel.y = self.rb.vel.y + y as f64;
 	}
 
 	pub fn set_src(&mut self, x: i32, y: i32) {
@@ -377,28 +378,28 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn pos(&self) -> Rect {
-        return Rect::new(
+		return Rect::new(
 			self.x() as i32,
 			self.y() as i32,
 			TILE_SIZE_PLAYER,
 			TILE_SIZE_PLAYER,
 		)
-    }
+	}
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
-			self.y() as i32 - y - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
+			self.x() as i32 - x - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.y() as i32 - y - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
 	}
 
 	pub fn get_cam_pos(&self) -> Rect {
-        self.cam_pos
-    }
+		self.cam_pos
+	}
 
-	pub fn get_mass(&self) -> f64 { self.mass }
+	pub fn get_mass(&self) -> f64 { self.rb.mass }
 
 	pub fn texture(&self) -> &Texture {
         &self.texture
@@ -485,7 +486,8 @@ impl<'a> Player<'a> {
 
 		let vec = vec![mouse_x as f64 - CENTER_W as f64 - (TILE_SIZE_HALF) as f64, mouse_y as f64 - CENTER_H as f64 - (TILE_SIZE_HALF) as f64];
 		let angle = ((vec[0] / vec[1]).abs()).atan();
-		let speed: f64 = 3.0 * speed_limit;
+		
+		let speed: f64 = 2.0 * speed_limit;
 		let mut x = &speed * angle.sin();
 		let mut y = &speed * angle.cos();
 		if vec[0] < 0.0 {
@@ -494,19 +496,25 @@ impl<'a> Player<'a> {
 		if vec[1] < 0.0 {
 			y *= -1.0;
 		}
+		let angle = ((vec[1] / vec[0])).atan();
+
 
 		let p_type = p_type;
 		let bullet = projectile::Projectile::new(
 			Rect::new(
-				self.x() as i32,
-				self.y() as i32,
+				self.rb.hitbox.x as i32,
+				self.rb.hitbox.y as i32,
 				TILE_SIZE_PROJECTILE,
 				TILE_SIZE_PROJECTILE,
 			),
 			false,
-			vec![x, y],
+			match p_type {
+				ProjectileType::Fireball => { vec![x*0.60, y*0.60] }
+				_ => { vec![x, y] }
+			}, 
 			p_type,
 			elapsed,
+			angle* 57.3,
 		);
 		return bullet;
 	}
@@ -594,10 +602,10 @@ impl<'a> Player<'a> {
 		self.pickup_timer = Instant::now();
 	}
 
-	pub fn set_shielded(&mut self, b: bool){
+	pub fn set_shielded(&mut self, b: bool) {
 		self.shield_timer = Instant::now();
-		self.mana -= 3; 
-		self.shielded = b; 
+		self.mana -= 3;
+		self.shielded = b;
 	}
 
 	pub fn get_shielded(&self) -> bool {
@@ -626,25 +634,23 @@ impl<'a> Player<'a> {
 		if self.set_get_invincible() || self.god_mode {
 			return;
 		}
-		let adjusted_dmg: u32; 
-		if self.get_shielded() { 
-			adjusted_dmg = dmg-5; 
+		let adjusted_dmg: u32;
+		if self.get_shielded() {
+			adjusted_dmg = dmg - 5;
 			self.set_shielded(false);
-		}
-		else { adjusted_dmg = dmg;  }
+		} else { adjusted_dmg = dmg; }
 		self.damage_timer = Instant::now();
 		self.hp -= adjusted_dmg;
 	}
 
 	pub fn plus_hp(&mut self, health: u32) {
-		if self.hp+health >= self.max_hp {
-			self.hp = self.max_hp; 
-		}
-		else { self.hp += health; }
+		if self.hp + health >= self.max_hp {
+			self.hp = self.max_hp;
+		} else { self.hp += health; }
 	}
 
 	pub fn upgrade_hp(&mut self, health: u32) {
-		self.max_hp += health; 
+		self.max_hp += health;
 	}
 
 	pub fn set_get_invincible(&mut self) -> bool {
@@ -653,7 +659,7 @@ impl<'a> Player<'a> {
 		} else {
 			self.invincible = false;
 		}
-		return self.invincible; 
+		return self.invincible;
 	}
 
 	//coin values
@@ -661,19 +667,19 @@ impl<'a> Player<'a> {
 		return self.coins
 	}
 
-	pub fn add_coins(&mut self, coins_to_add: u32)  {
+	pub fn add_coins(&mut self, coins_to_add: u32) {
 		self.coins += coins_to_add;
 	}
 
-	pub fn sub_coins(&mut self, coins_to_add: u32)  {
+	pub fn sub_coins(&mut self, coins_to_add: u32) {
 		self.coins -= coins_to_add;
 	}
 
-	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
+	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos: Rect) -> CollisionDecider {
 		let distance = ((p_center.x() as f64 - other_pos.center().x() as f64).powf(2.0) + (p_center.y() as f64 - other_pos.center().y() as f64).powf(2.0)).sqrt();
 
 		// player above other
-		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top(){
+		if p_pos.bottom() >= other_pos.top() && p_center.y() < other_pos.top() {
 			let resolution = CollisionDecider::new(Down, distance as i32);
 			return resolution;
 		}
@@ -683,126 +689,141 @@ impl<'a> Player<'a> {
 			return resolution;
 		}
 		// player below other
-		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom(){
+		if p_pos.top() <= other_pos.bottom() && p_center.y() > other_pos.bottom() {
 			let resolution = CollisionDecider::new(Up, distance as i32);
 			return resolution;
 		}
 		// player right of other
-		 else {
-			 let resolution = CollisionDecider::new(Left, distance as i32);
-			 return resolution;
+		else {
+			let resolution = CollisionDecider::new(Left, distance as i32);
+			return resolution;
 		}
 	}
 
-	pub fn resolve_col(&mut self, collisions : &Vec<CollisionDecider>){
+	pub fn resolve_col(&mut self, collisions: &Vec<CollisionDecider>) {
 		// Sort vect of collisions by distance
 		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();
-		for c in collisions{
+		for c in collisions {
 			let new_dir = &c.dir;
-			sorted_collisions.push(CollisionDecider::new(*new_dir,c.dist) );
+			sorted_collisions.push(CollisionDecider::new(*new_dir, c.dist));
 		}
 		sorted_collisions.sort_by_key(|x| x.dist);
 
 		// Handle collisions based on distance
 		if sorted_collisions.len() > 0 {
-			match sorted_collisions[0].dir{
-				Direction::Up=>{
-					self.set_y_vel(self.y_vel().clamp(0,100));
+			match sorted_collisions[0].dir {
+				Direction::Up => {
+					self.set_y_vel(self.y_vel().clamp(0, 100).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0,100));
+						match sorted_collisions[2].dir {
+							Direction::Up => {
+								self.set_y_vel(self.y_vel().clamp(0, 100).into());
 							}
-							Direction::Down=>{
+							Direction::Down => {
 								println!("I have no clue how this happened");
 							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
-
+							Direction::Left => {
+								self.set_x_vel(self.x_vel().clamp(0, 100).into());
 							}
-							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100,0));
-
+							Direction::Right => {
+								self.set_x_vel(self.x_vel().clamp(-100, 0).into());
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::Down=>{
-					self.set_y_vel(self.y_vel().clamp(-100,0));
+				Direction::Down => {
+					self.set_y_vel(self.y_vel().clamp(-100, 0).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
+						match sorted_collisions[2].dir {
+							Direction::Up => {
 								println!("I have no clue how this happened");
 							}
-							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100,0));
+							Direction::Down => {
+								self.set_y_vel(self.y_vel().clamp(-100, 0).into());
 							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
+							Direction::Left => {
+								self.set_x_vel(self.x_vel().clamp(0, 100).into());
 							}
-							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100,0));
+							Direction::Right => {
+								self.set_x_vel(self.x_vel().clamp(-100, 0).into());
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::Right=>{
-					self.set_x_vel(self.x_vel().clamp(-100,0));
+				Direction::Right => {
+					self.set_x_vel(self.x_vel().clamp(-100, 0).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0,100));
+						match sorted_collisions[2].dir {
+							Direction::Up => {
+								self.set_y_vel(self.y_vel().clamp(0, 100).into());
 							}
-							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100,0));
+							Direction::Down => {
+								self.set_y_vel(self.y_vel().clamp(-100, 0).into());
 							}
-							Direction::Left=>{
+							Direction::Left => {
 								println!("I have no clue how this happened");
 							}
-							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-100,0));
+							Direction::Right => {
+								self.set_x_vel(self.x_vel().clamp(-100, 0).into());
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::Left=>{
-					self.set_x_vel(self.x_vel().clamp(0,100));
+				Direction::Left => {
+					self.set_x_vel(self.x_vel().clamp(0, 100).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[1].dir{
-							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0,100));
+						match sorted_collisions[1].dir {
+							Direction::Up => {
+								self.set_y_vel(self.y_vel().clamp(0, 100).into());
 							}
-							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-100,0));
+							Direction::Down => {
+								self.set_y_vel(self.y_vel().clamp(-100, 0).into());
 							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0,100));
+							Direction::Left => {
+								self.set_x_vel(self.x_vel().clamp(0, 100).into());
 							}
-							Direction::Right=>{
+							Direction::Right => {
 								println!("I have no clue how this happened");
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::None=>{
+				Direction::None => {
 					println!("I have no clue how this happened");
 				}
 			}
 		}
 	}
 
+	// calculate velocity resistance
+	pub fn resist(&mut self) {
+		if self.x_accel() == 0 {
+			if self.x_vel() > 0 {
+				self.update_velocity(-0.5, 0.0);
+			} else if self.x_vel() < 0 {
+				self.update_velocity(0.5, 0.0);
+			}
+		}
+		if self.y_accel() == 0 {
+			if self.y_vel() > 0 {
+				self.update_velocity(0.0, -0.5);
+			} else if self.y_vel() < 0 {
+				self.update_velocity(0.0, 0.5);
+			}
+		}
+	}
 	pub fn get_god_mode_timer(&self) -> u128 {
 		self.god_mode_timer.elapsed().as_millis()
 	}
@@ -812,11 +833,4 @@ impl<'a> Player<'a> {
 	}
 }
 
-// calculate velocity resistance
-pub(crate) fn resist(vel: i32, delta: i32) -> i32 {
-	if delta == 0 {
-		if vel > 0 {-1}
-		else if vel < 0 {1}
-		else {delta}
-	} else {delta}
-}
+ 

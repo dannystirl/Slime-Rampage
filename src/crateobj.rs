@@ -1,5 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
+use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::render::{Texture};
 use crate::player::*;
@@ -15,48 +16,35 @@ pub const MAX_CRATE_SPEED: f64 = 2.0;
 pub const MAX_CRATE_VEL: f64 = 6.0; 
 
 pub struct Crate{
-	pos: Rect,
 	src: Rect,
-	vel: (f64,f64),
-	velocity: Vec<f64>,
-	acceleration: Vec<f64>,
-	rb:  Rigidbody,
+	pub rb:  Rigidbody,
+	heavy: bool,
+
 }
+//impl Explosive for Crate{
 
+//}
 impl Crate {
-    pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-        let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
-		let vel = (0.0,0.0);
-		let velocity = vec![0.0,0.0];
-		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos); //hitbox
-
-        Crate{
-            pos,
-            src,
-			vel,
-			velocity,
-			acceleration,
-			rb,
-        }
-    }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let vel = (0.0,0.0);
-		let velocity = vec![0.0,0.0];
-		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
+		let heavy= false;
 		Crate{
-			pos,
 			src,
-			vel,
-			velocity,
-			acceleration,
 			rb,
+			heavy,
 		}
 	}
-
+	pub fn new_heavy(pos: Rect) -> Crate {
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,5.0, 0.1);
+		let heavy = true;
+		Crate{
+			src,
+			rb,
+			heavy,
+		}
+	}
 	pub fn src(&self) -> Rect {
 		self.src
 	}
@@ -66,50 +54,41 @@ impl Crate {
 	}
 
 	pub fn pos(&self) -> Rect {
-        self.pos
+        self.rb.draw_pos()
     }
 	pub fn x(&self) -> i32 {
-		return self.pos.x;
+		return self.rb.hitbox.x as i32;
 	}
 	pub fn y(&self) -> i32 {
-		return self.pos.y;
+		return self.rb.hitbox.y as i32;
 	}
 	pub fn x_vel(&self) -> f64 {
-		return self.velocity[0];
+		return self.rb.vel.x;
 	}
 	pub fn y_vel(&self) -> f64 {
-		return self.velocity[1];
+		return self.rb.vel.y;
 	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
-		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
-		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
-	pub fn update_acceleration(&mut self, x: f64, y: f64){
-		self.acceleration[0] = x;
-		self.acceleration[1] = y;
-	}
+	
 	pub fn get_magnitude(&self) -> f64{
 		return ((self.x_vel() as f64).powf(2.0) + (self.y_vel() as f64).powf(2.0)).sqrt()
 	}
 	pub fn set_x(&mut self, x: i32){
-		self.pos.x = x;
+		self.rb.hitbox.x = x as f64;
 	}
 	pub fn set_y(&mut self, y: i32){
-		self.pos.y = y;
+		self.rb.hitbox.y = y as f64;
 	}
 	pub fn set_x_vel(&mut self, x_vel: f64) {
-		self.velocity[0] = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_y_vel(&mut self, y_vel: f64) {
-		self.velocity[1] = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
-	}
-	pub fn set_rb(&mut self){
-		self.rb.set_pos(self.pos);
-		self.rb.set_vel(self.vel);
-
+		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-		// println!("{}, {}", c.velocity[0], c.velocity[1]);
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -127,20 +106,28 @@ impl Crate {
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
-							map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-					let p_pos = self.pos();//this kind of works?
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
+					let p_pos = self.rb.draw_pos();//this kind of works?
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 2.0);
+					if wall.rect_vs_rect(self.rb, normal_collision,  pen){
+						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
+					}
 					if GameData::check_collision(&p_pos, &w_pos) {
-						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 					}
 				}
 			}
 		}
 		self.resolve_col(&collisions);
-		self.set_x(self.x() + self.velocity[0] as i32);
-		self.set_y(self.y() + self.velocity[1] as i32);
-		self.set_rb();
+		self.set_x(self.x() + self.rb.vel.x as i32);
+		self.set_y(self.y() + self.rb.vel.y as i32);
+		if self.heavy{
+			core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
+		}else{
 		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+		}
 	}
 
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
@@ -278,6 +265,11 @@ impl Crate {
 	}
 
 	pub fn offset_pos(&self, player:&Player)-> Rect{
+		if self.heavy{
+		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
+					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
+						 TILE_SIZE_PLAYER*2, TILE_SIZE_PLAYER*2);
+		}
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
 					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
@@ -285,22 +277,14 @@ impl Crate {
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
 		if self.x_vel() > 0.0 {
-			self.update_velocity(-0.1, 0.0);
+			self.update_velocity(-self.rb.friction, 0.0);
 		} else if self.x_vel() < 0.0 {
-			self.update_velocity(0.1, 0.0);
+			self.update_velocity(self.rb.friction, 0.0);
 		}
 		if self.y_vel() > 0.0 {
-			self.update_velocity(0.0, -0.1);
+			self.update_velocity(0.0, -self.rb.friction);
 		} else if self.y_vel() < 0.0 {
-			self.update_velocity(0.0, 0.1);
+			self.update_velocity(0.0, self.rb.friction);
 		}
 	}
-	// calculate velocity resistance
-	/* fn resist(vel: i32, delta: i32) -> i32 {
-		if delta == 0 {
-			if vel > 0 {-1}
-			else if vel < 0 {1}
-			else {delta}
-		} else {delta}
-	} */
 }

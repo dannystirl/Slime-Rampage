@@ -466,7 +466,11 @@ impl<'a> Map<'a> {
 								   continue;
 							}
 							if new_map[h as usize + k as usize - 1][w as usize + l as usize - 1] == 1 {
-								new_map[h as usize][w as usize] = 2;
+								//add wall
+								let moss = rand::thread_rng().gen_range(0..60);
+								if moss < 10 * self.current_floor {
+									new_map[h as usize][w as usize] = 5;		// moss walls
+								} else { new_map[h as usize][w as usize] = 2; }	// walls
 							}
 						}
 					}
@@ -526,7 +530,7 @@ impl<'a> Map<'a> {
 					continue; 
 				}
 				else {
-					self.starting_position = (w as f64, h as f64);
+					if DEBUG { self.starting_position = (w as f64, h as f64); }
 					self.shop = self.numbered_map[h][w];
 					while self.shop_spawns.len() < 4 {
 						let h = rng.gen_range(self.room_sizes[special_rooms].0..
@@ -628,59 +632,60 @@ impl<'a> Map<'a> {
 				}
 			}
 
-			let ghosts = rng.gen_range(2..5);
-			let mut ghosts_placed = 0;
-			while ghosts_placed < ghosts {
+			let mut tests = 0; 
+			let mut enemy_number = vec![0,0,0,0,0,0];
+			let enemy_number_max = vec![spawn_positions.len()/32 + rng.gen_range(1..4), 	// total enemies
+										rng.gen_range(2..6), 	// ghosts
+										rng.gen_range(0..3), 	// gellems
+										rng.gen_range(1..3),    // skeletons
+										rng.gen_range(1..5),    // eyeballs
+										rng.gen_range(1..3)]; 	// rock
+			while enemy_number[0] < enemy_number_max[0] && tests < 30 {
+				tests += 1; 
 				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
 				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
 					continue;
 				}
-				enemy_and_object_spawns[pos.0][pos.1] = 1;
-				ghosts_placed += 1;
-			}
 
-			let gellems = rng.gen_range(0..3);
-			let mut gellems_placed = 0;
-			while gellems_placed < gellems {
-				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
-					continue;
+				let enemy = rng.gen_range(1..19);
+				match enemy {
+					1..=3 => { // gellems
+						if enemy_number[2] == enemy_number_max[2] {
+							continue; 
+						}
+						enemy_number[2] += 1; 
+						enemy_and_object_spawns[pos.0][pos.1] = 2;
+					}
+					4..=6 => { // skeletons
+						if enemy_number[3] == enemy_number_max[3] {
+							continue; 
+						}
+						enemy_number[3] += 1; 
+						enemy_and_object_spawns[pos.0][pos.1] = 4;
+					}
+					7..=10 => { // eyeballs
+						if enemy_number[4] == enemy_number_max[4] {
+							continue; 
+						}
+						enemy_number[4] += 1; 
+						enemy_and_object_spawns[pos.0][pos.1] = 5;
+					}
+					11..=13 => { // rock
+                        if enemy_number[5] == enemy_number_max[5] || self.current_floor < 2{
+                            continue;
+                        }
+                        enemy_number[5] += 1;
+                        enemy_and_object_spawns[pos.0][pos.1] = 6;
+                    }
+					_ => { // ghosts
+						if enemy_number[1] == enemy_number_max[1] {
+							continue; 
+						}
+						enemy_number[1] += 1; 
+						enemy_and_object_spawns[pos.0][pos.1] = 1;
+					}
 				}
-				enemy_and_object_spawns[pos.0][pos.1] = 2;
-				gellems_placed += 1;
-			}
-
-			let skeleton = rng.gen_range(1..3);
-            let mut skeleton_placed = 0;
-            while skeleton_placed < skeleton {
-            	let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-            	if enemy_and_object_spawns[pos.0][pos.1] != 0 {
-            		continue;
-            	}
-            	enemy_and_object_spawns[pos.0][pos.1] = 4;
-            	skeleton_placed += 1;
-            }
-
-            let rock = rng.gen_range(1..6);
-            let mut rock_placed = 0;
-            while rock_placed < rock {
-                let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-                if enemy_and_object_spawns[pos.0][pos.1] != 0 {
-                    continue;
-                }
-                enemy_and_object_spawns[pos.0][pos.1] = 6;
-                rock_placed += 1;
-            }
-
-            let eyeball = rng.gen_range(1..5);
-            let mut eyeball_placed = 0;
-            while eyeball_placed < eyeball {
-				let pos = spawn_positions[rng.gen_range(0..spawn_positions.len())];
-				if enemy_and_object_spawns[pos.0][pos.1] != 0 {
-					continue;
-				}
-				enemy_and_object_spawns[pos.0][pos.1] = 5;
-				eyeball_placed += 1;
+				enemy_number[0] += 1; 
 			}
 		}
 		self.enemy_and_object_spawns = enemy_and_object_spawns;
