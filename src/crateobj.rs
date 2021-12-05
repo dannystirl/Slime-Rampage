@@ -122,7 +122,7 @@ impl Crate {
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
-		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
+		//let  collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -138,7 +138,7 @@ impl Crate {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
-					let p_pos = self.rb.pos();//this kind of works?
+					//let p_pos = self.rb.pos();//this kind of works?
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
 					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 100.0);

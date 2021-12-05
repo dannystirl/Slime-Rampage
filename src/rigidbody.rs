@@ -239,7 +239,7 @@ impl Rigidbody{
         let percent = 0.2; // usually 20% to 80%
         let slop = 0.01; // usually 0.01 to 0.1
         let zero: f64 = 0.0;
-        let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
+        //let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
         
         let normal_vel = (other.vel - self.vel) * (normal_collision);
         if normal_vel > 0.0{
