@@ -38,14 +38,13 @@ impl Projectile {
 		let is_active = true;
 		let bounce_counter = 0;
 		let damage: i32;
-		println!("{}", angle);
 		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
 		let facing_up = false;
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
-			ProjectileType::Fireball => { damage = 10; } 
+			ProjectileType::Fireball => { damage = 8; } 
 			ProjectileType::Shield => { damage = 0; }
-			ProjectileType::Rock => { damage = 15; }
+			ProjectileType::Rock => { damage = 12; }
 		}
 		Projectile {
 			src,
@@ -99,7 +98,7 @@ impl Projectile {
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
-					//self.die();
+					self.die();
 				}
 			}
 			ProjectileType::Rock => {
@@ -109,7 +108,7 @@ impl Projectile {
 			}
 			_ => {
 				if self.get_bounce() >= 4 {
-					//self.die();
+					self.die();
 				}
 			}
 		}

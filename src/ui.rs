@@ -143,7 +143,7 @@ impl<'a> UI<'a> {
 		}
 
 		//display equipped weapon
-		match player.get_weapon() {
+		match player.get_weapon().weapon_type {
 			WeaponType::Sword => { 
 				let weapon = UI::new(
 					Rect::new(

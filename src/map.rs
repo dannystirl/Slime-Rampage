@@ -549,19 +549,15 @@ impl<'a> Map<'a> {
 								// type, purchased, cost
 								match item {
 									1..=3 => {
-										self.shop_items.push((ShopItems::Fireball, false, 3)); 
+										self.shop_items.push((ShopItems::Fireball, false, 4)); 
 										self.shop_creation.extend(1..=3); 
 									}
-									3..=4 => {
-                                        self.shop_items.push((ShopItems::Rock, false, 4));
-                                        self.shop_creation.extend(3..=4);
-                                    }
 									4..=5 => {
-										self.shop_items.push((ShopItems::Slimeball, false, 2)); 
+										self.shop_items.push((ShopItems::Slimeball, false, 3)); 
 										self.shop_creation.extend(4..=5); 
 									}
 									6 => {
-										self.shop_items.push((ShopItems::Shield, false, 5)); 
+										self.shop_items.push((ShopItems::Shield, false, 6)); 
 										self.shop_creation.push(6); 
 									}
 									7 => {
@@ -569,17 +565,21 @@ impl<'a> Map<'a> {
 										self.shop_creation.push(7); 
 									}
 									8 => {
-										self.shop_items.push((ShopItems::HealthUpgrade, false, 5)); 
+										self.shop_items.push((ShopItems::HealthUpgrade, false, 6)); 
 										self.shop_creation.push(8); 
 									}
 									9..=10 => {
-										self.shop_items.push((ShopItems::Sword, false, 3));
+										self.shop_items.push((ShopItems::Sword, false, 4));
 										self.shop_creation.extend(9..=10); 
 									}
 									11..=12 => {
 										self.shop_items.push((ShopItems::Spear, false, 5));
 										self.shop_creation.extend(11..=12); 
 									}
+									13 => {
+                                        self.shop_items.push((ShopItems::Rock, false, 10));
+                                        self.shop_creation.push(13);
+                                    }
 									_ => {
 										self.shop_items.push((ShopItems::Health, false, 3)); 
 										self.shop_creation.push(item); 
@@ -633,8 +633,8 @@ impl<'a> Map<'a> {
 			}
 
 			let mut tests = 0; 
-			let mut enemy_number = vec![0,0,0,0,0,0];
-			let enemy_number_max = vec![spawn_positions.len()/32 + rng.gen_range(1..4), 	// total enemies
+			let mut enemy_number = vec![0,0,0,0,0,0]; // not really a direct number for num[0], mostly a weighted value 
+			let enemy_number_max = vec![spawn_positions.len()/32 + rng.gen_range(1..4), 	// total enemies is based on room size + 1:4 enemies
 										rng.gen_range(2..6), 	// ghosts
 										rng.gen_range(0..3), 	// gellems
 										rng.gen_range(1..3),    // skeletons
@@ -653,6 +653,7 @@ impl<'a> Map<'a> {
 						if enemy_number[2] == enemy_number_max[2] {
 							continue; 
 						}
+						enemy_number[0] += 1; 
 						enemy_number[2] += 1; 
 						enemy_and_object_spawns[pos.0][pos.1] = 2;
 					}
@@ -660,6 +661,7 @@ impl<'a> Map<'a> {
 						if enemy_number[3] == enemy_number_max[3] {
 							continue; 
 						}
+						enemy_number[0] += 2; 
 						enemy_number[3] += 1; 
 						enemy_and_object_spawns[pos.0][pos.1] = 4;
 					}
@@ -667,6 +669,7 @@ impl<'a> Map<'a> {
 						if enemy_number[4] == enemy_number_max[4] {
 							continue; 
 						}
+						enemy_number[0] += 1; 
 						enemy_number[4] += 1; 
 						enemy_and_object_spawns[pos.0][pos.1] = 5;
 					}
@@ -674,6 +677,7 @@ impl<'a> Map<'a> {
                         if enemy_number[5] == enemy_number_max[5] || self.current_floor < 2{
                             continue;
                         }
+						enemy_number[0] += 2; 
                         enemy_number[5] += 1;
                         enemy_and_object_spawns[pos.0][pos.1] = 6;
                     }
@@ -681,11 +685,11 @@ impl<'a> Map<'a> {
 						if enemy_number[1] == enemy_number_max[1] {
 							continue; 
 						}
+						enemy_number[0] += 2; 
 						enemy_number[1] += 1; 
 						enemy_and_object_spawns[pos.0][pos.1] = 1;
 					}
 				}
-				enemy_number[0] += 1; 
 			}
 		}
 		self.enemy_and_object_spawns = enemy_and_object_spawns;

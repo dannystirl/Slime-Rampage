@@ -18,17 +18,26 @@ pub struct Power {
     src: Rect,
     power_type: PowerType,
     collected: bool,
+    damage: i32, 
 }
 
 impl Power {
     pub fn new(pos: Rect, power_type: PowerType) -> Power {
         let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
         let collected = false;
+        let damage: i32; 
+        match power_type {
+            PowerType::Rock => { damage = 8; }
+            PowerType::Fireball => { damage = 5; }
+            PowerType::Slimeball => { damage = 3; }
+            _ => { damage = 2; }
+        }
         Power {
             pos,
             src,
             power_type,
             collected,
+            damage, 
         }
     }
 

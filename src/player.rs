@@ -67,7 +67,7 @@ pub struct Player<'a> {
 	pub class: PlayerType, 
 	hp: u32,
 	mana: i32,
-	weapon: WeaponType,
+	weapon: Weapon,
 	power: PowerType,
 	coins: u32,
 	pub speed_delta: f64, 
@@ -89,7 +89,7 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new( texture: Texture<'a>, class: PlayerType) -> Player<'a> {
+	pub fn new(texture: Texture<'a>, class: PlayerType) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -113,26 +113,26 @@ impl<'a> Player<'a> {
 		let dash_timer = Instant::now();
 		// player attributes
 		let max_hp: u32; 
-		let weapon: WeaponType; 
+		let weapon: Weapon; 
 		let mut power: PowerType;
 		let speed_delta: f64; 
 		match class {
 			PlayerType::Warrior => {
 				max_hp = 50; 
-				weapon = WeaponType::Spear; 
-				power = PowerType::None; 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Spear); 
+				power = PowerType::Fireball; 
 				speed_delta = 1.2; 
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
-				weapon = WeaponType::Sword; 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
 				power = PowerType::Dash; 
 				speed_delta = 1.8; 
 			}
 			_ => {
 				max_hp = 30; 
-				weapon = WeaponType::Sword; 
-				power = PowerType::Rock;
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
+				power = PowerType::Slimeball;
 				speed_delta = 1.5; 
 			}
 		}
@@ -140,7 +140,7 @@ impl<'a> Player<'a> {
 		let mana = 4;
 		let mut coins: u32 = 0; 
 		if DEBUG {
-			power = PowerType::Shield; 
+			power = PowerType::Rock; 
 			coins = 30; 
 		}
 		// check values
@@ -266,35 +266,13 @@ impl<'a> Player<'a> {
 			}
 		}
 		self.resolve_col(&collisions);
-
-		/*
-		for c in &game_data.crates{
-			/* let crate_pos = c.pos();
-			let p_pos =self.pos(); */
-			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
-				//println!("welcome to hell");
-				self.collect_col(self.pos(), self.pos().center(), c.pos());
-			}
-		}
-		 */
 		self.update_pos();
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
-		match self.get_weapon() {
-			WeaponType::Sword => {
-				if self.get_attack_timer() > ATTK_COOLDOWN {
-					self.is_attacking = false;
-					// clear attack box
-					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
-				}
-			},
-			WeaponType::Spear => {
-				if self.get_attack_timer() > ATTK_TIME_SPEAR {
-					self.is_attacking = false;
-					// clear attack box
-					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
-				}
-			},
+		if self.get_attack_timer() > self.get_weapon().attack_cooldown {
+			self.is_attacking = false;
+			// clear attack box
+			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
@@ -357,8 +335,6 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self) {
-		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
-		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
 		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
@@ -433,36 +409,16 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		match self.get_weapon() {
-			WeaponType::Sword => {
-				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
-				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH_SWORD as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
-				}
-			},
-			WeaponType::Spear => {
-				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
-				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH_SPEAR as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
-				}
-			},
+		if self.facing_right{
+			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, self.get_weapon().attack_length, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(x - self.get_weapon().attack_length as i32, y as i32, self.get_weapon().attack_length, TILE_SIZE);
 		}
 	}
 
 	pub fn attack(&mut self) {
-		match self.get_weapon() {
-			WeaponType::Sword => {
-				if self.get_attack_timer() < ATTK_COOLDOWN {
-					return;
-				}
-			},
-			WeaponType::Spear => {
-				if self.get_attack_timer() < ATTK_COOLDOWN_SPEAR {
-					return;
-				}
-			},
+		if self.get_attack_timer() < self.get_weapon().attack_cooldown {
+			return;
 		}
 		self.is_attacking = true;
 		self.set_attack_box(self.x() as i32, self.y() as i32);
@@ -508,8 +464,9 @@ impl<'a> Player<'a> {
 				TILE_SIZE_PROJECTILE,
 			),
 			false,
-			match p_type {
+			match p_type { // projectile speed 
 				ProjectileType::Fireball => { vec![x*0.60, y*0.60] }
+				ProjectileType::Rock => { vec![x*0.70, y*0.70] }
 				_ => { vec![x, y] }
 			}, 
 			p_type,
@@ -545,12 +502,28 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
-	pub fn get_weapon(&self) -> &WeaponType {
+	pub fn get_weapon(&self) -> &Weapon {
 		&self.weapon
 	}
 
-	pub fn set_weapon(&mut self, weapon: WeaponType) {
-		self.weapon = weapon;
+	pub fn set_weapon(&mut self, weapon_type: WeaponType) {
+		self.weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), weapon_type); 
+	}
+
+	pub fn set_weapon_damage(&mut self, damage: i32) {
+        self.weapon.damage = damage; 
+    }
+
+    pub fn get_weapon_damage(&mut self) -> i32 {
+        return self.weapon.damage 
+    }
+	
+	pub fn can_pickup_weapon(&self) -> bool {
+		self.can_pickup_weapon
+	}
+
+	pub fn set_can_pickup_weapon(&mut self, can: bool) {
+		self.can_pickup_weapon = can;
 	}
 
 	// power functions
@@ -568,14 +541,6 @@ impl<'a> Player<'a> {
 
 	pub fn set_can_pickup(&mut self, can: bool) {
 		self.can_pickup = can;
-	}
-
-	pub fn can_pickup_weapon(&self) -> bool {
-		self.can_pickup_weapon
-	}
-
-	pub fn set_can_pickup_weapon(&mut self, can: bool) {
-		self.can_pickup_weapon = can;
 	}
 
 	pub fn can_pickup_shop(&self) -> bool {
