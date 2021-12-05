@@ -134,7 +134,7 @@ impl Game for ROGUELIKE  {
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?;
 		let heavy = texture_creator.load_texture("images/objects/metal_crate.png")?;
-		let explosive = texture_creator.load_texture("images/objects/explosive_barrel_64.png")?;
+		let explosive = texture_creator.load_texture("images/objects/new_barrel.png")?;
 		crate_textures.push(crate_texture);
 		crate_textures.push(heavy);
 		crate_textures.push(explosive);
@@ -248,7 +248,7 @@ impl Game for ROGUELIKE  {
 						}
 						3 => {
 							//let roll= rng.gen_range(0..10);
-							let roll = 0;
+							let roll = 1;
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
