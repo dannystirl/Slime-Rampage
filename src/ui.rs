@@ -7,7 +7,6 @@ use crate::SDLCore;
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use crate::weapon::*;
-use crate::power::*;
 use crate::map::*;
 use sdl2::pixels::Color;
 
@@ -101,12 +100,13 @@ impl<'a> UI<'a> {
 		);
 		let cur_mana;
 		match player.get_mana() {
-			0 => cur_mana = 32 * 4,
-			1 => cur_mana = 32 * 3,
+			0 => cur_mana = 32 * 0,
+			1 => cur_mana = 32 * 1,
 			2 => cur_mana = 32 * 2,
-			3 => cur_mana = 32 * 1,
-			4 => cur_mana = 32 * 0,
-			_ => cur_mana = 32 * 0,
+			3 => cur_mana = 32 * 3,
+			4 => cur_mana = 32 * 4,
+			5..=10 => cur_mana = 32 * 4, // in case theres mana upgrades
+			_ => cur_mana = 32 * 0,		 // in case theres less than 0 mana somehow. 
 		}
 		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE_HALF, TILE_SIZE_HALF);
 		mana.set_src(mana_src);
@@ -143,7 +143,7 @@ impl<'a> UI<'a> {
 		}
 
 		//display equipped weapon
-		match player.get_weapon() {
+		match player.get_weapon().weapon_type {
 			WeaponType::Sword => { 
 				let weapon = UI::new(
 					Rect::new(
@@ -171,7 +171,7 @@ impl<'a> UI<'a> {
 		}
 		
 		// Display current power
-		match player.get_power() {
+		match player.get_power().power_type {
 			PowerType::Fireball => {
 				let ui_ability = UI::new(
 					Rect::new(
@@ -181,6 +181,18 @@ impl<'a> UI<'a> {
 						TILE_SIZE_64 as u32,
 					),
 					texture_creator.load_texture("images/abilities/fireball_pickup.png")?,
+				);
+				core.wincan.copy(ui_ability.texture(), ui_ability.src(),ui_ability.pos())?;
+			},
+			PowerType::Rock => {
+				let ui_ability = UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*6) as i32,
+						(CAM_H-(TILE_SIZE_64 as u32)) as i32,
+						TILE_SIZE_64 as u32,
+						TILE_SIZE_64 as u32,
+					),
+					texture_creator.load_texture("images/abilities/rock.png")?,
 				);
 				core.wincan.copy(ui_ability.texture(), ui_ability.src(),ui_ability.pos())?;
 			},

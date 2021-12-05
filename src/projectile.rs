@@ -9,47 +9,40 @@ use sdl2::rect::Point;
 use crate::gamedata::*;
 use crate::projectile::Direction::{Down, Up, Left, Right};
 use crate::player::*;
+use crate::power::*;
 use crate::crateobj::*;
 use crate::rigidbody::Rigidbody;
-
-pub enum ProjectileType{
-	Bullet,
-	Fireball,
-	Shield,
-}
 
 pub struct Projectile{
 	src: Rect,
 	pub facing_right: bool,
 	is_active: bool,
-	pub p_type: ProjectileType,
+	pub power: Power,
 	pub bounce_counter: i32,
 	pub elapsed: u128,
-	pub damage: i32,
 	pub rb: Rigidbody,
+	pub angle: f64,
+	pub facing_up: bool,
 }
 
 impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, velocity: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
+	pub fn new(pos: Rect, facing_right: bool, velocity: Vec<f64>, power_type: PowerType, elapsed: u128, angle: f64) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
-		let damage: i32;
 		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
-		match p_type {
-			ProjectileType::Bullet => { damage = 5; }
-			ProjectileType::Fireball => { damage = 10; } 
-			ProjectileType::Shield => { damage = 0; }
-		}
+		let facing_up = false;
+		let power = Power::new(pos, power_type); 
 		Projectile {
 			src,
 			facing_right,
 			is_active,
-			p_type,
 			bounce_counter,
 			elapsed,
-			damage,
 			rb,
+			angle,
+			facing_up,
+			power, 
 		}
 	}
 	pub fn x(&self) -> i32 {
@@ -88,8 +81,13 @@ impl Projectile {
 	
 	// check object bouncing 
 	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
-		match self.p_type {
-			ProjectileType::Fireball => {
+		match self.power.power_type {
+			PowerType::Fireball => {
+				if self.get_bounce() >= 1 {
+					self.die();
+				}
+			}
+			PowerType::Rock => {
 				if self.get_bounce() >= 1 {
 					self.die();
 				}
@@ -132,8 +130,8 @@ impl Projectile {
 						self.inc_bounce();
 					}
 					 */
-					if GameData::check_collision(&self.rb.draw_pos(), &w_pos) {
-						wall_collisions.push(self.collect_col(self.rb.draw_pos(), self.pos().center(), w_pos));
+					if GameData::check_collision(&self.rb.pos(), &w_pos) {
+						wall_collisions.push(self.collect_col(self.rb.pos(), self.pos().center(), w_pos));
 					}
 					self.resolve_col(&wall_collisions);
 				}
