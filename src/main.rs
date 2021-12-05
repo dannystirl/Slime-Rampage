@@ -91,7 +91,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		//music.play(1)?;
+		music.play(1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -494,13 +494,13 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 // Create map
 impl ROGUELIKE {
 	// draw background
-	pub fn draw_everything(&mut self,player: &Player, enemies: Vec<Enemy>){
+//	pub fn draw_everything(&mut self,player: &Player, enemies: Vec<Enemy>){
 		
 
-	}
+//	}
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], dirt_map: [[(i32,i32); MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
-		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
+		let _floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
 		let dirt_sheet = texture_creator.load_texture("images/background/dirt_sheet.png")?;
 		let shop = texture_creator.load_texture("images/background/floor_tile_maroon.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
@@ -884,7 +884,7 @@ impl ROGUELIKE {
 	}
 	
 	// check collisions
-	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, _crate_textures: &Vec<Texture>, fps_avg: f64, explosion_shrapnel: &mut Vec<Projectile>) {
+	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, _crate_textures: &Vec<Texture>, _fps_avg: f64, explosion_shrapnel: &mut Vec<Projectile>) {
 		let map = map_data.map;
 
 		// PLAYER COLLISION VS ENEMY COLLISION
@@ -983,7 +983,7 @@ impl ROGUELIKE {
 						if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
 							if projectile.is_flammable() && c.explosive {
 								// Explode
-								let mut scraps = c.explode(0);
+								let  scraps = c.explode(0);
 								for scrap in scraps {
 									explosion_shrapnel.push(scrap);
 								}

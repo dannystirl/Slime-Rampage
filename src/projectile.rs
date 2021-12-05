@@ -3,7 +3,6 @@ extern crate rogue_sdl;
 //use std::sync::Mutex;
 
 use crate::Player;
-use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;
@@ -80,7 +79,7 @@ impl Projectile {
 	}
 	
 	// check object bouncing 
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, _crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.power.power_type {
 			PowerType::Fireball => {
 				if self.get_bounce() >= 1 {
