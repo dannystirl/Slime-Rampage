@@ -51,13 +51,13 @@ impl<'a> Background<'a> {
 		if num==7 {
 			src = Rect::new(0, 0, TILE_SIZE * 2, TILE_SIZE * 2);
 			pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - x as i32),
-								j * TILE_SIZE as i32 + (CENTER_H - y as i32),
-								TILE_SIZE * 2, TILE_SIZE * 2);
+							j * TILE_SIZE as i32 + (CENTER_H - y as i32),
+							TILE_SIZE * 2, TILE_SIZE * 2);
 		} else {
 			src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
 			pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - x as i32),
-								j * TILE_SIZE as i32 + (CENTER_H - y as i32),
-								TILE_SIZE, TILE_SIZE);
+							j * TILE_SIZE as i32 + (CENTER_H - y as i32),
+							TILE_SIZE, TILE_SIZE);
 		}
 		return (texture, src, pos);
 	}

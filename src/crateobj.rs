@@ -102,10 +102,7 @@ impl Crate {
 		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
-	pub fn update_acceleration(&mut self, x: f64, y: f64){
-		// self.acceleration[0] = x;
-		// self.acceleration[1] = y;
-	}
+	
 	pub fn get_magnitude(&self) -> f64{
 		return ((self.x_vel() as f64).powf(2.0) + (self.y_vel() as f64).powf(2.0)).sqrt()
 	}
@@ -122,7 +119,6 @@ impl Crate {
 		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-		// println!("{}, {}", c.velocity[0], c.velocity[1]);
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
 		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
@@ -149,7 +145,6 @@ impl Crate {
 						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
 					}
 					if GameData::check_collision(&p_pos, &w_pos) {
-						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
 						collisions.push(self.collect_col(p_pos, self.rb.hitbox.center_point(), w_pos));
 					}
 				}
@@ -346,6 +341,7 @@ impl Crate {
 					vec![0.0, -EXPLODE_SPEED],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0,
 				);
 				shrapnel.push(scrap);
 			}
@@ -358,6 +354,7 @@ impl Crate {
 					vec![EXPLODE_SPEED, -EXPLODE_SPEED],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -370,6 +367,7 @@ impl Crate {
 					vec![EXPLODE_SPEED, 0.0],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -382,6 +380,7 @@ impl Crate {
 					vec![EXPLODE_SPEED, EXPLODE_SPEED],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -394,6 +393,7 @@ impl Crate {
 					vec![0.0, EXPLODE_SPEED],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -406,6 +406,7 @@ impl Crate {
 					vec![-EXPLODE_SPEED, EXPLODE_SPEED],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -418,6 +419,7 @@ impl Crate {
 					vec![-EXPLODE_SPEED, 0.0],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -430,6 +432,7 @@ impl Crate {
 					vec![-EXPLODE_SPEED, -EXPLODE_SPEED],
 					ProjectileType::Shrapnel,
 					elapsed,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}

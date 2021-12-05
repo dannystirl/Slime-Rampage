@@ -28,16 +28,19 @@ pub struct Projectile{
 	pub elapsed: u128,
 	pub damage: i32,
 	pub rb: Rigidbody,
+	pub angle: f64,
+	pub facing_up: bool,
 }
 
 impl Projectile {
-	pub fn new(pos: Rect, facing_right: bool, velocity: Vec<f64>, p_type: ProjectileType, elapsed: u128) -> Projectile {
+	pub fn new(pos: Rect, facing_right: bool, velocity: Vec<f64>, p_type: ProjectileType, elapsed: u128, angle: f64) -> Projectile {
 		let src = Rect::new(0 , 0 , TILE_SIZE, TILE_SIZE);
 		let is_active = true;
 		let bounce_counter = 0;
 		let damage: i32;
 		let mut is_flammable = false;
 		let rb = Rigidbody::new(pos, velocity[0], velocity[1], 4.0, 0.0);
+		let facing_up = false;
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
 			ProjectileType::Fireball => {
@@ -60,6 +63,8 @@ impl Projectile {
 			elapsed,
 			damage,
 			rb,
+			angle,
+			facing_up,
 		}
 	}
 	pub fn x(&self) -> i32 {
@@ -101,7 +106,7 @@ impl Projectile {
 		match self.p_type {
 			ProjectileType::Fireball => {
 				if self.get_bounce() >= 1 {
-					self.die();
+					//self.die();
 				}
 			}
 			ProjectileType::Shrapnel => {
@@ -111,7 +116,7 @@ impl Projectile {
 			}
 			_ => {
 				if self.get_bounce() >= 4 {
-					self.die();
+					//self.die();
 				}
 			}
 		}
