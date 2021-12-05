@@ -23,7 +23,7 @@ pub struct Crate{
 	src: Rect,
 	pub rb:  Rigidbody,
 	heavy: bool,
-	explosive: bool,
+	pub explosive: bool,
 	active: bool,
 }
 //impl Explosive for Crate{

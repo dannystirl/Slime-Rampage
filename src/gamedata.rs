@@ -1,6 +1,6 @@
 pub const DEVELOP: bool = false; 
 pub const DEBUG: bool = false; 
-pub const DEBUG_NO_WALLS: bool = true
+pub const DEBUG_NO_WALLS: bool = false
 ; 
 
 use rand::Rng;

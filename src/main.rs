@@ -981,7 +981,7 @@ impl ROGUELIKE {
 					let pen = &mut 0.0;
 					if c.is_active() {
 						if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
-							if projectile.is_flammable() {
+							if projectile.is_flammable() && c.explosive {
 								// Explode
 								let mut scraps = c.explode(0);
 								for scrap in scraps {
