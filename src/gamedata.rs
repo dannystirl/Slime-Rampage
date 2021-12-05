@@ -48,10 +48,19 @@ pub const ACCEL_RATE: f64 = 3.5 * TILE_SIZE as f64;
 pub const DMG_COOLDOWN: u128 = 800;         // how often player can take damage
 pub const FIRE_COOLDOWN_P: u128 = 300;      // how often player can shoot projectile
 pub const SHIELD_TIME: u128 = 1800;         // how long player shield lasts
-pub const MANA_RESTORE_RATE: u128 = 1000;   // how quickly mana is restored
 
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
+
+#[derive(Copy, Clone)]
+pub enum PowerType {
+    None,
+    Fireball,
+    Slimeball,
+    Shield,
+    Dash,
+    Rock,
+}
 
 pub struct GameData {
     pub frame_counter: Instant, 
@@ -77,7 +86,7 @@ impl GameData {
         // creating a level: room data
         let map_size_w = 61;
         let map_size_h = 61;
-        let current_floor = 1; // starting floor
+        let current_floor = 2; // starting floor
         let current_room = 0; // starting room
         let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11));
         let mut i = 0;

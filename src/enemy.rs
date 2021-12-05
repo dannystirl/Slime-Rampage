@@ -14,7 +14,6 @@ use crate::{power};
 //use rogue_sdl::{Game, SDLCore};
 use crate::gold::Gold;
 use crate::power::Power;
-use crate::power::PowerType;
 use crate::rigidbody::{Rigidbody};
 
 pub enum EnemyType{
@@ -80,15 +79,15 @@ pub struct Enemy<'a> {
 		let collision_damage: u32; 
 		let power: Power; 
 		match enemy_type {
-			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 20.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=5; 
+			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 15.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=5; 
 				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None)}
-			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=3; 
+			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 12.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=3; 
 				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball)}
-			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 8.0; collision_damage=8; 
+			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 7.0; collision_damage=8; 
 				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield)}
 			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; collision_damage=3; 
 				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash)}
-			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.3 ; aggro_range = 5.0; collision_damage=3; 
+			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.3 ; aggro_range = 6.0; collision_damage=3; 
 				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock)}
 			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; collision_damage=10; 
 				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None)}
@@ -506,7 +505,7 @@ pub struct Enemy<'a> {
 								),
 								true,
 								vec![x,y],
-								ProjectileType::Bullet,
+								PowerType::Slimeball,
 								0,//elapsed
 								0.0
 							);
@@ -541,7 +540,7 @@ pub struct Enemy<'a> {
 								),
 								true,
 								vec![x,y],
-								ProjectileType::Rock,
+								PowerType::Rock,
 								0,//elapsed
 								0.0
 							);

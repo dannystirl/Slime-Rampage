@@ -140,8 +140,12 @@ impl<'a> Map<'a> {
 		while count < 300 {
 			let y = rng.gen_range(0..MAP_SIZE_H);
 			let x = rng.gen_range(0..MAP_SIZE_W);
-			let height = rng.gen_range(MIN_ROOM_H..MAX_ROOM_H);
-			let width = rng.gen_range(MIN_ROOM_W..MAX_ROOM_W);
+			let mut height = rng.gen_range(MIN_ROOM_H..MAX_ROOM_H);
+			let mut width = rng.gen_range(MIN_ROOM_W..MAX_ROOM_W);
+			if self.num_rooms < 3 {
+				height -= 7;
+				width -= 7; 
+			}
 			if y % 2 == 0 || x % 2 == 0 || height % 2 == 0 || width % 2 == 0 {
 				continue;
 			}
@@ -754,6 +758,18 @@ impl<'a> Map<'a> {
 				else if self.enemy_and_object_spawns[h][w] == 2 {
 					print!("E ");
 				}
+				// Skeleton
+				else if self.enemy_and_object_spawns[h][w] == 4 {
+					print!("G ");
+				}
+				// Eyeball
+				else if self.enemy_and_object_spawns[h][w] == 5 {
+					print!("E ");
+				}
+				// Rock
+				else if self.enemy_and_object_spawns[h][w] == 6 {
+					print!("R ");
+				}
 				// Crates
 				else if self.enemy_and_object_spawns[h][w] == 3 {
 					print!("C ");
@@ -772,11 +788,11 @@ impl<'a> Map<'a> {
 				}
 				// Upstairs
 				else if map[h][w] == 3{
-					print!("U ");
+					print!("u ");
 				}
 				// Downstairs
 				else if map[h][w] == 4{
-					print!("D ");
+					print!("n ");
 				}	
 				else if map[h][w] == 6{
 					print!("S ");

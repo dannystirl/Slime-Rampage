@@ -60,6 +60,7 @@ pub struct Player<'a> {
 	fire_timer: Instant,
 	damage_timer: Instant,
 	mana_timer: Instant,
+	mana_restore_rate: u128, 
 	pickup_timer: Instant,
 	shield_timer: Instant,
 	dash_timer: Instant,
@@ -68,7 +69,7 @@ pub struct Player<'a> {
 	hp: u32,
 	mana: i32,
 	weapon: Weapon,
-	power: PowerType,
+	pub power: Power,
 	coins: u32,
 	pub speed_delta: f64, 
 	// check values
@@ -113,38 +114,45 @@ impl<'a> Player<'a> {
 		let dash_timer = Instant::now();
 		// player attributes
 		let max_hp: u32; 
+		let max_mana: i32; 
+		let mana_restore_rate: u128;   // how quickly mana is restored
 		let weapon: Weapon; 
-		let mut power: PowerType;
+		let mut power: Power;
 		let speed_delta: f64; 
 		match class {
 			PlayerType::Warrior => {
 				max_hp = 50; 
+				max_mana = 5; 
+				mana_restore_rate = 800; 
 				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Spear); 
-				power = PowerType::Fireball; 
+				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball); 
 				speed_delta = 1.2; 
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
+				max_mana = 4; 
+				mana_restore_rate = 1300; 
 				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
-				power = PowerType::Dash; 
-				speed_delta = 1.8; 
+				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); 
+				speed_delta = 1.9; 
 			}
 			_ => {
 				max_hp = 30; 
+				max_mana = 4; 
+				mana_restore_rate = 1000; 
 				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
-				power = PowerType::Slimeball;
+				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball); 
 				speed_delta = 1.5; 
 			}
 		}
 		let hp = max_hp; 
-		let mana = 4;
+		let mana = max_mana;
 		let mut coins: u32 = 0; 
 		if DEBUG {
-			power = PowerType::Rock; 
+			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock); 
 			coins = 30; 
 		}
 		// check values
-		let max_mana = 4;
 		let invincible = true;
 		let shielded = false;
 		let can_pickup = false;
@@ -172,6 +180,7 @@ impl<'a> Player<'a> {
 			fire_timer,
 			damage_timer,
 			mana_timer,
+			mana_restore_rate, 
 			pickup_timer,
 			shield_timer,
 			dash_timer,
@@ -213,7 +222,7 @@ impl<'a> Player<'a> {
 		self.resist();
 
 		//to make the player move faster adj his speed limit by increaseing speed_limit_adj with a float value
-		match self.get_power() {
+		match self.get_power().power_type {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
 					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 , (speed_limit_adj*self.speed_delta*1.7) as i32).into();
@@ -425,14 +434,20 @@ impl<'a> Player<'a> {
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType, elapsed: u128) -> Projectile {
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: PowerType, elapsed: u128) -> Projectile {
 		self.is_firing = true;
 		match p_type {
-			ProjectileType::Shield => {
+			PowerType::Shield => {
 				self.use_mana(4);
 			}
-			ProjectileType::Bullet => {
+			PowerType::Slimeball => {
 				self.use_mana(2);
+			}
+			PowerType::Rock => {
+				self.use_mana(6);
+			}
+			PowerType::Fireball => {
+				self.use_mana(3);
 			}
 			_ => {
 				self.use_mana(1);
@@ -454,8 +469,6 @@ impl<'a> Player<'a> {
 		}
 		let angle = ((vec[1] / vec[0])).atan();
 
-
-		let p_type = p_type;
 		let bullet = projectile::Projectile::new(
 			Rect::new(
 				self.rb.hitbox.x as i32,
@@ -465,8 +478,8 @@ impl<'a> Player<'a> {
 			),
 			false,
 			match p_type { // projectile speed 
-				ProjectileType::Fireball => { vec![x*0.60, y*0.60] }
-				ProjectileType::Rock => { vec![x*0.70, y*0.70] }
+				PowerType::Fireball => { vec![x*0.75, y*0.75] }
+				PowerType::Rock => { vec![x*0.65, y*0.65] }
 				_ => { vec![x, y] }
 			}, 
 			p_type,
@@ -494,7 +507,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn restore_mana(&mut self) {
-		if self.get_mana_timer() < MANA_RESTORE_RATE || self.get_mana() >= self.max_mana {
+		if self.get_mana_timer() < self.mana_restore_rate || self.get_mana() >= self.max_mana {
 			return;
 		}
 
@@ -527,11 +540,11 @@ impl<'a> Player<'a> {
 	}
 
 	// power functions
-	pub fn get_power(&self) -> &PowerType {
+	pub fn get_power(&self) -> &Power {
 		&self.power
 	}
 
-	pub fn set_power(&mut self, power: PowerType) {
+	pub fn set_power(&mut self, power: Power) {
 		self.power = power;
 	}
 

@@ -4,21 +4,14 @@ use crate::gamedata::*;
 
 use sdl2::rect::Rect;
 
-pub enum PowerType {
-    None,
-    Fireball,
-    Slimeball,
-    Shield,
-    Dash,
-    Rock,
-}
-
+#[derive(Copy, Clone)]
 pub struct Power {
     pos: Rect,
     src: Rect,
-    power_type: PowerType,
+    pub power_type: PowerType,
     collected: bool,
-    damage: i32, 
+    pub damage: i32, 
+    pub mana_cost: i32,
 }
 
 impl Power {
@@ -26,11 +19,13 @@ impl Power {
         let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
         let collected = false;
         let damage: i32; 
+        let mana_cost: i32; 
         match power_type {
-            PowerType::Rock => { damage = 8; }
-            PowerType::Fireball => { damage = 5; }
-            PowerType::Slimeball => { damage = 3; }
-            _ => { damage = 2; }
+            PowerType::Rock => { damage = 8; mana_cost = 4; }
+            PowerType::Fireball => { damage = 5; mana_cost = 3; }
+            PowerType::Slimeball => { damage = 3; mana_cost = 2; }
+            PowerType::Shield => { damage = 0; mana_cost = 4; }
+            _ => { damage = 2; mana_cost = 3; }
         }
         Power {
             pos,
@@ -38,6 +33,7 @@ impl Power {
             power_type,
             collected,
             damage, 
+            mana_cost, 
         }
     }
 
