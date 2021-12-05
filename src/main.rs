@@ -95,15 +95,30 @@ impl Game for ROGUELIKE  {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
-		let mut player = player::Player::new(
-			texture_creator.load_texture("images/player/slime_sheet.png")?,
-			PlayerType::Classic,
-		);
-
-		//test power
-		//player.set_power(PowerType:: Slimeball);
+		let class = PlayerType::Classic; 
+		let mut player: Player; 
+		match class {
+			PlayerType::Warrior => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
+					class, 
+				); 
+			}, 
+			PlayerType::Assassin => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
+					class, 
+				); 
+			}, 
+			_ => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					class, 
+				);
+			}, 
+		};
+		
 		let mut rng = rand::thread_rng();
-
 		// create ui
 		let mut ui = ui::UI::new(
 			Rect::new(
@@ -122,11 +137,13 @@ impl Game for ROGUELIKE  {
 		let fireball = texture_creator.load_texture("images/abilities/new_fireball.png")?;
 		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
 		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
+		let rock = texture_creator.load_texture("images/abilities/rock.png")?;
 		ability_textures.push(bullet_player);
 		ability_textures.push(fireball);
 		ability_textures.push(bullet_enemy);
 		ability_textures.push(shield);
 		ability_textures.push(wall);
+		ability_textures.push(rock);
 		// object textures
 		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
 		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?; 
@@ -144,6 +161,7 @@ impl Game for ROGUELIKE  {
 		let spear_texture = texture_creator.load_texture("images/weapons/spear.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
+		let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?; //need to change it to a new texture
 
 		// MAIN GAME LOOP
 		'gameloop: loop {
@@ -200,7 +218,6 @@ impl Game for ROGUELIKE  {
 			let mut enemy_count = 0;
 			let max_h = MAP_SIZE_H; 
 			let max_w = MAP_SIZE_W;
-			println!("{}, {}", max_w, max_h);
 			for h in 0..max_h {
 				for w in 0..max_w {
 					if map_data.enemy_and_object_spawns[h][w] == 0 {
@@ -242,7 +259,7 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let roll= rng.gen_range(0..10);
+							let roll= rng.gen_range(0..3);
 							if roll == 0 {
 								let c = crateobj::Crate::new_heavy(
 									Rect::new(
@@ -300,7 +317,26 @@ impl Game for ROGUELIKE  {
                             rngt.push(rng.gen_range(1..5));
                             enemy_count += 1;
                         }
-						6 => {
+
+                        6 => {
+                            let e = enemy::Enemy::new(
+                                Rect::new(
+                                    w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+                                    TILE_SIZE_CAM,
+                                    TILE_SIZE_CAM
+                                ),
+                                texture_creator.load_texture("images/enemies/rock.png")?,
+                                EnemyType::Rock,
+                                enemy_count,
+                                self.game_data.current_floor,
+                            );
+                            enemies.push(e);
+                            rngt.push(rng.gen_range(1..5));
+                            enemy_count += 1;
+                        }
+
+						7 => {
 							let e = enemy::Enemy::new(
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
@@ -387,7 +423,7 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
 										&dash_texture, &health_texture, &health_upgrade_texture,
-										&sword_texture, &spear_texture);
+										&sword_texture, &spear_texture, &rock_texture,);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures);
@@ -504,7 +540,7 @@ impl ROGUELIKE {
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
 						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture,
-						sword_texture: &Texture, spear_texture: &Texture) {
+						sword_texture: &Texture, spear_texture: &Texture, rock_texture: &Texture,) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -545,6 +581,9 @@ impl ROGUELIKE {
 					PowerType::Dash => {
                     	self.core.wincan.copy_ex(&dash_texture, power.src(), pos, 0.0, None, false, false).unwrap();
                     },
+                    PowerType::Rock => {
+                        self.core.wincan.copy_ex(&rock_texture, power.src(), pos, 0.0, None, false, false).unwrap();
+					},
 					_ => {},
 				}
 			}
@@ -601,6 +640,9 @@ impl ROGUELIKE {
 				ShopItems::Health => {
 					self.core.wincan.copy_ex(&health_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
+				ShopItems::Rock => {
+                    self.core.wincan.copy_ex(&rock_texture, src, pos, 0.0, None, false, false).unwrap();
+                },
 				_ => {}
 			}
 			i += 1; 
@@ -635,36 +677,40 @@ impl ROGUELIKE {
 		}
 		// Shoot ranged attack
 		if mousestate.left(){
-			match player.get_power() {
+			match player.get_power().power_type {
 				PowerType::Fireball => {
-					if !player.is_firing && player.get_mana() >= 1 {
+					if !player.is_firing && player.get_mana() >= player.get_power().mana_cost {
 						let now = Instant::now();
 						let elapsed = now.elapsed().as_millis() / (fps_avg as u128 * 2 as u128); // the bigger this divisor is, the faster the animation plays
-
-						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Fireball, elapsed);
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), PowerType::Fireball, elapsed);
 						self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				PowerType::Slimeball => {
-					if !player.is_firing && player.get_mana() >= 2 {
-						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), ProjectileType::Bullet, 0);
+					if !player.is_firing && player.get_mana() >= player.get_power().mana_cost {
+						let bullet = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), PowerType::Slimeball, 0);
 						self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				PowerType::Shield => {
-					if !player.get_shielded() && player.get_mana() >= 3 {
+					if !player.get_shielded() && player.get_mana() >= player.get_power().mana_cost {
 						player.set_shielded(true);
 						// code for placeable shield. 
-						//let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, ProjectileType::Shield, 0);
+						//let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, PowerType::Shield, 0);
 						//self.game_data.player_projectiles.push(bullet);
 					}
 				},
 				PowerType::Dash => {
-                    if !player.is_firing && player.get_mana() >= 4 {
+                    if !player.is_firing && player.get_mana() >= player.get_power().mana_cost {
                         player.set_dash_timer();
                     }
                 },
-
+                PowerType::Rock => {
+                    if !player.is_firing && player.get_mana() >= player.get_power().mana_cost {
+                        let rock = player.fire(mousestate.x(), mousestate.y(), self.game_data.get_speed_limit(), PowerType::Rock, 0);
+                        self.game_data.player_projectiles.push(rock);
+                    }
+                },
 				_ => {},
 			}
 		}
@@ -677,21 +723,7 @@ impl ROGUELIKE {
 					   !drop.collected() && player.get_pickup_timer() > 1000 {
 						drop.set_collected();
 						player.reset_pickup_timer();
-						match drop.power_type() {
-							PowerType::Fireball => {
-								player.set_power(PowerType::Fireball);
-							},
-							PowerType::Slimeball => {
-								player.set_power(PowerType::Slimeball);
-							},
-							PowerType::Shield => {
-								player.set_power(PowerType::Shield);
-							},
-							PowerType::Dash => {
-                                player.set_power(PowerType::Dash);
-                            },
-							_ => {}
-						}
+						player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), *drop.power_type()));
 						picked_up = true;
 						break;
 					}
@@ -712,42 +744,52 @@ impl ROGUELIKE {
 							player.sub_coins(map_data.shop_items[i].2);
 							match map_data.shop_items[i].0 {
 								ShopItems::Fireball => {
-									player.set_power(PowerType::Fireball);
-									map_data.shop_items[i].1 = true;
+									player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball));
 								},
 								ShopItems::Slimeball => {
-									player.set_power(PowerType::Slimeball);
-									map_data.shop_items[i].1 = true;
+									player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball));
 								},
 								ShopItems::Shield => {
-									player.set_power(PowerType::Shield);
-									map_data.shop_items[i].1 = true; 
+									player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield));
 								}
 								ShopItems::Dash => {
-									player.set_power(PowerType::Dash);
-									map_data.shop_items[i].1 = true;
+									player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash));
 								}
+								ShopItems::Rock => {
+                                    player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock));
+                                },
 								ShopItems::Sword => {
-									player.set_weapon(WeaponType::Sword);
-									map_data.shop_items[i].1 = true;
+									if map_data.shop_items[i].1 == false {
+										if player.get_weapon().weapon_type != WeaponType::Sword {
+											player.set_weapon(WeaponType::Sword)
+										} else {
+											let damage = player.get_weapon_damage(); 
+											player.set_weapon_damage(damage+2);
+										}
+									}
 								}
 								ShopItems::Spear => {
-									player.set_weapon(WeaponType::Spear);
-									map_data.shop_items[i].1 = true;
+									if map_data.shop_items[i].1 == false {
+										if player.get_weapon().weapon_type != WeaponType::Spear {
+											player.set_weapon(WeaponType::Spear)
+										} else {
+											let damage = player.get_weapon_damage(); 
+											player.set_weapon_damage(damage+4);
+										}
+									}
 								}
 								ShopItems::HealthUpgrade => {
 									if map_data.shop_items[i].1 == false {
 										player.upgrade_hp(10); 
 										player.plus_hp(10); 
-										map_data.shop_items[i].1 = true; 
 									} 
 								}
 								ShopItems::Health => {
 									player.plus_hp(10);
-									map_data.shop_items[i].1 = true;
 								}
 								_ => { }
 							}
+							map_data.shop_items[i].1 = true;
 							picked_up = true;
 							break;
 						}
@@ -756,33 +798,16 @@ impl ROGUELIKE {
 				}
 				if !picked_up {
 					for drop in self.game_data.dropped_weapons.iter_mut() {
-						if check_collision(&player.pos(), &drop.pos()) &&
-						   player.get_pickup_timer() > 1000 {
+						if check_collision(&player.pos(), &drop.pos()) && player.get_pickup_timer() > 1000 {
 							player.reset_pickup_timer();
-							match drop.weapon_type() {
-								WeaponType::Sword => {
-									match player.get_weapon() {
-										WeaponType::Sword => {
-											drop.set_weapon_type(WeaponType::Sword);
-										},
-										WeaponType::Spear => {
-											drop.set_weapon_type(WeaponType::Spear);
-										},
-									}
-									player.set_weapon(WeaponType::Sword);
-								},
-								WeaponType::Spear => {
-									match player.get_weapon() {
-										WeaponType::Sword => {
-											drop.set_weapon_type(WeaponType::Sword);
-										},
-										WeaponType::Spear => {
-											drop.set_weapon_type(WeaponType::Spear);
-										},
-									}
-									player.set_weapon(WeaponType::Spear);
-								},
+							let weapon_type = drop.weapon_type; 
+							if player.get_weapon().weapon_type != weapon_type {
+								player.set_weapon(weapon_type)
+							} else {
+								let damage = player.get_weapon_damage(); 
+								player.set_weapon_damage(damage+15);
 							}
+							drop.set_weapon_type(weapon_type);
 							break;
 						}
 					}
@@ -833,46 +858,31 @@ impl ROGUELIKE {
 		for enemy in enemies.iter_mut() {
 			if enemy.is_alive() {
 				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
-					player.minus_hp(5);
+					player.minus_hp(enemy.collision_damage);
 				}
-			}
-		// player melee collisions
-		if player.get_attacking() {
-			if check_collision(&player.get_attack_box(), &enemy.pos()) {
-				enemy.knockback(player.x().into(), player.y().into());
-				match player.get_weapon() {
-					WeaponType::Sword => {
-						enemy.minus_hp(2);
-					},
-					WeaponType::Spear => {
-						enemy.minus_hp(4);
-					},
+				// player melee collisions
+				if player.get_attacking() {
+					if check_collision(&player.get_attack_box(), &enemy.pos()) {
+						enemy.knockback(player.x().into(), player.y().into());
+						enemy.minus_hp(player.get_weapon().damage);
+					}
 				}
-			}
-		}
 
-			// player projectile collisions
-			for projectile in self.game_data.player_projectiles.iter_mut() {
-				if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
-					match enemy.enemy_type {
-						EnemyType::Melee =>{
-							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-							enemy.minus_hp(projectile.damage);
-						}
-						EnemyType::Ranged =>{
-							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-							enemy.minus_hp(projectile.damage);
-						}
-						EnemyType::Eyeball =>{
-                            enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-                            enemy.minus_hp(projectile.damage);
-                        }
-						EnemyType::Skeleton=>{
-							enemy.minus_hp(projectile.damage / 2);
-						}
-						EnemyType::Boss => {
-							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-							enemy.minus_hp(projectile.damage);
+				// player projectile collisions
+				for projectile in self.game_data.player_projectiles.iter_mut() {
+					if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
+						match enemy.enemy_type {
+							EnemyType::Boss => {
+								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+								enemy.minus_hp(projectile.power.damage/3);
+							}
+							EnemyType::Skeleton=>{
+								enemy.minus_hp(projectile.power.damage/2);
+							}
+							_ =>{
+								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+								enemy.minus_hp(projectile.power.damage);
+							}
 						}
 					}
 				}
@@ -890,8 +900,6 @@ impl ROGUELIKE {
 				c.friction();
 			}
 		}
-			
-		
 
 		// ENEMIES VS CRATES
 		for c in self.game_data.crates.iter_mut() {
@@ -929,21 +937,17 @@ impl ROGUELIKE {
 						if enemy.is_alive() {
 							if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
 								match enemy.enemy_type {
-									EnemyType::Melee => {
+									EnemyType::Boss => {
 										enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-										enemy.minus_hp(projectile.damage);
+										enemy.minus_hp(projectile.power.damage/3);
 									}
-									EnemyType::Ranged => {
+									EnemyType::Skeleton=>{
+										enemy.minus_hp(projectile.power.damage/2);
+									}
+									_ =>{
 										enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-										enemy.minus_hp(projectile.damage);
+										enemy.minus_hp(projectile.power.damage);
 									}
-									EnemyType::Skeleton => {}
-									EnemyType::Eyeball =>{
-										enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-										enemy.minus_hp(projectile.damage);
-									}
-									EnemyType::Boss =>{}
-									
 								}
 								projectile.die();
 							}
@@ -971,14 +975,12 @@ impl ROGUELIKE {
 
 		// ALL ENEMY PROJECTILE COLLISIONS
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-		
 			// ENEMY PROJECTILES vs PLAYER
 			// TODO: POSSIBLY ADD PLAYER KNOCKBACK
 			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-				player.minus_hp(5);
+				player.minus_hp(projectile.power.damage as u32);
 				projectile.die();
 			}
-
 			// ENEMY PROJECTILE vs CRATES + WALLS
 			projectile.check_bounce(&mut self.game_data.crates, map);
 		}
@@ -1078,38 +1080,39 @@ impl ROGUELIKE {
 	pub fn draw_player_projectile(&mut self, ability_textures: &Vec<Texture>, player: &Player, mousestate: MouseState)-> Result<(), String>  {
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
-				match projectile.p_type{
-					ProjectileType::Bullet=> {
+				match projectile.power.power_type{
+					PowerType::Slimeball=> {
 						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
-					ProjectileType::Fireball=> {
+					PowerType::Rock=> {
+                        self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), projectile.angle, None, !projectile.facing_right, false).unwrap();
+                    }
+					PowerType::Fireball=> {
 						let time = projectile.elapsed;
-
-						
 						
 						//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
 						let s = ROGUELIKE::display_animation(time, 4, 6, 6, TILE_SIZE);
 
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
-							projectile.facing_right = true;//face right
+							projectile.facing_right = true;
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
-							projectile.facing_right = false;//face left
+							projectile.facing_right = false;
 						}
 						if mousestate.y() > player.get_cam_pos().y() && time == 0{
-							projectile.facing_up = false;//face right
+							projectile.facing_up = false;
 						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
-							projectile.facing_up = true;//face left
+							projectile.facing_up = true;
 						}
 					
 						projectile.elapsed += 1;
-						//println!("{}", projectile.elapsed);
-						if projectile.elapsed == 127 {projectile.die();}//fireball dies after a certain amount of time
+						if projectile.elapsed == 127 {projectile.die();}
 
-						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player),projectile.angle, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), projectile.angle, None, !projectile.facing_right, false).unwrap();
 					}
-					ProjectileType::Shield => {
+					PowerType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
+					_ => {}
 				}	
 			}
 		}
@@ -1124,7 +1127,7 @@ impl ROGUELIKE {
 		let mut lunge = 0.0;
 
 		// display weapon
-		match player.get_weapon() {
+		match player.get_weapon().weapon_type {
 			WeaponType::Sword => {
 				// weapon animation
 				if player.get_attacking() {
@@ -1134,13 +1137,13 @@ impl ROGUELIKE {
 				if player.facing_right{
 					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
 									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH_SWORD, TILE_SIZE_CAM * 7/5);
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
 					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 				} else{
-					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SWORD as i32, 
+					pos = Rect::new(player.get_cam_pos().x() - player.get_weapon().attack_length as i32, 
 									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH_SWORD, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(ATTACK_LENGTH_SWORD as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(player.get_weapon().attack_length as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 					angle = -angle;
 				}
 				self.core.wincan.copy_ex(&sword_texture, None, pos, angle, rotation_point,
@@ -1149,23 +1152,23 @@ impl ROGUELIKE {
 			WeaponType::Spear => {
 				// weapon animation
 				if player.get_attacking() {
-					if player.get_attack_timer() < ATTK_TIME_SPEAR/2 {
-						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_attack_timer() * 60 / 250 ) as f64;
+					if player.get_attack_timer() < player.get_weapon().attack_time/2 {
+						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_attack_timer() * 30 / 250 ) as f64;
 					} else {
-						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (ATTK_TIME_SPEAR as f64 - player.get_attack_timer() as f64) * 60.0 / 250.0;
+						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_weapon().attack_time as f64 - player.get_attack_timer() as f64) * 30.0 / 250.0;
 					}
 				} else { lunge -= (TILE_SIZE_CAM*2/3) as f64 }
 				// weapon position
 				if player.facing_right{
 					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32 + lunge as i32, 
 									player.get_cam_pos().y() as i32, 
-									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
 					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 				} else{
-					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SPEAR as i32 - lunge as i32, 
+					pos = Rect::new(player.get_cam_pos().x() - player.get_weapon().attack_length as i32 - lunge as i32, 
 									player.get_cam_pos().y() as i32, 
-									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(ATTACK_LENGTH_SPEAR as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(player.get_weapon().attack_length as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 					angle = -angle;
 				}
 				self.core.wincan.copy_ex(&spear_texture, None, pos, angle, rotation_point,
@@ -1176,8 +1179,12 @@ impl ROGUELIKE {
 
 	pub fn draw_enemy_projectile(&mut self,ability_textures: &Vec<Texture> , player: &Player) {
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-			if projectile.is_active(){
-				self.core.wincan.copy(&ability_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+			if projectile.is_active() {
+				if matches!(projectile.power.power_type, PowerType::Slimeball) {
+					self.core.wincan.copy(&ability_textures[2], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+				} else {
+					self.core.wincan.copy(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player)).unwrap();
+				}
 			}
 		}
 	}
