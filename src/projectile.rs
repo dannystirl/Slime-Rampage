@@ -275,7 +275,7 @@ impl Projectile {
 
 	pub fn is_flammable(&self) -> bool {
 
-		matches!(self.power.power_type, PowerType::Fireball) ||matches!(self.power.power_type, PowerType::Shrapnel)
+		matches!(self.power.power_type, PowerType::Fireball) ||matches!(self.power.power_type, PowerType::Shrapnel) || matches!(self.power.power_type, PowerType::Rock)
 	}
 
 	pub fn is_shrapnel(&self) -> bool{return matches!(self.power.power_type,  PowerType::Shrapnel)}
