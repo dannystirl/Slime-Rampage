@@ -204,7 +204,6 @@ impl Game for ROGUELIKE  {
 			let mut enemy_count = 0;
 			let max_h = MAP_SIZE_H; 
 			let max_w = MAP_SIZE_W;
-			println!("{}, {}", max_w, max_h);
 			for h in 0..max_h {
 				for w in 0..max_w {
 					if map_data.enemy_and_object_spawns[h][w] == 0 {
@@ -384,8 +383,6 @@ impl Game for ROGUELIKE  {
 					TILE_SIZE, TILE_SIZE);
 					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
 					if check_collision(&ppos, &mpos) {
-						println!("c: {} {}", player.x(), player.y());
-						println!("c: {} {}", mpos.x, mpos.y);
 						break 'level
 					}
 				}
@@ -763,45 +760,51 @@ impl ROGUELIKE {
 							match map_data.shop_items[i].0 {
 								ShopItems::Fireball => {
 									player.set_power(PowerType::Fireball);
-									map_data.shop_items[i].1 = true;
 								},
 								ShopItems::Slimeball => {
 									player.set_power(PowerType::Slimeball);
-									map_data.shop_items[i].1 = true;
 								},
 								ShopItems::Shield => {
 									player.set_power(PowerType::Shield);
-									map_data.shop_items[i].1 = true; 
 								}
 								ShopItems::Dash => {
 									player.set_power(PowerType::Dash);
-									map_data.shop_items[i].1 = true;
 								}
+								ShopItems::Rock => {
+                                    player.set_power(PowerType::Rock);
+                                },
 								ShopItems::Sword => {
-									player.set_weapon(WeaponType::Sword);
-									map_data.shop_items[i].1 = true;
+									if map_data.shop_items[i].1 == false {
+										if player.get_weapon().weapon_type != WeaponType::Sword {
+											player.set_weapon(WeaponType::Sword)
+										} else {
+											let damage = player.get_weapon_damage(); 
+											player.set_weapon_damage(damage+2);
+										}
+									}
 								}
 								ShopItems::Spear => {
-									player.set_weapon(WeaponType::Spear);
-									map_data.shop_items[i].1 = true;
+									if map_data.shop_items[i].1 == false {
+										if player.get_weapon().weapon_type != WeaponType::Spear {
+											player.set_weapon(WeaponType::Spear)
+										} else {
+											let damage = player.get_weapon_damage(); 
+											player.set_weapon_damage(damage+4);
+										}
+									}
 								}
 								ShopItems::HealthUpgrade => {
 									if map_data.shop_items[i].1 == false {
 										player.upgrade_hp(10); 
 										player.plus_hp(10); 
-										map_data.shop_items[i].1 = true; 
 									} 
 								}
 								ShopItems::Health => {
 									player.plus_hp(10);
-									map_data.shop_items[i].1 = true;
 								}
-								ShopItems::Rock => {
-                                    player.set_power(PowerType::Rock);
-                                    map_data.shop_items[i].1 = true;
-                                },
 								_ => { }
 							}
+							map_data.shop_items[i].1 = true;
 							picked_up = true;
 							break;
 						}
@@ -810,48 +813,20 @@ impl ROGUELIKE {
 				}
 				if !picked_up {
 					for drop in self.game_data.dropped_weapons.iter_mut() {
-						if check_collision(&player.pos(), &drop.pos()) &&
-						   player.get_pickup_timer() > 1000 {
+						if check_collision(&player.pos(), &drop.pos()) && player.get_pickup_timer() > 1000 {
 							player.reset_pickup_timer();
-							match drop.weapon_type() {
-								WeaponType::Sword => {
-									match player.get_weapon() {
-										WeaponType::Sword => {
-											drop.set_weapon_type(WeaponType::Sword);
-										},
-										WeaponType::Spear => {
-											drop.set_weapon_type(WeaponType::Spear);
-										},
-									}
-									player.set_weapon(WeaponType::Sword);
-								},
-								WeaponType::Spear => {
-									match player.get_weapon() {
-										WeaponType::Sword => {
-											drop.set_weapon_type(WeaponType::Sword);
-										},
-										WeaponType::Spear => {
-											drop.set_weapon_type(WeaponType::Spear);
-										},
-									}
-									player.set_weapon(WeaponType::Spear);
-								},
+							let weapon_type = drop.weapon_type; 
+							if player.get_weapon().weapon_type != weapon_type {
+								player.set_weapon(weapon_type)
+							} else {
+								let damage = player.get_weapon_damage(); 
+								player.set_weapon_damage(damage+15);
 							}
+							drop.set_weapon_type(weapon_type);
 							break;
 						}
 					}
 				}
-			}
-		}
-		// Go to next level
-		if keystate.contains(&Keycode::E) {
-			let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
-								 map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
-								 TILE_SIZE, TILE_SIZE);
-			let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE, TILE_SIZE);
-			if check_collision(&ppos, &mpos) {
-				println!("c: {} {}", player.x(), player.y());
-				println!("c: {} {}", mpos.x, mpos.y);
 			}
 		}
 		// Toggle god mode
@@ -906,12 +881,12 @@ impl ROGUELIKE {
 		if player.get_attacking() {
 			if check_collision(&player.get_attack_box(), &enemy.pos()) {
 				enemy.knockback(player.x().into(), player.y().into());
-				match player.get_weapon() {
+				match player.get_weapon().weapon_type {
 					WeaponType::Sword => {
-						enemy.minus_hp(2);
+						enemy.minus_hp(player.get_weapon().damage);
 					},
 					WeaponType::Spear => {
-						enemy.minus_hp(4);
+						enemy.minus_hp(player.get_weapon().damage);
 					},
 				}
 			}
@@ -1157,32 +1132,29 @@ impl ROGUELIKE {
 						self.core.wincan.copy_ex(&ability_textures[0], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Rock=> {
-                        self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();
+                        self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), projectile.angle, None, !projectile.facing_right, false).unwrap();
                     }
 					ProjectileType::Fireball=> {
 						let time = projectile.elapsed;
-
-						
 						
 						//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
 						let s = ROGUELIKE::display_animation(time, 4, 6, 6, TILE_SIZE);
 
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
-							projectile.facing_right = true;//face right
+							projectile.facing_right = true;
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
-							projectile.facing_right = false;//face left
+							projectile.facing_right = false;
 						}
 						if mousestate.y() > player.get_cam_pos().y() && time == 0{
-							projectile.facing_up = false;//face right
+							projectile.facing_up = false;
 						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
-							projectile.facing_up = true;//face left
+							projectile.facing_up = true;
 						}
 					
 						projectile.elapsed += 1;
-						//println!("{}", projectile.elapsed);
-						if projectile.elapsed == 127 {projectile.die();}//fireball dies after a certain amount of time
+						if projectile.elapsed == 127 {projectile.die();}
 
-						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player),projectile.angle, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), projectile.angle, None, !projectile.facing_right, false).unwrap();
 					}
 					ProjectileType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
@@ -1201,7 +1173,7 @@ impl ROGUELIKE {
 		let mut lunge = 0.0;
 
 		// display weapon
-		match player.get_weapon() {
+		match player.get_weapon().weapon_type {
 			WeaponType::Sword => {
 				// weapon animation
 				if player.get_attacking() {

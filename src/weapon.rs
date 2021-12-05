@@ -4,6 +4,7 @@ use crate::gamedata::*;
 
 use sdl2::rect::Rect;
 
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum WeaponType {
     Sword,
     Spear,
@@ -12,15 +13,30 @@ pub enum WeaponType {
 pub struct Weapon {
     pos: Rect,
     src: Rect,
-    weapon_type: WeaponType,
+    pub attack_cooldown: u128, 
+    pub attack_length: u32, 
+    pub damage: i32, 
+    pub weapon_type: WeaponType,
 }
 
+#[allow(unreachable_patterns)]
 impl Weapon {
     pub fn new(pos: Rect, weapon_type: WeaponType) -> Weapon {
         let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
+        let damage: i32; 
+        let attack_cooldown: u128; 
+        let attack_length: u32; 
+        match weapon_type {
+            WeaponType::Spear => { damage = 6; attack_cooldown = 800; attack_length = TILE_SIZE_CAM * 2; }
+            WeaponType::Sword => { damage = 3; attack_cooldown = 300; attack_length = TILE_SIZE_CAM * 3/2; }
+            _ => { damage = 2; attack_cooldown = 300; attack_length = TILE_SIZE_CAM * 3/2; }
+        }
         Weapon {
             pos,
             src,
+            attack_cooldown, 
+            attack_length, 
+            damage, 
             weapon_type,
         }
     }
@@ -45,7 +61,11 @@ impl Weapon {
         &self.weapon_type
     }
 
-    pub fn set_weapon_type(&mut self, weapon: WeaponType) {
-        self.weapon_type = weapon;
+    pub fn set_weapon_type(&mut self, weapon_type: WeaponType) {
+        match weapon_type {
+            WeaponType::Spear => { self.damage = 4; self.attack_cooldown = 800; self.attack_length = TILE_SIZE_CAM * 2; }
+            WeaponType::Sword => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
+            _ => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
+        }
     }
 }

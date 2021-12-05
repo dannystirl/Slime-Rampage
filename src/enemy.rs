@@ -83,8 +83,8 @@ pub struct Enemy<'a> {
 			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 0.5 ; aggro_range = 5.0; }
 			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 8.0; }
 			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; }
-			EnemyType::Rock => { stun_time = 250; hp = 20; knockback_vel = 5.0; speed_delta = 0.7 ; aggro_range = 5.0; }
-			EnemyType::Boss => { stun_time = 50; hp = 100; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; }
+			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.7 ; aggro_range = 5.0; }
+			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; }
 		}
 
 		Enemy {
@@ -512,7 +512,7 @@ pub struct Enemy<'a> {
                 if self.get_fire_timer() > self.get_fire_cooldown() {
                     self.set_fire_cooldown();
                     let fire_chance = rng.gen_range(1..60);
-                    if fire_chance < 5 { // chance to fire
+                    if fire_chance < 3 { // chance to fire
                         self.fire(); // sets is firing true
                         let vec = vec![x - self.x(), y - self.y()];
                         let angle = ((vec[0] / vec[1]).abs()).atan();
