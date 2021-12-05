@@ -100,7 +100,7 @@ impl Game for ROGUELIKE  {
 		match class {
 			PlayerType::Warrior => {
 				player = player::Player::new(
-					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
 					class, 
 				); 
 			}, 
