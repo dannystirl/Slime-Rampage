@@ -42,9 +42,9 @@ impl Projectile {
 		let facing_up = false;
 		match p_type {
 			ProjectileType::Bullet => { damage = 5; }
-			ProjectileType::Fireball => { damage = 10; } 
+			ProjectileType::Fireball => { damage = 8; } 
 			ProjectileType::Shield => { damage = 0; }
-			ProjectileType::Rock => { damage = 15; }
+			ProjectileType::Rock => { damage = 12; }
 		}
 		Projectile {
 			src,

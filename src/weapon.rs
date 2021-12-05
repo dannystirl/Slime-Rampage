@@ -14,6 +14,7 @@ pub struct Weapon {
     pos: Rect,
     src: Rect,
     pub attack_cooldown: u128, 
+    pub attack_time: u128, 
     pub attack_length: u32, 
     pub damage: i32, 
     pub weapon_type: WeaponType,
@@ -24,17 +25,19 @@ impl Weapon {
     pub fn new(pos: Rect, weapon_type: WeaponType) -> Weapon {
         let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE);
         let damage: i32; 
-        let attack_cooldown: u128; 
-        let attack_length: u32; 
+        let attack_cooldown: u128;  // cooldown between attacks
+        let attack_time: u128;      // time it takes to attack
+        let attack_length: u32;     // length of weapons
         match weapon_type {
-            WeaponType::Spear => { damage = 6; attack_cooldown = 800; attack_length = TILE_SIZE_CAM * 2; }
-            WeaponType::Sword => { damage = 3; attack_cooldown = 300; attack_length = TILE_SIZE_CAM * 3/2; }
-            _ => { damage = 2; attack_cooldown = 300; attack_length = TILE_SIZE_CAM * 3/2; }
+            WeaponType::Spear => { damage = 6; attack_cooldown = 800; attack_time = 800; attack_length = TILE_SIZE_CAM * 2; }
+            WeaponType::Sword => { damage = 3; attack_cooldown = 300; attack_time = 400; attack_length = TILE_SIZE_CAM * 3/2; }
+            _ => { damage = 2; attack_cooldown = 300; attack_time = 400; attack_length = TILE_SIZE_CAM * 3/2; }
         }
         Weapon {
             pos,
             src,
             attack_cooldown, 
+            attack_time, 
             attack_length, 
             damage, 
             weapon_type,

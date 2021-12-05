@@ -89,7 +89,7 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new( texture: Texture<'a>, class: PlayerType) -> Player<'a> {
+	pub fn new(texture: Texture<'a>, class: PlayerType) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -409,36 +409,16 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		match self.get_weapon().weapon_type {
-			WeaponType::Sword => {
-				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
-				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH_SWORD as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
-				}
-			},
-			WeaponType::Spear => {
-				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
-				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH_SPEAR as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
-				}
-			},
+		if self.facing_right{
+			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, self.get_weapon().attack_length, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(x - self.get_weapon().attack_length as i32, y as i32, self.get_weapon().attack_length, TILE_SIZE);
 		}
 	}
 
 	pub fn attack(&mut self) {
-		match self.get_weapon().weapon_type {
-			WeaponType::Sword => {
-				if self.get_attack_timer() < self.get_weapon().attack_cooldown {
-					return;
-				}
-			},
-			WeaponType::Spear => {
-				if self.get_attack_timer() < self.get_weapon().attack_cooldown {
-					return;
-				}
-			},
+		if self.get_attack_timer() < self.get_weapon().attack_cooldown {
+			return;
 		}
 		self.is_attacking = true;
 		self.set_attack_box(self.x() as i32, self.y() as i32);

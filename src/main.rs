@@ -95,15 +95,30 @@ impl Game for ROGUELIKE  {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
-		let mut player = player::Player::new(
-			texture_creator.load_texture("images/player/slime_sheet.png")?,
-			PlayerType::Classic,
-		);
-
-		//test power
-		//player.set_power(PowerType:: Slimeball);
+		let class = PlayerType::Classic; 
+		let mut player: Player; 
+		match class {
+			PlayerType::Warrior => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					class, 
+				); 
+			}, 
+			PlayerType::Assassin => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					class, 
+				); 
+			}, 
+			_ => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					class, 
+				);
+			}, 
+		};
+		
 		let mut rng = rand::thread_rng();
-
 		// create ui
 		let mut ui = ui::UI::new(
 			Rect::new(
@@ -874,23 +889,16 @@ impl ROGUELIKE {
 		for enemy in enemies.iter_mut() {
 			if enemy.is_alive() {
 				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
-					player.minus_hp(5);
+					player.minus_hp(enemy.collision_damage);
 				}
 			}
-		// player melee collisions
-		if player.get_attacking() {
-			if check_collision(&player.get_attack_box(), &enemy.pos()) {
-				enemy.knockback(player.x().into(), player.y().into());
-				match player.get_weapon().weapon_type {
-					WeaponType::Sword => {
-						enemy.minus_hp(player.get_weapon().damage);
-					},
-					WeaponType::Spear => {
-						enemy.minus_hp(player.get_weapon().damage);
-					},
+			// player melee collisions
+			if player.get_attacking() {
+				if check_collision(&player.get_attack_box(), &enemy.pos()) {
+					enemy.knockback(player.x().into(), player.y().into());
+					enemy.minus_hp(player.get_weapon().damage);
 				}
 			}
-		}
 
 			// player projectile collisions
 			for projectile in self.game_data.player_projectiles.iter_mut() {
@@ -909,7 +917,7 @@ impl ROGUELIKE {
                             enemy.minus_hp(projectile.damage);
                         }
 						EnemyType::Skeleton=>{
-							enemy.minus_hp(projectile.damage / 2);
+							enemy.minus_hp(projectile.damage/2);
 						}
 						EnemyType::Rock =>{
                             enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
@@ -917,7 +925,7 @@ impl ROGUELIKE {
                         }
 						EnemyType::Boss => {
 							enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-							enemy.minus_hp(projectile.damage);
+							enemy.minus_hp(projectile.damage/3);
 						}
 					}
 				}
@@ -935,8 +943,6 @@ impl ROGUELIKE {
 				c.friction();
 			}
 		}
-			
-		
 
 		// ENEMIES VS CRATES
 		for c in self.game_data.crates.iter_mut() {
@@ -992,7 +998,6 @@ impl ROGUELIKE {
                                         enemy.minus_hp(projectile.damage);
                                     }
 									EnemyType::Boss =>{}
-									
 								}
 								projectile.die();
 							}
@@ -1020,14 +1025,12 @@ impl ROGUELIKE {
 
 		// ALL ENEMY PROJECTILE COLLISIONS
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
-		
 			// ENEMY PROJECTILES vs PLAYER
 			// TODO: POSSIBLY ADD PLAYER KNOCKBACK
 			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-				player.minus_hp(5);
+				player.minus_hp(projectile.damage as u32);
 				projectile.die();
 			}
-
 			// ENEMY PROJECTILE vs CRATES + WALLS
 			projectile.check_bounce(&mut self.game_data.crates, map);
 		}
@@ -1183,13 +1186,13 @@ impl ROGUELIKE {
 				if player.facing_right{
 					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
 									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH_SWORD, TILE_SIZE_CAM * 7/5);
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
 					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 				} else{
-					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SWORD as i32, 
+					pos = Rect::new(player.get_cam_pos().x() - player.get_weapon().attack_length as i32, 
 									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
-									ATTACK_LENGTH_SWORD, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(ATTACK_LENGTH_SWORD as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(player.get_weapon().attack_length as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 					angle = -angle;
 				}
 				self.core.wincan.copy_ex(&sword_texture, None, pos, angle, rotation_point,
@@ -1198,23 +1201,23 @@ impl ROGUELIKE {
 			WeaponType::Spear => {
 				// weapon animation
 				if player.get_attacking() {
-					if player.get_attack_timer() < ATTK_TIME_SPEAR/2 {
-						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_attack_timer() * 60 / 250 ) as f64;
+					if player.get_attack_timer() < player.get_weapon().attack_time/2 {
+						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_attack_timer() * 30 / 250 ) as f64;
 					} else {
-						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (ATTK_TIME_SPEAR as f64 - player.get_attack_timer() as f64) * 60.0 / 250.0;
+						lunge -= (TILE_SIZE_CAM*2/3) as f64 - (player.get_weapon().attack_time as f64 - player.get_attack_timer() as f64) * 30.0 / 250.0;
 					}
 				} else { lunge -= (TILE_SIZE_CAM*2/3) as f64 }
 				// weapon position
 				if player.facing_right{
 					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32 + lunge as i32, 
 									player.get_cam_pos().y() as i32, 
-									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
 					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
 				} else{
-					pos = Rect::new(player.get_cam_pos().x() - ATTACK_LENGTH_SPEAR as i32 - lunge as i32, 
+					pos = Rect::new(player.get_cam_pos().x() - player.get_weapon().attack_length as i32 - lunge as i32, 
 									player.get_cam_pos().y() as i32, 
-									ATTACK_LENGTH_SPEAR, TILE_SIZE_CAM * 7/5);
-					rotation_point = Point::new(ATTACK_LENGTH_SPEAR as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(player.get_weapon().attack_length as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
 					angle = -angle;
 				}
 				self.core.wincan.copy_ex(&spear_texture, None, pos, angle, rotation_point,

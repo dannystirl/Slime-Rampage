@@ -33,7 +33,6 @@ pub struct Enemy<'a> {
 	stun_timer: Instant,
 	fire_timer: Instant,
 	damage_timer: Instant,
-	invincible: bool,
 	// check values
 	has_money: bool,
 	has_power: bool,
@@ -48,6 +47,8 @@ pub struct Enemy<'a> {
 	// enemy attributes
 	pub alive: bool,
 	pub hp: i32,
+	pub collision_damage: u32, 
+	pub power: Power,
 	stun_time: u128, 
 	knockback_vel: f64,
 	pub speed_delta: f64, 
@@ -60,7 +61,6 @@ pub struct Enemy<'a> {
 		let stun_timer = Instant::now();
 		let fire_timer = Instant::now();
 		let damage_timer = Instant::now();
-		let invincible = true;
 		let angle = 0.0;
 		let x_flipped = false;
 		let has_money = true;
@@ -77,14 +77,21 @@ pub struct Enemy<'a> {
 		let knockback_vel: f64; 
 		let speed_delta: f64; // multiplicitive value
 		let aggro_range: f64; // ~ number of tiles
+		let collision_damage: u32; 
+		let power: Power; 
 		match enemy_type {
-
-			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 20.0; speed_delta = 0.5 ; aggro_range = 5.0; }
-			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 0.5 ; aggro_range = 5.0; }
-			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 8.0; }
-			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; }
-			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.7 ; aggro_range = 5.0; }
-			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; }
+			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 20.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=5; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None)}
+			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=3; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball)}
+			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 8.0; collision_damage=8; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield)}
+			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; collision_damage=3; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash)}
+			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.3 ; aggro_range = 5.0; collision_damage=3; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock)}
+			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; collision_damage=10; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None)}
 		}
 
 		Enemy {
@@ -94,7 +101,6 @@ pub struct Enemy<'a> {
 			stun_timer,
 			fire_timer,
 			damage_timer,
-			invincible,
 			knockback_vel,
 			angle,
 			has_money,
@@ -104,6 +110,8 @@ pub struct Enemy<'a> {
 			facing_right,
 			is_stunned,
 			hp,
+			collision_damage, 
+			power, 
 			alive,
 			is_firing,
 			enemy_type,
@@ -157,9 +165,32 @@ pub struct Enemy<'a> {
 		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
+
+	pub fn draw_pos(&self, x: i32, y:i32)-> Rect{
+		let r;
+
+		match self.enemy_type {
+			EnemyType::Boss => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM * 4,
+					TILE_SIZE_CAM * 4,
+				);
+			},
+			_ => {
+				r = Rect::new(
+					self.x() as i32 + (CENTER_W - x as i32),
+					self.y() as i32 + (CENTER_H - y as i32),
+					TILE_SIZE_CAM,
+					TILE_SIZE_CAM,
+				);
+			}
+		}
+		return r;
+	}
 	
 	pub fn update_enemy(&mut self, game_data: &GameData, rngt: &Vec<i32>, i: usize, (x,y): (f64,f64), map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Rect {
-	
 		// aggro / move
 		if self.get_stun_timer() > self.stun_time {
 			self.set_stunned(false);
@@ -319,29 +350,6 @@ pub struct Enemy<'a> {
 		}
 		self.set_x_vel(x );
 		self.set_y_vel(y );
-	}
-	pub fn draw_pos(&self, x: i32, y:i32)-> Rect{
-		let r;
-
-		match self.enemy_type {
-			EnemyType::Boss => {
-				r = Rect::new(
-					self.x() as i32 + (CENTER_W - x as i32),
-					self.y() as i32 + (CENTER_H - y as i32),
-					TILE_SIZE_CAM * 4,
-					TILE_SIZE_CAM * 4,
-				);
-			},
-			_ => {
-				r = Rect::new(
-					self.x() as i32 + (CENTER_W - x as i32),
-					self.y() as i32 + (CENTER_H - y as i32),
-					TILE_SIZE_CAM,
-					TILE_SIZE_CAM,
-				);
-			}
-		}
-		return r;
 	}
 	
 	pub fn flee(&mut self, player_pos_x: f64, player_pos_y: f64, speed_limit_adj: f64) {
@@ -508,40 +516,40 @@ pub struct Enemy<'a> {
 				}
 			}
             EnemyType::Rock=>{
-            if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < 8.0 {	// only fire if close enough
-                if self.get_fire_timer() > self.get_fire_cooldown() {
-                    self.set_fire_cooldown();
-                    let fire_chance = rng.gen_range(1..60);
-                    if fire_chance < 3 { // chance to fire
-                        self.fire(); // sets is firing true
-                        let vec = vec![x - self.x(), y - self.y()];
-                        let angle = ((vec[0] / vec[1]).abs()).atan();
-                        let mut x = &game_data.get_speed_limit() * angle.sin();
-                        let mut y = &game_data.get_speed_limit() * angle.cos();
-                        if vec[0] < 0.0 {
-                            x *= -1.0;
-                        }
-                        if vec[1] < 0.0  {
-                            y *= -1.0;
-                        }
-                        let rock = Projectile::new(
-                            Rect::new(
-                                self.pos().x(),
-                                self.pos().y(),
-                                TILE_SIZE_PROJECTILE,
-                                TILE_SIZE_PROJECTILE,
-                            ),
-                            true,
-                            vec![x,y],
-                            ProjectileType::Rock,
-                            0,//elapsed
-                            0.0
-                        );
-                    game_data.enemy_projectiles.push(rock);
-                    }
-                }
-            }
-        }
+				if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < 8.0 {	// only fire if close enough
+					if self.get_fire_timer() > self.get_fire_cooldown() {
+						self.set_fire_cooldown();
+						let fire_chance = rng.gen_range(1..60);
+						if fire_chance < 3 { // chance to fire
+							self.fire(); // sets is firing true
+							let vec = vec![x - self.x(), y - self.y()];
+							let angle = ((vec[0] / vec[1]).abs()).atan();
+							let mut x = &game_data.get_speed_limit() * angle.sin();
+							let mut y = &game_data.get_speed_limit() * angle.cos();
+							if vec[0] < 0.0 {
+								x *= -1.0;
+							}
+							if vec[1] < 0.0  {
+								y *= -1.0;
+							}
+							let rock = Projectile::new(
+								Rect::new(
+									self.pos().x(),
+									self.pos().y(),
+									TILE_SIZE_PROJECTILE,
+									TILE_SIZE_PROJECTILE,
+								),
+								true,
+								vec![x,y],
+								ProjectileType::Rock,
+								0,//elapsed
+								0.0
+							);
+						game_data.enemy_projectiles.push(rock);
+						}
+					}
+				}
+			}
             EnemyType::Eyeball => {}
 			EnemyType::Melee => {}
 			EnemyType::Skeleton => {}
@@ -579,22 +587,14 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn minus_hp(&mut self, dmg: i32) {
-		self.set_invincible(); 
-		if self.invincible {
-			return;
-		}
-		self.damage_timer = Instant::now();
-		self.hp -= dmg;
-		if self.hp <= 0 {
-			self.die();
-		}
-	}
-
-	pub fn set_invincible(&mut self){
 		if self.damage_timer.elapsed().as_millis() < self.stun_time {
-			self.invincible = true;
+			return;
 		} else {
-			self.invincible = false;
+			self.damage_timer = Instant::now();
+			self.hp -= dmg;
+			if self.hp <= 0 {
+				self.die();
+			}
 		}
 	}
 
