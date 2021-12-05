@@ -59,7 +59,8 @@ impl Crate {
 	}
 	pub fn new_explosive(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let rb = Rigidbody::new(pos, 0.0, 0.0, 5.0, 0.1);
+		//let rb = Rigidbody::new(pos, 0.0, 0.0, 5.0, 0.1);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
 		let heavy = false;
 		let explosive = true;
 		let active = true;
@@ -160,9 +161,9 @@ impl Crate {
 		if self.heavy{
 			core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
 		}else if self.explosive{
-			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+			core.wincan.copy(&crate_textures[2],self.src(),self.offset_pos(player)).unwrap();
 		}else{//normal crate
-		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 		}
 	}
 
@@ -307,12 +308,12 @@ impl Crate {
 							 TILE_SIZE_PLAYER*2, TILE_SIZE_PLAYER*2);
 		}
 		else if self.heavy{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
+			return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
 					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 						 TILE_SIZE_PLAYER*2, TILE_SIZE_PLAYER*2);
 		}
 		else{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
+			return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
 					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
 						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
 		}
