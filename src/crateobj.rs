@@ -37,7 +37,7 @@ impl Crate {
 	}
 	pub fn new_heavy(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let rb = Rigidbody::new(pos, 0.0, 0.0,5.0, 0.1);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,10.0, 0.1);
 		let heavy = true;
 		Crate{
 			src,

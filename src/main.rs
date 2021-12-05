@@ -265,8 +265,8 @@ impl Game for ROGUELIKE  {
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										64,
-										64
+										62,
+										62
 									)
 								);
 								self.game_data.crates.push(c);
