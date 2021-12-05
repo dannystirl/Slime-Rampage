@@ -8,6 +8,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::vector::Vector2D;
 use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
@@ -60,6 +61,7 @@ pub struct Player<'a> {
 	fire_timer: Instant,
 	damage_timer: Instant,
 	mana_timer: Instant,
+	mana_restore_rate: u128, 
 	pickup_timer: Instant,
 	shield_timer: Instant,
 	dash_timer: Instant,
@@ -67,8 +69,8 @@ pub struct Player<'a> {
 	pub class: PlayerType, 
 	hp: u32,
 	mana: i32,
-	weapon: WeaponType,
-	power: PowerType,
+	weapon: Weapon,
+	pub power: Power,
 	coins: u32,
 	pub speed_delta: f64, 
 	// check values
@@ -89,7 +91,7 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new( texture: Texture<'a>, class: PlayerType) -> Player<'a> {
+	pub fn new(texture: Texture<'a>, class: PlayerType) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -113,38 +115,45 @@ impl<'a> Player<'a> {
 		let dash_timer = Instant::now();
 		// player attributes
 		let max_hp: u32; 
-		let weapon: WeaponType; 
-		let mut power: PowerType;
+		let max_mana: i32; 
+		let mana_restore_rate: u128;   // how quickly mana is restored
+		let weapon: Weapon; 
+		let mut power: Power;
 		let speed_delta: f64; 
 		match class {
 			PlayerType::Warrior => {
 				max_hp = 50; 
-				weapon = WeaponType::Spear; 
-				power = PowerType::None; 
+				max_mana = 5; 
+				mana_restore_rate = 800; 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Spear); 
+				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball); 
 				speed_delta = 1.2; 
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
-				weapon = WeaponType::Sword; 
-				power = PowerType::Dash; 
-				speed_delta = 1.8; 
+				max_mana = 4; 
+				mana_restore_rate = 1300; 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
+				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); 
+				speed_delta = 1.9; 
 			}
 			_ => {
 				max_hp = 30; 
-				weapon = WeaponType::Sword; 
-				power = PowerType::Slimeball; 
+				max_mana = 4; 
+				mana_restore_rate = 1000; 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
+				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball); 
 				speed_delta = 1.5; 
 			}
 		}
 		let hp = max_hp; 
-		let mana = 4;
+		let mana = max_mana;
 		let mut coins: u32 = 0; 
 		if DEBUG {
-			power = PowerType::Shield; 
+			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock); 
 			coins = 30; 
 		}
 		// check values
-		let max_mana = 4;
 		let invincible = true;
 		let shielded = false;
 		let can_pickup = false;
@@ -154,7 +163,7 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
-		let rb = Rigidbody::new_static(src, 0.0, 0.0, 4.0);
+		let rb = Rigidbody::new_static(src, 0.0, 0.0, 50.0);
 		let god_mode_timer = Instant::now();
 		let god_mode = false;
 
@@ -172,6 +181,7 @@ impl<'a> Player<'a> {
 			fire_timer,
 			damage_timer,
 			mana_timer,
+			mana_restore_rate, 
 			pickup_timer,
 			shield_timer,
 			dash_timer,
@@ -213,7 +223,7 @@ impl<'a> Player<'a> {
 		self.resist();
 
 		//to make the player move faster adj his speed limit by increaseing speed_limit_adj with a float value
-		match self.get_power() {
+		match self.get_power().power_type {
 			PowerType::Dash => {
 				if self.get_dash_timer() <= 1000 {
 					self.rb.vel.x = (self.rb.vel.x as i32 + self.rb.accel.x as i32).clamp((-speed_limit_adj*self.speed_delta*1.7) as i32 , (speed_limit_adj*self.speed_delta*1.7) as i32).into();
@@ -251,8 +261,8 @@ impl<'a> Player<'a> {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-					let p_pos = self.rb.draw_pos();
-
+					let p_pos = self.rb.pos();
+					
 					if !DEBUG_NO_WALLS {
 						if GameData::check_collision(&p_pos, &w_pos) {
 							if DEBUG {
@@ -266,35 +276,13 @@ impl<'a> Player<'a> {
 			}
 		}
 		self.resolve_col(&collisions);
-
-		/*
-		for c in &game_data.crates{
-			/* let crate_pos = c.pos();
-			let p_pos =self.pos(); */
-			if GameData::check_collision(&self.pos(), &c.pos()) {//I hate collisions
-				//println!("welcome to hell");
-				self.collect_col(self.pos(), self.pos().center(), c.pos());
-			}
-		}
-		 */
 		self.update_pos();
 		// is the player currently attacking?
 		if self.is_attacking { self.set_attack_box(self.x() as i32, self.y() as i32); }
-		match self.get_weapon() {
-			WeaponType::Sword => {
-				if self.get_attack_timer() > ATTK_COOLDOWN {
-					self.is_attacking = false;
-					// clear attack box
-					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
-				}
-			},
-			WeaponType::Spear => {
-				if self.get_attack_timer() > ATTK_TIME_SPEAR {
-					self.is_attacking = false;
-					// clear attack box
-					self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
-				}
-			},
+		if self.get_attack_timer() > self.get_weapon().attack_cooldown {
+			self.is_attacking = false;
+			// clear attack box
+			self.attack_box = Rect::new(self.x() as i32, self.y() as i32, 0, 0);
 		}
 		// is the player currently firing?
 		if self.fire_timer.elapsed().as_millis() > FIRE_COOLDOWN_P {
@@ -357,8 +345,6 @@ impl<'a> Player<'a> {
 
 	// update position
 	pub fn update_pos(&mut self) {
-		//println!("Player Velocity: {}, {}", self.rb.vel.x, self.rb.vel.y);
-		//println!("Player Position: {}, {}", self.rb.hitbox.x, self.rb.hitbox.y);
 		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
@@ -388,8 +374,8 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
-			self.y() as i32 - y - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.x() as i32 - x,// - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.y() as i32 - y,// - (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
@@ -433,50 +419,36 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_attack_box(&mut self, x: i32, y: i32) {
-		match self.get_weapon() {
-			WeaponType::Sword => {
-				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
-				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH_SWORD as i32, y as i32, ATTACK_LENGTH_SWORD, TILE_SIZE);
-				}
-			},
-			WeaponType::Spear => {
-				if self.facing_right{
-					self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
-				} else {
-					self.attack_box = Rect::new(x - ATTACK_LENGTH_SPEAR as i32, y as i32, ATTACK_LENGTH_SPEAR, TILE_SIZE);
-				}
-			},
+		if self.facing_right{
+			self.attack_box = Rect::new(x + TILE_SIZE as i32, y as i32, self.get_weapon().attack_length, TILE_SIZE);
+		} else {
+			self.attack_box = Rect::new(x - self.get_weapon().attack_length as i32, y as i32, self.get_weapon().attack_length, TILE_SIZE);
 		}
 	}
 
 	pub fn attack(&mut self) {
-		match self.get_weapon() {
-			WeaponType::Sword => {
-				if self.get_attack_timer() < ATTK_COOLDOWN {
-					return;
-				}
-			},
-			WeaponType::Spear => {
-				if self.get_attack_timer() < ATTK_COOLDOWN_SPEAR {
-					return;
-				}
-			},
+		if self.get_attack_timer() < self.get_weapon().attack_cooldown {
+			return;
 		}
 		self.is_attacking = true;
 		self.set_attack_box(self.x() as i32, self.y() as i32);
 		self.attack_timer = Instant::now();
 	}
 
-	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: ProjectileType, elapsed: u128) -> Projectile {
+	pub fn fire(&mut self, mouse_x: i32, mouse_y: i32, speed_limit: f64, p_type: PowerType, elapsed: u128) -> Projectile {
 		self.is_firing = true;
 		match p_type {
-			ProjectileType::Shield => {
+			PowerType::Shield => {
 				self.use_mana(4);
 			}
-			ProjectileType::Bullet => {
+			PowerType::Slimeball => {
 				self.use_mana(2);
+			}
+			PowerType::Rock => {
+				self.use_mana(6);
+			}
+			PowerType::Fireball => {
+				self.use_mana(3);
 			}
 			_ => {
 				self.use_mana(1);
@@ -498,8 +470,6 @@ impl<'a> Player<'a> {
 		}
 		let angle = ((vec[1] / vec[0])).atan();
 
-
-		let p_type = p_type;
 		let bullet = projectile::Projectile::new(
 			Rect::new(
 				self.rb.hitbox.x as i32,
@@ -508,8 +478,9 @@ impl<'a> Player<'a> {
 				TILE_SIZE_PROJECTILE,
 			),
 			false,
-			match p_type {
-				ProjectileType::Fireball => { vec![x*0.60, y*0.60] }
+			match p_type { // projectile speed 
+				PowerType::Fireball => { vec![x*0.75, y*0.75] }
+				PowerType::Rock => { vec![x*0.65, y*0.65] }
 				_ => { vec![x, y] }
 			}, 
 			p_type,
@@ -537,7 +508,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn restore_mana(&mut self) {
-		if self.get_mana_timer() < MANA_RESTORE_RATE || self.get_mana() >= self.max_mana {
+		if self.get_mana_timer() < self.mana_restore_rate || self.get_mana() >= self.max_mana {
 			return;
 		}
 
@@ -545,20 +516,36 @@ impl<'a> Player<'a> {
 		self.mana_timer = Instant::now();
 	}
 
-	pub fn get_weapon(&self) -> &WeaponType {
+	pub fn get_weapon(&self) -> &Weapon {
 		&self.weapon
 	}
 
-	pub fn set_weapon(&mut self, weapon: WeaponType) {
-		self.weapon = weapon;
+	pub fn set_weapon(&mut self, weapon_type: WeaponType) {
+		self.weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), weapon_type); 
+	}
+
+	pub fn set_weapon_damage(&mut self, damage: i32) {
+        self.weapon.damage = damage; 
+    }
+
+    pub fn get_weapon_damage(&mut self) -> i32 {
+        return self.weapon.damage 
+    }
+	
+	pub fn can_pickup_weapon(&self) -> bool {
+		self.can_pickup_weapon
+	}
+
+	pub fn set_can_pickup_weapon(&mut self, can: bool) {
+		self.can_pickup_weapon = can;
 	}
 
 	// power functions
-	pub fn get_power(&self) -> &PowerType {
+	pub fn get_power(&self) -> &Power {
 		&self.power
 	}
 
-	pub fn set_power(&mut self, power: PowerType) {
+	pub fn set_power(&mut self, power: Power) {
 		self.power = power;
 	}
 
@@ -568,14 +555,6 @@ impl<'a> Player<'a> {
 
 	pub fn set_can_pickup(&mut self, can: bool) {
 		self.can_pickup = can;
-	}
-
-	pub fn can_pickup_weapon(&self) -> bool {
-		self.can_pickup_weapon
-	}
-
-	pub fn set_can_pickup_weapon(&mut self, can: bool) {
-		self.can_pickup_weapon = can;
 	}
 
 	pub fn can_pickup_shop(&self) -> bool {
