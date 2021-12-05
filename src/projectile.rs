@@ -249,10 +249,10 @@ impl Projectile {
 	// screen coordinates
 	pub fn set_cam_pos(&self, player:&Player)-> Rect{
 		return Rect::new(
-			self.x() as i32 + (CENTER_W - player.x() as i32),
-			self.y() as i32 + (CENTER_H - player.y() as i32),
-			TILE_SIZE_PROJECTILE,
-			TILE_SIZE_PROJECTILE
+			self.rb.hitbox.left() as i32 + (CENTER_W - player.x() as i32),
+			self.rb.hitbox.top() as i32 + (CENTER_H - player.y() as i32),
+			self.rb.hitbox.width(),
+			self.rb.hitbox.height()
 		);
 	}
 

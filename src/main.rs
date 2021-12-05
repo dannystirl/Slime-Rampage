@@ -356,8 +356,8 @@ impl Game for ROGUELIKE  {
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
                                     h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-                                    TILE_SIZE_CAM * 4,
-                                    TILE_SIZE_CAM * 4
+                                    128,
+                                    128
 								),
 								texture_creator.load_texture("images/enemies/boss.png")?,
 								EnemyType::Boss,
@@ -555,7 +555,7 @@ impl ROGUELIKE {
 					rngt[i] = rand::thread_rng().gen_range(1..5);
 				}
 				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
-				self.core.wincan.copy_ex(enemy.txtre(), enemy.src(), t, 0.0, None, enemy.facing_right, false).unwrap();
+				self.core.wincan.copy_ex(enemy.txtre(), enemy.src(), enemy.offset_pos(player), 0.0, None, enemy.facing_right, false).unwrap();
 				i += 1;
 			}
 		}
