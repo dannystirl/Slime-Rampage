@@ -105,7 +105,9 @@ impl<'a> Map<'a> {
 
 		self.starting_position = (BOSS_ROOM_W as f64 / 2.0, BOSS_ROOM_H as f64 - 7.0);
 
-		self.enemy_and_object_spawns[6][BOSS_ROOM_W / 2] = 6;
+		self.enemy_and_object_spawns[7][BOSS_ROOM_W / 2] = 7;
+
+		self.add_color();
 
 		self.print_map(self.map);
 	}
@@ -132,7 +134,7 @@ impl<'a> Map<'a> {
 		self.create_objects();
 		self.add_color(); 
 
-		if DEBUG { self.print_map(self.map); }
+		if DEBUG {self.print_map(self.map);}
 	}
 
 	// 2: create randomized rooms

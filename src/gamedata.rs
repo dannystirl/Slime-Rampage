@@ -1,6 +1,6 @@
 pub const DEVELOP: bool = false; 
 pub const DEBUG: bool = false; 
-pub const DEBUG_NO_WALLS: bool = false; 
+pub const DEBUG_NO_WALLS: bool = false;
 
 use rand::Rng;
 use sdl2::rect::Rect;
@@ -60,6 +60,7 @@ pub enum PowerType {
     Shield,
     Dash,
     Rock,
+    Shrapnel,
 }
 
 pub struct GameData {
@@ -86,7 +87,7 @@ impl GameData {
         // creating a level: room data
         let map_size_w = 61;
         let map_size_h = 61;
-        let current_floor = 2; // starting floor
+        let current_floor = 1; // starting floor
         let current_room = 0; // starting room
         let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11));
         let mut i = 0;
