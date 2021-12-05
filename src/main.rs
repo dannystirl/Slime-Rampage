@@ -468,6 +468,10 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 // Create map
 impl ROGUELIKE {
 	// draw background
+	pub fn draw_everything(&mut self,player: &Player, enemies: Vec<Enemy>){
+		
+
+	}
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		let floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
