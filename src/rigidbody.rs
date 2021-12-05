@@ -251,20 +251,19 @@ impl Rigidbody{
         if !self.s{
         self.vel = self.vel - ((self.i_mass) * impulse_vec);
         }else{
-            self.hitbox.x -= (self.i_mass) * correction.x;
-            self.hitbox.y -= (self.i_mass) * correction.y; 
-            self.vel.x = 0.0;
-            self.vel.y = 0.0;
+            // self.hitbox.x -= (self.i_mass) * correction.x;
+            // self.hitbox.y -= (self.i_mass) * correction.y; 
+          
   
         }
         if !other.s{
         other.vel = other.vel + ((other.i_mass) * impulse_vec);
         }else{
             
-        other.hitbox.x += (self.i_mass) * correction.x;
-        other.hitbox.y += (self.i_mass) * correction.y;  
-        other.vel.x = 0.0;
-        other.vel.y =0.0;
+        // other.hitbox.x += (self.i_mass) * correction.x;
+        // other.hitbox.y += (self.i_mass) * correction.y;  
+        // other.vel.x = 0.0;
+        // other.vel.y =0.0;
 
         }
        

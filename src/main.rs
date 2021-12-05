@@ -91,7 +91,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(1)?;
+		//music.play(1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -265,8 +265,8 @@ impl Game for ROGUELIKE  {
 									Rect::new(
 										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
 										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE_PLAYER*2,
-										TILE_SIZE_PLAYER*2
+										64,
+										64
 									)
 								);
 								self.game_data.crates.push(c);
@@ -408,6 +408,7 @@ impl Game for ROGUELIKE  {
 				// UPDATE PLAYER
 				player.update_player(&self.game_data, map_data.map, &mut self.core)?;
 				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
+				ROGUELIKE::update_crates(self, &crate_textures, &mut player, map_data.map);
 
 				// UPDATE ENEMIES
 				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player, map_data.map);
@@ -418,7 +419,6 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture);
 				
 				// UPDATE INTERACTABLES
-				ROGUELIKE::update_crates(self, &crate_textures, &mut player, map_data.map);
 
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
