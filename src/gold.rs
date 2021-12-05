@@ -55,7 +55,7 @@ impl Gold {
     }
     pub fn offset_pos(&self, player:&Player)-> Rect{
 		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
-							self.y() as i32 + (CENTER_H - player.y() as i32),
-		TILE_SIZE, TILE_SIZE);
+						 self.y() as i32 + (CENTER_H - player.y() as i32),
+		                 TILE_SIZE, TILE_SIZE);
 	}
 }

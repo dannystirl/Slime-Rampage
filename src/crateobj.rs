@@ -1,5 +1,6 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
+use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::render::{Texture};
 use crate::player::*;
@@ -7,55 +8,72 @@ use crate::rigidbody::*;
 use crate::player::Direction::{Down, Up, Left, Right};
 //use crate::rigidbody::*;
 use sdl2::rect::Point;
+use crate::projectile;
+use crate::projectile::*;
 
 //use sdl2::pixels;
 use crate::SDLCore;
 
-pub const MAX_CRATE_SPEED: f64 = 2.0; 
-pub const MAX_CRATE_VEL: f64 = 6.0; 
+pub const EXPLODE_SPEED: f64 = 6.0;
+//pub const MAX_CRATE_SPEED: f64 =10.0; 
+pub const MAX_CRATE_VEL: f64 = 10.0; 
 
 pub struct Crate{
-	pos: Rect,
 	src: Rect,
-	vel: (f64,f64),
-	velocity: Vec<f64>,
-	acceleration: Vec<f64>,
-	rb:  Rigidbody,
+	pub rb:  Rigidbody,
+	heavy: bool,
+	pub explosive: bool,
+	active: bool,
 }
+//impl Explosive for Crate{
 
+//}
 impl Crate {
-    pub fn manager() -> Crate{// default constructor also used for manager pretty cool maybe not elegant
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-        let pos = Rect::new(100 as i32, 100 as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
-		let vel = (0.0,0.0);
-		let velocity = vec![0.0,0.0];
-		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos); //hitbox
-
-        Crate{
-            pos,
-            src,
-			vel,
-			velocity,
-			acceleration,
-			rb,
-        }
-    }
 	pub fn new(pos: Rect) -> Crate {
 		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let vel = (0.0,0.0);
-		let velocity = vec![0.0,0.0];
-		let acceleration = vec![0.0,0.0];
-		let rb = Rigidbody::new(pos);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
+		let heavy= false;
+		let explosive = false;
+		let active = true;
 		Crate{
-			pos,
 			src,
-			vel,
-			velocity,
-			acceleration,
 			rb,
+			heavy,
+			explosive,
+			active,
 		}
 	}
+	pub fn new_heavy(pos: Rect) -> Crate {
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,10.0, 0.1);
+		let heavy = true;
+		let explosive = false;
+		let active = true;
+		Crate{
+			src,
+			rb,
+			heavy,
+			explosive,
+			active,
+		}
+	}
+	pub fn new_explosive(pos: Rect) -> Crate {
+		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+		//let rb = Rigidbody::new(pos, 0.0, 0.0, 5.0, 0.1);
+		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
+		let heavy = false;
+		let explosive = true;
+		let active = true;
+		Crate{
+			src,
+			rb,
+			heavy,
+			explosive,
+			active,
+		}
+	}
+
+	pub fn is_active(&self) -> bool{self.active}
 
 	pub fn src(&self) -> Rect {
 		self.src
@@ -66,53 +84,44 @@ impl Crate {
 	}
 
 	pub fn pos(&self) -> Rect {
-        self.pos
+        self.rb.pos()
     }
 	pub fn x(&self) -> i32 {
-		return self.pos.x;
+		return self.rb.hitbox.x as i32;
 	}
 	pub fn y(&self) -> i32 {
-		return self.pos.y;
+		return self.rb.hitbox.y as i32;
 	}
 	pub fn x_vel(&self) -> f64 {
-		return self.velocity[0];
+		return self.rb.vel.x;
 	}
 	pub fn y_vel(&self) -> f64 {
-		return self.velocity[1];
+		return self.rb.vel.y;
 	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
-		self.velocity[0] = (self.velocity[0] + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
-		self.velocity[1] = (self.velocity[1] + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
-	pub fn update_acceleration(&mut self, x: f64, y: f64){
-		self.acceleration[0] = x;
-		self.acceleration[1] = y;
-	}
+	
 	pub fn get_magnitude(&self) -> f64{
 		return ((self.x_vel() as f64).powf(2.0) + (self.y_vel() as f64).powf(2.0)).sqrt()
 	}
 	pub fn set_x(&mut self, x: i32){
-		self.pos.x = x;
+		self.rb.hitbox.x = x as f64;
 	}
 	pub fn set_y(&mut self, y: i32){
-		self.pos.y = y;
+		self.rb.hitbox.y = y as f64;
 	}
 	pub fn set_x_vel(&mut self, x_vel: f64) {
-		self.velocity[0] = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn set_y_vel(&mut self, y_vel: f64) {
-		self.velocity[1] = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
-	}
-	pub fn set_rb(&mut self){
-		self.rb.set_pos(self.pos);
-		self.rb.set_vel(self.vel);
-
+		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
-		// println!("{}, {}", c.velocity[0], c.velocity[1]);
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
-		let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
+		//let  collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -126,22 +135,38 @@ impl Crate {
 				w as i32 + w_bounds_offset >= MAP_SIZE_W as i32 ||
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
-				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.pos();//this kind of works?
-					if GameData::check_collision(&p_pos, &w_pos) {
-						//core.wincan.copy(&crate_textures[0], self.src, debug_pos).unwrap();
-						collisions.push(self.collect_col(p_pos, self.pos().center(), w_pos));
+				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
+					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
+					//let p_pos = self.rb.pos();//this kind of works?
+					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+					let pen = &mut 0.0;
+					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 100.0);
+					if wall.rect_vs_rect(self.rb, normal_collision,  pen){
+						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
 					}
+					
 				}
 			}
 		}
-		self.resolve_col(&collisions);
-		self.set_x(self.x() + self.velocity[0] as i32);
-		self.set_y(self.y() + self.velocity[1] as i32);
-		self.set_rb();
-		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+		// self.resolve_col(&collisions);
+		self.set_x(self.x() + self.rb.vel.x as i32);
+		self.set_y(self.y() + self.rb.vel.y as i32);
+		if self.heavy{
+			core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
+		}else if self.explosive{
+			core.wincan.copy(&crate_textures[2],self.src(),self.offset_pos(player)).unwrap();
+		}else{//normal crate
+			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+		}
 	}
+	
+	pub fn offset_pos(&self, player:&Player)-> Rect{
+		Rect::new(self.rb.hitbox.left() as i32 + (CENTER_W - player.x() as i32),
+					self.rb.hitbox.top() as i32 + (CENTER_H - player.y() as i32),
+					self.rb.hitbox.width(),
+					self.rb.hitbox.height())
 
+	}
 	pub fn collect_col(&mut self, p_pos: Rect, p_center: Point, other_pos :Rect) -> CollisionDecider {
 		let distance = ((p_center.x() as f64 - other_pos.center().x() as f64).powf(2.0) + (p_center.y() as f64 - other_pos.center().y() as f64).powf(2.0)).sqrt();
 
@@ -167,133 +192,240 @@ impl Crate {
 		}
 	}
 
-	pub fn resolve_col(&mut self, collisions : &Vec<CollisionDecider>){
+	pub fn resolve_col(&mut self, collisions: &Vec<CollisionDecider>) {
 		// Sort vect of collisions by distance
 		let mut sorted_collisions: Vec<CollisionDecider> = Vec::new();
 		for c in collisions {
 			let new_dir = &c.dir;
-			sorted_collisions.push(CollisionDecider::new(*new_dir,c.dist));
+			sorted_collisions.push(CollisionDecider::new(*new_dir, c.dist));
 		}
 		sorted_collisions.sort_by_key(|x| x.dist);
 
 		// Handle collisions based on distance
 		if sorted_collisions.len() > 0 {
 			match sorted_collisions[0].dir {
-				Direction::Up=>{
-					self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
+				Direction::Up => {
+					self.set_y_vel(self.y_vel().clamp(0.0, 100.0).into());
 					if sorted_collisions.len() > 2 {
 						match sorted_collisions[2].dir {
-							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
+							Direction::Up => {
+								self.set_y_vel(self.y_vel().clamp(0.0, 100.0).into());
 							}
-							Direction::Down=>{
+							Direction::Down => {
 								println!("I have no clue how this happened");
 							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
-	
+							Direction::Left => {
+								self.set_x_vel(self.x_vel().clamp(0.0, 100.0).into());
 							}
-							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
-	
+							Direction::Right => {
+								self.set_x_vel(self.x_vel().clamp(-100.0, 0.0).into());
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::Down=>{
-					self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
+				Direction::Down => {
+					self.set_y_vel(self.y_vel().clamp(-100.0, 0.0).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
+						match sorted_collisions[2].dir {
+							Direction::Up => {
 								println!("I have no clue how this happened");
 							}
-							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
+							Direction::Down => {
+								self.set_y_vel(self.y_vel().clamp(-100.0, 0.0).into());
 							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
+							Direction::Left => {
+								self.set_x_vel(self.x_vel().clamp(0.0, 100.0).into());
 							}
-							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
+							Direction::Right => {
+								self.set_x_vel(self.x_vel().clamp(-100.0, 0.0).into());
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::Right=>{
-					self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
+				Direction::Right => {
+					self.set_x_vel(self.x_vel().clamp(-100.0, 0.0).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[2].dir{
-							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
+						match sorted_collisions[2].dir {
+							Direction::Up => {
+								self.set_y_vel(self.y_vel().clamp(0.0, 100.0).into());
 							}
-							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
+							Direction::Down => {
+								self.set_y_vel(self.y_vel().clamp(-100.0, 0.0).into());
 							}
-							Direction::Left=>{
+							Direction::Left => {
 								println!("I have no clue how this happened");
 							}
-							Direction::Right=>{
-								self.set_x_vel(self.x_vel().clamp(-MAX_CRATE_SPEED,0.0));
+							Direction::Right => {
+								self.set_x_vel(self.x_vel().clamp(-100.0, 0.0).into());
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::Left=>{
-					self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
+				Direction::Left => {
+					self.set_x_vel(self.x_vel().clamp(0.0, 100.0).into());
 					if sorted_collisions.len() > 2 {
-						match sorted_collisions[1].dir{
-							Direction::Up=>{
-								self.set_y_vel(self.y_vel().clamp(0.0,MAX_CRATE_SPEED));
+						match sorted_collisions[1].dir {
+							Direction::Up => {
+								self.set_y_vel(self.y_vel().clamp(0.0, 100.0).into());
 							}
-							Direction::Down=>{
-								self.set_y_vel(self.y_vel().clamp(-MAX_CRATE_SPEED,0.0));
+							Direction::Down => {
+								self.set_y_vel(self.y_vel().clamp(-100.0, 0.0).into());
 							}
-							Direction::Left=>{
-								self.set_x_vel(self.x_vel().clamp(0.0,MAX_CRATE_SPEED));
+							Direction::Left => {
+								self.set_x_vel(self.x_vel().clamp(0.0, 100.0).into());
 							}
-							Direction::Right=>{
+							Direction::Right => {
 								println!("I have no clue how this happened");
 							}
-							Direction::None=>{
+							Direction::None => {
 								println!("I have no clue how this happened");
 							}
 						}
 					}
 				}
-				Direction::None=>{
+				Direction::None => {
 					println!("I have no clue how this happened");
 				}
 			}
 		}
 	}
 
-	pub fn offset_pos(&self, player:&Player)-> Rect{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
-					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
-						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
-	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){
 		if self.x_vel() > 0.0 {
-			self.update_velocity(-0.1, 0.0);
+			self.update_velocity(-self.rb.friction, 0.0);
 		} else if self.x_vel() < 0.0 {
-			self.update_velocity(0.1, 0.0);
+			self.update_velocity(self.rb.friction, 0.0);
 		}
 		if self.y_vel() > 0.0 {
-			self.update_velocity(0.0, -0.1);
+			self.update_velocity(0.0, -self.rb.friction);
 		} else if self.y_vel() < 0.0 {
-			self.update_velocity(0.0, 0.1);
+			self.update_velocity(0.0, self.rb.friction);
 		}
 	}
+
+	// Method for explosive crate.
+	pub fn explode(&mut self, elapsed: u128) -> Vec<Projectile>{
+		self.active = false;
+		let mut shrapnel: Vec<Projectile> = Vec::with_capacity(69);
+		for i in 0..8 {
+			// N
+			if i == 0 {
+				let scrap = projectile::Projectile::new(
+					Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y - 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![0.0, -EXPLODE_SPEED],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0,
+				);
+				shrapnel.push(scrap);
+			}
+			// NE
+			if i == 1 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x + 40.0) as i32, (self.rb.hitbox.y - 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![EXPLODE_SPEED, -EXPLODE_SPEED],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+			// E
+			if i == 2 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x + 40.0) as i32, self.rb.hitbox.y as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![EXPLODE_SPEED, 0.0],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+			// SE
+			if i == 3 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x + 40.0) as i32, (self.rb.hitbox.y + 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![EXPLODE_SPEED, EXPLODE_SPEED],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+			// S
+			if i == 4 {
+				let scrap = projectile::Projectile::new(
+					Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y + 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![0.0, EXPLODE_SPEED],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+			// SW
+			if i == 5 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x - 40.0) as i32, (self.rb.hitbox.y + 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![-EXPLODE_SPEED, EXPLODE_SPEED],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+			// W
+			if i == 6 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x - 40.0) as i32, self.rb.hitbox.y as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![-EXPLODE_SPEED, 0.0],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+			// NW
+			if i == 7 {
+				let scrap = projectile::Projectile::new(
+					Rect::new((self.rb.hitbox.x - 40.0) as i32, (self.rb.hitbox.y - 40.0) as i32,
+							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+					false,
+					vec![-EXPLODE_SPEED, -EXPLODE_SPEED],
+					PowerType::Shrapnel,
+					elapsed,
+					0.0
+				);
+				shrapnel.push(scrap);
+			}
+		}
+		return shrapnel
+	}
+
 	// calculate velocity resistance
 	/* fn resist(vel: i32, delta: i32) -> i32 {
 		if delta == 0 {

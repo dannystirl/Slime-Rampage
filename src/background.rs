@@ -12,16 +12,13 @@ pub struct Background<'a> {
 	pub texture_3: Texture<'a>,
 	pub upstairs: Texture<'a>,
 	pub downstairs: Texture<'a>,
-	pub x_tiles: (i32,i32),
-	pub y_tiles: (i32,i32),
-	pub tiles: Vec<(bool,i32)>,
+	pub dirt_sheet: Texture<'a>,
 	curr_bg: Rect, 
 }
 
 impl<'a> Background<'a> {
-	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, upstairs: Texture<'a>, downstairs: Texture<'a>, 
-			   x_tiles: (i32,i32), y_tiles: (i32,i32), curr_bg: Rect) -> Background<'a> {
-		let tiles: Vec<(bool,i32)> = vec![(true,0); ((x_tiles.1+2)*(y_tiles.1+1)) as usize]; // (draw?, texture)
+	pub fn new(black: Texture<'a>, texture_0: Texture<'a>, texture_1: Texture<'a>, texture_2: Texture<'a>, texture_3: Texture<'a>, upstairs: Texture<'a>, downstairs: Texture<'a>, dirt_sheet: Texture<'a>, 
+			   curr_bg: Rect) -> Background<'a> {
 		Background {
 			black,
 			texture_0, 
@@ -30,36 +27,9 @@ impl<'a> Background<'a> {
 			texture_3,
 			upstairs,
 			downstairs,
-			x_tiles,
-			y_tiles,
-			tiles,
+			dirt_sheet, 
 			curr_bg, 
 		}
-	}
-
-	pub fn get_tile_info(&self, num: i32, i: i32, j: i32, x: f64, y: f64) -> (&Texture<'a>, Rect, Rect) {
-		let texture;
-		match num {
-			7 => { texture = &self.texture_2  } // pillar, should be 3
-			6 => { texture = &self.texture_2 } // border tiles
-			1 => { texture = &self.texture_1 } // slime on tile
-			_ => { texture = &self.texture_0 } // regular tile
-		}
-		// double tile size 
-		let src;
-		let pos;
-		if num==7 {
-			src = Rect::new(0, 0, TILE_SIZE * 2, TILE_SIZE * 2);
-			pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - x as i32),
-								j * TILE_SIZE as i32 + (CENTER_H - y as i32),
-								TILE_SIZE * 2, TILE_SIZE * 2);
-		} else {
-			src = Rect::new(0, 0, TILE_SIZE, TILE_SIZE);
-			pos = Rect::new(i * TILE_SIZE as i32 + (CENTER_W - x as i32),
-								j * TILE_SIZE as i32 + (CENTER_H - y as i32),
-								TILE_SIZE, TILE_SIZE);
-		}
-		return (texture, src, pos);
 	}
 
 	pub fn set_curr_background(&mut self, x:f64, y:f64, w: u32, h:u32){
