@@ -497,8 +497,8 @@ impl ROGUELIKE {
 					let num = map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize];
 					match num {
 						1 => { // floor tiles
-							src.x = dirt_map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize].0*64 + dirt_map[h as usize][w as usize].0*8; 
-							src.y = dirt_map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize].1*64 + dirt_map[h as usize][w as usize].1*8; 
+							src.x = dirt_map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize].0*72; 
+							src.y = dirt_map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize].1*72; 
 							self.core.wincan.copy_ex(&dirt_sheet, src, pos, 0.0, None, false, false).unwrap(); 
 						},
 						2 => { self.core.wincan.copy_ex(&tile, src, pos, 0.0, None, false, false).unwrap(); },  		// tile tiles
