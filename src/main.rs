@@ -854,7 +854,7 @@ impl ROGUELIKE {
 	fn check_collisions(&mut self, player: &mut Player, enemies: &mut Vec<Enemy>, map_data: &mut Map, _crate_textures: &Vec<Texture>) {
 		let map = map_data.map;
 
-		// PLAYER VS ENEMY
+		// PLAYER COLLISION VS ENEMY COLLISION
 		for enemy in enemies.iter_mut() {
 			if enemy.is_alive() {
 				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
@@ -867,29 +867,10 @@ impl ROGUELIKE {
 						enemy.minus_hp(player.get_weapon().damage);
 					}
 				}
-
-				// player projectile collisions
-				for projectile in self.game_data.player_projectiles.iter_mut() {
-					if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
-						match enemy.enemy_type {
-							EnemyType::Boss => {
-								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-								enemy.minus_hp(projectile.power.damage/3);
-							}
-							EnemyType::Skeleton=>{
-								enemy.minus_hp(projectile.power.damage/2);
-							}
-							_ =>{
-								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-								enemy.minus_hp(projectile.power.damage);
-							}
-						}
-					}
-				}
 			}
 		}
 
-		// PLAYER VS CRATE
+		// PLAYER COLLISION VS CRATE COLLISION
 		for c in self.game_data.crates.iter_mut(){
 			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 			let pen = &mut 0.0;
@@ -901,7 +882,7 @@ impl ROGUELIKE {
 			}
 		}
 
-		// ENEMIES VS CRATES
+		// ENEMIES COLLISION VS CRATE COLLISION
 		for c in self.game_data.crates.iter_mut() {
 			for enemy in enemies.iter_mut() {
 				if enemy.is_alive() {
@@ -914,7 +895,7 @@ impl ROGUELIKE {
 			}
 		}
 
-		// CRATES vs CRATES
+		// CRATE COLLISION vs CRATE COLLISION
 		for i in 0 .. self.game_data.crates.len(){
 			let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
 			let (source, after) = other_crates.split_first_mut().unwrap();
@@ -927,7 +908,7 @@ impl ROGUELIKE {
 			}
 		}
 
-		// ALL PLAYER PROJECTILE COLLISIONS
+		// PLAYER PROJECTILE COLLISIONS VS ALL 
 		for projectile in self.game_data.player_projectiles.iter_mut() {
 			if projectile.is_active(){
 				// PLAYER PROJECTILE vs ENEMY
@@ -957,7 +938,6 @@ impl ROGUELIKE {
 				// PLAYER PROJECTILE vs CRATES + WALLS
 				projectile.check_bounce(&mut self.game_data.crates, map);
 
-
 				// PLAYER PROJECTILES vs ENEMY PROJECTILES
 				for enemy_projectile in self.game_data.enemy_projectiles.iter_mut(){
 					if enemy_projectile.is_active() {
@@ -973,7 +953,7 @@ impl ROGUELIKE {
 			}
 		}
 
-		// ALL ENEMY PROJECTILE COLLISIONS
+		// ENEMY PROJECTILE COLLISIONS
 		for projectile in self.game_data.enemy_projectiles.iter_mut() {
 			// ENEMY PROJECTILES vs PLAYER
 			// TODO: POSSIBLY ADD PLAYER KNOCKBACK
@@ -1051,10 +1031,6 @@ impl ROGUELIKE {
 				c.friction();
 			}
 		}
-
-		//for c in self.game_data.crates.iter_mut(){
-		//	c.update_crates(&mut self.core, &crate_textures, player, map);
-		//}
 	}
 
 	// draw player
