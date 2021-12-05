@@ -126,7 +126,7 @@ impl Crate {
 		if self.heavy{
 			core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
 		}else{
-		core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
 		}
 	}
 
