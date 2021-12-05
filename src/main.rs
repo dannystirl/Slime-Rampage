@@ -17,6 +17,7 @@ use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
+use sdl2::pixels::Color;
 //use std::env;
 use std::path::Path;
 mod background;
@@ -63,6 +64,56 @@ impl Game for ROGUELIKE  {
 	fn run(&mut self) -> Result<(), String> {
 		// CREATE GAME CONSTANTS
         let texture_creator = self.core.wincan.texture_creator();
+
+		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
+
+		let mut exit = false;
+		'menuloop: loop {
+			for event in self.core.event_pump.poll_iter() {
+				match event {
+					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
+						exit = true;
+						break 'menuloop;
+					},
+					_ => {},
+				}
+			}
+
+			let mousestate= self.core.event_pump.mouse_state();
+			let keystate: HashSet<Keycode> = self.core.event_pump
+				.keyboard_state()
+				.pressed_scancodes()
+				.filter_map(Keycode::from_scancode)
+				.collect();
+			
+			if mousestate.left() {
+				// PLAY
+				if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+					mousestate.y() >= 340 && mousestate.y() <= 424 {
+					break 'menuloop;
+				// STORE
+				} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+					mousestate.y() >= 340 && mousestate.y() <= 424 {
+					// GO TO STORE
+				// CREDITS
+				} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+					mousestate.y() >= 458 && mousestate.y() <= 542 {
+					credits::run_credits();
+				// QUIT
+				} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+					mousestate.y() >= 458 && mousestate.y() <= 542 {
+					exit = true;
+					break 'menuloop;
+				}
+			}
+
+			self.core.wincan.copy(&title_screen, None, None)?;
+
+			self.core.wincan.present();
+		}
+		if exit {
+			return Ok(());
+		}
 		//let rng = rand::thread_rng();
 
 		// AUDIO SYSTEM
@@ -473,7 +524,7 @@ impl Game for ROGUELIKE  {
 
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
-	//credits::run_credits()
+	// credits::run_credits();
 	Ok(())
 }
 
