@@ -232,13 +232,13 @@ impl Rigidbody{
         true
     }
 
-    pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, pen: f64){
+    pub fn resolve_col(&mut self, other: &mut Rigidbody, normal_collision : Vector2D, _pen: f64){
         // sink correction for static objects with infite mass
-        let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+        // let n =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
     
-        let percent = 0.2; // usually 20% to 80%
-        let slop = 0.01; // usually 0.01 to 0.1
-        let zero: f64 = 0.0;
+        // let percent = 0.2; // usually 20% to 80%
+        // let slop = 0.01; // usually 0.01 to 0.1
+        // let zero: f64 = 0.0;
         //let correction = (zero.max(pen - slop ) / ((self.i_mass) + (other.i_mass)) * percent) * n;
         
         let normal_vel = (other.vel - self.vel) * (normal_collision);

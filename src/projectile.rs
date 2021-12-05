@@ -3,7 +3,6 @@ extern crate rogue_sdl;
 //use std::sync::Mutex;
 
 use crate::Player;
-use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;

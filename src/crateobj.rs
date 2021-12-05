@@ -1,6 +1,5 @@
 extern crate rogue_sdl;
 use crate::gamedata::*;
-use crate::power::Power;
 use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::render::{Texture};
@@ -16,7 +15,7 @@ use crate::projectile::*;
 use crate::SDLCore;
 
 pub const EXPLODE_SPEED: f64 = 6.0;
-pub const MAX_CRATE_SPEED: f64 =10.0; 
+//pub const MAX_CRATE_SPEED: f64 =10.0; 
 pub const MAX_CRATE_VEL: f64 = 10.0; 
 
 pub struct Crate{

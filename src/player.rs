@@ -8,7 +8,6 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
-use crate::vector::Vector2D;
 use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
