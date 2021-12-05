@@ -507,7 +507,7 @@ impl ROGUELIKE {
 						3 => { self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// upstairs tile
 						_ => { self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// downstairs tile
 					}
-				}					
+				}
 			}
 		}
 		Ok(())
