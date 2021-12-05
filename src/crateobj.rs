@@ -54,7 +54,7 @@ impl Crate {
 	}
 
 	pub fn pos(&self) -> Rect {
-        self.rb.draw_pos()
+        self.rb.pos()
     }
 	pub fn x(&self) -> i32 {
 		return self.rb.hitbox.x as i32;
@@ -107,7 +107,7 @@ impl Crate {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
-					let p_pos = self.rb.draw_pos();//this kind of works?
+					let p_pos = self.rb.pos();//this kind of works?
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
 					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 2.0);
@@ -265,14 +265,11 @@ impl Crate {
 	}
 
 	pub fn offset_pos(&self, player:&Player)-> Rect{
-		if self.heavy{
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
-					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
-						 TILE_SIZE_PLAYER*2, TILE_SIZE_PLAYER*2);
-		}
-		return Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2, //screen coordinates
-					     self.y() as i32 + (CENTER_H - player.y() as i32) + (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs()/2,
-						 TILE_SIZE_PLAYER, TILE_SIZE_PLAYER);
+		Rect::new(self.x() as i32 + (CENTER_W - player.x() as i32),
+					self.y() as i32 + (CENTER_H - player.y() as i32),
+					self.rb.hitbox.width(),
+					self.rb.hitbox.height())
+
 	}
 	// restricts movement of crate when not in contact
 	pub fn friction(&mut self){

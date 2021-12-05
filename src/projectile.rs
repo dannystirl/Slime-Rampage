@@ -130,8 +130,8 @@ impl Projectile {
 						self.inc_bounce();
 					}
 					 */
-					if GameData::check_collision(&self.rb.draw_pos(), &w_pos) {
-						wall_collisions.push(self.collect_col(self.rb.draw_pos(), self.pos().center(), w_pos));
+					if GameData::check_collision(&self.rb.pos(), &w_pos) {
+						wall_collisions.push(self.collect_col(self.rb.pos(), self.pos().center(), w_pos));
 					}
 					self.resolve_col(&wall_collisions);
 				}

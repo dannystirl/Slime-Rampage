@@ -8,6 +8,7 @@ use crate::projectile;
 use crate::projectile::*;
 use crate::gamedata::GameData;
 use crate::gamedata::*;
+use crate::vector::Vector2D;
 use crate::weapon::*;
 use crate::power::*;
 use crate::SDLCore;
@@ -162,7 +163,7 @@ impl<'a> Player<'a> {
 		let facing_right = false;
 		let is_attacking = false;
 		let is_firing = false;
-		let rb = Rigidbody::new_static(src, 0.0, 0.0, 4.0);
+		let rb = Rigidbody::new_static(src, 0.0, 0.0, 100.0);
 		let god_mode_timer = Instant::now();
 		let god_mode = false;
 
@@ -260,8 +261,8 @@ impl<'a> Player<'a> {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-					let p_pos = self.rb.draw_pos();
-
+					let p_pos = self.rb.pos();
+					
 					if !DEBUG_NO_WALLS {
 						if GameData::check_collision(&p_pos, &w_pos) {
 							if DEBUG {

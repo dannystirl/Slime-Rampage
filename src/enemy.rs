@@ -250,12 +250,12 @@ pub struct Enemy<'a> {
 		}
 		for c in &game_data.crates{
 			//if GameData::check_collision(&self.pos,&c.pos()){
-			  if GameData::check_collision(&self.rb.draw_pos(),&c.pos()){
+			  if GameData::check_collision(&self.rb.pos(),&c.pos()){
 				// crate squishes enemy
 				if c.rb.vel.length() > 1.5{
 					self.die();
 				}
-				collisions.push(self.collect_col(self.rb.draw_pos(), self.rb.hitbox.center_point(), c.pos()));
+				collisions.push(self.collect_col(self.rb.pos(), self.rb.hitbox.center_point(), c.pos()));
 			}
 		}
 		self.resolve_col(&collisions);
@@ -390,7 +390,7 @@ pub struct Enemy<'a> {
 				map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 0 {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 {
-					let p_pos = self.rb.draw_pos();
+					let p_pos = self.rb.pos();
 					if GameData::check_collision(&p_pos, &w_pos) {
 						return true; 
 					}
@@ -441,7 +441,7 @@ pub struct Enemy<'a> {
     }
 
     pub fn pos(&self) -> Rect {
-        self.rb.draw_pos()
+        self.rb.pos()
     }
 
 	pub fn get_vel(&self) -> f64 {

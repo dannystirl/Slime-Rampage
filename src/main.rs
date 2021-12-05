@@ -868,7 +868,7 @@ impl ROGUELIKE {
 		// PLAYER VS ENEMY
 		for enemy in enemies.iter_mut() {
 			if enemy.is_alive() {
-				if check_collision(&player.rb.draw_pos(), &enemy.pos()) {
+				if check_collision(&player.rb.pos(), &enemy.pos()) {
 					player.minus_hp(enemy.collision_damage);
 				}
 				// player melee collisions
@@ -880,23 +880,23 @@ impl ROGUELIKE {
 				}
 
 				// player projectile collisions
-				for projectile in self.game_data.player_projectiles.iter_mut() {
-					if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
-						match enemy.enemy_type {
-							EnemyType::Boss => {
-								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-								enemy.minus_hp(projectile.power.damage/3);
-							}
-							EnemyType::Skeleton=>{
-								enemy.minus_hp(projectile.power.damage/2);
-							}
-							_ =>{
-								enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-								enemy.minus_hp(projectile.power.damage);
-							}
-						}
-					}
-				}
+				// for projectile in self.game_data.player_projectiles.iter_mut() {
+				// 	if check_collision(&projectile.pos(), &enemy.pos())  && projectile.is_active() {
+				// 		match enemy.enemy_type {
+				// 			EnemyType::Boss => {
+				// 				enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+				// 				enemy.minus_hp(projectile.power.damage/3);
+				// 			}
+				// 			EnemyType::Skeleton=>{
+				// 				enemy.minus_hp(projectile.power.damage/2);
+				// 			}
+				// 			_ =>{
+				// 				enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+				// 				enemy.minus_hp(projectile.power.damage);
+				// 			}
+				// 		}
+				// 	}
+				// }
 			}
 		}
 
@@ -1054,14 +1054,14 @@ impl ROGUELIKE {
 		player.set_can_pickup_shop(can_pickup_shop);
 		player.set_shop_price(price);
 		//check collision between crates and player
-		for c in self.game_data.crates.iter_mut(){
-			if check_collision(&player.pos(), &c.pos()){
-				// provide impulse
-				c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
-			} else {
-				c.friction();
-			}
-		}
+		// for c in self.game_data.crates.iter_mut(){
+		// 	if check_collision(&player.pos(), &c.pos()){
+		// 		// provide impulse
+		// 		//c.update_velocity(player.x_vel() as f64 * player.get_mass(), player.y_vel() as f64 * player.get_mass());
+		// 	} else {
+		// 		c.friction();
+		// 	}
+		// }
 
 		//for c in self.game_data.crates.iter_mut(){
 		//	c.update_crates(&mut self.core, &crate_textures, player, map);
