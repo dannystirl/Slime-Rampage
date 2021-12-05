@@ -3,7 +3,6 @@ extern crate rogue_sdl;
 //use std::sync::Mutex;
 
 use crate::Player;
-use crate::vector::Vector2D;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use crate::gamedata::*;
@@ -80,7 +79,7 @@ impl Projectile {
 	}
 	
 	// check object bouncing 
-	pub fn check_bounce(&mut self, crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
+	pub fn check_bounce(&mut self, _crates: &mut Vec<Crate>, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]){
 		match self.power.power_type {
 			PowerType::Fireball => {
 				if self.get_bounce() >= 1 {
@@ -89,6 +88,11 @@ impl Projectile {
 			}
 			PowerType::Rock => {
 				if self.get_bounce() >= 1 {
+					self.die();
+				}
+			}
+			PowerType::Shrapnel => {
+				if self.get_bounce() >= 2 {
 					self.die();
 				}
 			}
@@ -135,16 +139,6 @@ impl Projectile {
 					}
 					self.resolve_col(&wall_collisions);
 				}
-			}
-		}
-
-		// PROJECTILE vs CRATES
-		for c in crates{
-			let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-			let pen = &mut 0.0;
-			if c.rb.rect_vs_circle(self.rb, normal_collision,  pen){
-				c.rb.resolve_col(&mut self.rb, *normal_collision, *pen);
-				self.inc_bounce();
 			}
 		}
 	}
@@ -278,4 +272,12 @@ impl Projectile {
 	pub fn get_bounce(&mut self) -> i32 {
 		return self.bounce_counter;
 	}
+
+	pub fn is_flammable(&self) -> bool {
+
+		matches!(self.power.power_type, PowerType::Fireball) ||matches!(self.power.power_type, PowerType::Shrapnel)
+	}
+
+	pub fn is_shrapnel(&self) -> bool{return matches!(self.power.power_type,  PowerType::Shrapnel)}
+
 }
