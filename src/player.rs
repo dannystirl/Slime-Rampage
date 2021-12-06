@@ -132,7 +132,7 @@ impl<'a> Player<'a> {
 				max_hp = 20; 
 				max_mana = 5; 
 				mana_restore_rate = 1300;
-				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Dagger); 
 				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); 
 				speed_delta = 1.9; 
 			}
@@ -472,8 +472,8 @@ impl<'a> Player<'a> {
 
 		let bullet = projectile::Projectile::new(
 			Rect::new(
-				self.rb.hitbox.x as i32,
-				self.rb.hitbox.y as i32,
+				self.rb.hitbox.x as i32 ,
+				self.rb.hitbox.y as i32 ,
 				TILE_SIZE_PROJECTILE,
 				TILE_SIZE_PROJECTILE,
 			),
