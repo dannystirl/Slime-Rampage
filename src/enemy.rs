@@ -253,6 +253,12 @@ pub struct Enemy<'a> {
 				}
 			}
 		}
+		for c in &game_data.crates{
+			  if GameData::check_collision(&self.rb.pos(),&c.pos()){
+				collisions.push(self.collect_col(self.rb.pos(), self.rb.hitbox.center_point(), c.pos()));
+			}
+		}
+
 		self.resolve_col(&collisions);
 		self.update_pos();
 		if self.is_stunned {
