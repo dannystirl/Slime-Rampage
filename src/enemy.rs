@@ -33,7 +33,7 @@ pub struct Enemy<'a> {
 	fire_timer: Instant,
 	damage_timer: Instant,
 	// check values
-	has_money: bool,
+	money: i32,
 	has_power: bool,
 	pub is_stunned: bool,
 	pub x_flipped: bool,
@@ -62,7 +62,6 @@ pub struct Enemy<'a> {
 		let damage_timer = Instant::now();
 		let angle = 0.0;
 		let x_flipped = false;
-		let has_money = true;
 		let has_power = true;
 		let y_flipped = false;
 		let facing_right = false;
@@ -70,7 +69,7 @@ pub struct Enemy<'a> {
 		let is_firing =false;
 		let alive = true;
 		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0, 0.0);
-
+		
 		let hp: i32;
 		let stun_time: u128; 
 		let knockback_vel: f64; 
@@ -78,19 +77,20 @@ pub struct Enemy<'a> {
 		let aggro_range: f64; // ~ number of tiles
 		let collision_damage: i32; 
 		let power: Power; 
+		let money: i32; 
 		match enemy_type {
 			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 15.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=5; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None)}
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None); money=1; }
 			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 12.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=3; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball)}
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball); money=2;}
 			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 7.0; collision_damage=8; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield)}
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield); money=3;}
 			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; collision_damage=3; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash)}
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); money=1;}
 			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.3 ; aggro_range = 6.0; collision_damage=3; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock)}
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock); money=3;}
 			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; collision_damage=10; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None)}
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None); money=10;}
 		}
 
 		Enemy {
@@ -102,7 +102,7 @@ pub struct Enemy<'a> {
 			damage_timer,
 			knockback_vel,
 			angle,
-			has_money,
+			money,
 			has_power, 
 			x_flipped,
 			y_flipped,
@@ -606,20 +606,24 @@ pub struct Enemy<'a> {
 	}
 
 	// items
-	pub fn has_coin(&self) -> bool {
-		return self.has_money; 
+	pub fn has_money(&self) -> bool {
+		return self.money > 0; 
+	}
+
+	pub fn money(&self) -> i32 {
+		return self.money ; 
 	}
 
 	pub fn drop_coin(&mut self) -> Gold {
 		let coin = gold::Gold::new(
 			Rect::new(
-				self.x() as i32,
-				self.y() as i32,
+				self.x() as i32 + rand::thread_rng().gen_range(-32..32),
+				self.y() as i32 + rand::thread_rng().gen_range(-32..32),
 				TILE_SIZE,
 				TILE_SIZE,
 			),
 		);
-		self.has_money = false;
+		self.money -= 1;
 		return coin;
 	}
 
@@ -718,7 +722,7 @@ pub struct Enemy<'a> {
 	}
 
 	pub fn has_item(&mut self) -> bool{
-		if self.has_money || self.has_power {
+		if self.money > 0 || self.has_power {
 			return true; 
 		}
 		return false; 

@@ -75,8 +75,6 @@ impl Game for ROGUELIKE  {
 		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 
-
-
 		let mut class = PlayerType::Jelly; 
 		let mut menu_state = MenuState::Title;
 		let mut exit = false;
@@ -87,6 +85,8 @@ impl Game for ROGUELIKE  {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
 					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
+						let store = self.game_data.blue_gold_count.to_string();
+						fs::write("currency.txt", store).expect("Unable to write file");
 						exit = true;
 						break 'menuloop;
 					},
@@ -97,9 +97,9 @@ impl Game for ROGUELIKE  {
 			if mousestate.left() {
 				if click_timer.elapsed().as_millis() > 200 {
 					click_timer = Instant::now();
-					// PLAY
 					match menu_state {
 						MenuState::Title => {
+							// SELECT CLASS -> PLAY
 							if mousestate.x() >= 107 && mousestate.x() <= 557 &&
 								mousestate.y() >= 340 && mousestate.y() <= 424 {
 								menu_state = MenuState::ClassSelection;
@@ -107,13 +107,12 @@ impl Game for ROGUELIKE  {
 							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
 								mousestate.y() >= 340 && mousestate.y() <= 424 {
 									menu_state = MenuState::Store;
-								// GO TO STORE
 							// CREDITS
 							} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
 									credits_done = false; 
-									credit_timer = Instant::now(); 	
-									menu_state = MenuState::Credits; 
+									credit_timer = Instant::now(); 
+									menu_state = MenuState::Credits;  
 							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
 								exit = true;
@@ -121,7 +120,6 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::ClassSelection => {
-							// JELLY CLASS
 							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
 								class = PlayerType::Jelly;
@@ -137,7 +135,19 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::Store => {
-
+							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Jelly;
+								break 'menuloop;
+							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Warrior;
+								break 'menuloop;
+							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Assassin;
+								break 'menuloop;
+							}
 						}
 						MenuState::Credits => {
 							menu_state = MenuState::Title; 
@@ -145,7 +155,7 @@ impl Game for ROGUELIKE  {
 					}
 				}
 			}
-
+			// dislay menu state stuff - ignoring clicks
 			match menu_state {
 				MenuState::Title => {
 					self.core.wincan.copy(&title_screen, None, None)?;
@@ -263,7 +273,6 @@ impl Game for ROGUELIKE  {
 		let music = sdl2::mixer::Music::from_file(path)?;
 		music.play(-1)?;
 
-		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
 		let mut player: Player; 
 		match class {
@@ -325,6 +334,7 @@ impl Game for ROGUELIKE  {
 		crate_textures.push(explosive);
 		
 		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+		let gold_coin_texture = texture_creator.load_texture("images/player/slime_old.png")?;
 		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
 		let slimeball_texture = texture_creator.load_texture("images/abilities/bullet_pickup.png")?;
 		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
@@ -334,6 +344,7 @@ impl Game for ROGUELIKE  {
 		let dagger_texture = texture_creator.load_texture("images/weapons/dagger.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
+		let mana_upgrade_texture = texture_creator.load_texture("images/ui/mana_upgrade.png")?;
 		let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?; //need to change it to a new texture
 
 		// MAIN GAME LOOP
@@ -366,16 +377,12 @@ impl Game for ROGUELIKE  {
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 
-			let read_coins = fs::read_to_string("currency.txt").expect("Unable to read file");
-			let parse_coins = read_coins.parse::<u32>().unwrap();
-			player.add_coins(parse_coins);
-			println!("{}", parse_coins);
-
 			// reset arrays
 			self.game_data.crates = Vec::<Crate>::with_capacity(0);
 			self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
 			self.game_data.dropped_weapons = Vec::<Weapon>::with_capacity(0);
 			self.game_data.gold = Vec::<Gold>::with_capacity(0);
+			self.game_data.blue_gold = Vec::<Gold>::with_capacity(0);
 			self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
 			self.game_data.enemy_projectiles = Vec::<Projectile>::with_capacity(0);
 			// OBJECT GENERATION
@@ -556,10 +563,12 @@ impl Game for ROGUELIKE  {
 			'level: loop {
 				for event in self.core.event_pump.poll_iter() {
 					match event {
-						Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
-						_ => {let currency = player.get_coins();
-							let store = currency.to_string();
-							fs::write("currency.txt", store).expect("Unable to write file");},
+						Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
+							let store = self.game_data.blue_gold_count.to_string();
+							fs::write("currency.txt", store).expect("Unable to write file");
+							break 'gameloop; 
+						}, 
+						_ => {},
 					}
 				}
 				// fps calculations
@@ -617,17 +626,15 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture, &dagger_texture);
 				
 				// UPDATE INTERACTABLES
-				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
+				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture, &gold_coin_texture, 
 										&fireball_texture, &slimeball_texture, &shield_texture,
 										&dash_texture, &health_texture, &health_upgrade_texture,
-										&sword_texture, &spear_texture, &dagger_texture, &rock_texture,);
+										&sword_texture, &spear_texture, &dagger_texture, &rock_texture,
+										&mana_upgrade_texture);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
 				if player.is_dead(){
-					let currency = player.get_coins();
-					let store = currency.to_string();
-					fs::write("currency.txt", store).expect("Unable to write file");
 					break 'gameloop;
 				}
 
@@ -644,6 +651,9 @@ impl Game for ROGUELIKE  {
 				// UPDATE FRAME
 				self.core.wincan.present();
 			}
+			// give player permanent coins upon beating a level
+			let store = (self.game_data.blue_gold_count+(1*self.game_data.current_floor as u32)).to_string();
+			fs::write("currency.txt", store).expect("Unable to write file");
 			self.game_data.current_floor += 1;
         	self.game_data.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
         	self.game_data.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
@@ -654,8 +664,7 @@ impl Game for ROGUELIKE  {
 }
 
 pub fn main() -> Result<(), String> {
-rogue_sdl::runner(TITLE, ROGUELIKE::init);	
-
+	rogue_sdl::runner(TITLE, ROGUELIKE::init);
 	Ok(())
 }
 
@@ -747,15 +756,27 @@ impl ROGUELIKE {
 		}
 	}
 	
-	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
+	#[allow(unused_variables)]
+	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture, blue_coin_texture: &Texture, 
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
 						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture,
-						sword_texture: &Texture, spear_texture: &Texture, dagger_texture: &Texture,  rock_texture: &Texture,) {
+						sword_texture: &Texture, spear_texture: &Texture, dagger_texture: &Texture,  rock_texture: &Texture,
+						mana_upgrade_texture: &Texture) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
-				if enemy.has_coin() {
-					self.game_data.gold.push(enemy.drop_coin());
+				if enemy.has_money() {
+					let money = enemy.money(); 
+					for i in 0..money {
+						match enemy.enemy_type {
+							EnemyType::Boss => {
+								self.game_data.blue_gold.push(enemy.drop_coin());
+							}
+							_ => {
+								self.game_data.gold.push(enemy.drop_coin());
+							}
+						}
+					}
 				}
 				if enemy.has_power() {
 					self.game_data.dropped_powers.push(enemy.drop_power());
@@ -769,6 +790,14 @@ impl ROGUELIKE {
 									coin.y() as i32 + (CENTER_H - player.y() as i32),
 									TILE_SIZE, TILE_SIZE);
 				self.core.wincan.copy_ex(&coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
+			}
+		}
+		for coin in self.game_data.blue_gold.iter_mut() {
+			if !coin.collected() {
+				let pos = Rect::new(coin.x() as i32 + (CENTER_W - player.x() as i32), //screen coordinates
+									coin.y() as i32 + (CENTER_H - player.y() as i32),
+									TILE_SIZE, TILE_SIZE);
+				self.core.wincan.copy_ex(&blue_coin_texture, coin.src(), pos, 0.0, None, false, false).unwrap();
 			}
 		}
 
@@ -855,6 +884,9 @@ impl ROGUELIKE {
 				}
 				ShopItems::Health => {
 					self.core.wincan.copy_ex(&health_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::ManaUpgrade => {
+					self.core.wincan.copy_ex(&mana_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
 				ShopItems::Rock => {
                     self.core.wincan.copy_ex(&rock_texture, src, pos, 0.0, None, false, false).unwrap();
@@ -1002,6 +1034,12 @@ impl ROGUELIKE {
 								}
 								ShopItems::Health => {
 									player.plus_hp(10);
+								}
+								ShopItems::ManaUpgrade => {
+									if map_data.shop_items[i].1 == false {
+										player.upgrade_mana(); 
+										player.restore_mana(); 
+									} 
 								}
 								_ => { }
 							}
@@ -1255,12 +1293,20 @@ impl ROGUELIKE {
 			projectile.check_bounce(&mut self.game_data.crates, map);
 		}	
 
-		// COINS
+		// COIN COLLECTION
 		for coin in self.game_data.gold.iter_mut() {
 			if check_collision(&player.pos(), &coin.pos()) {
 				if !coin.collected() {
 					coin.set_collected();
 					player.add_coins(coin.get_gold());
+				}
+			}
+		}
+		for coin in self.game_data.blue_gold.iter_mut() {
+			if check_collision(&player.pos(), &coin.pos()) {
+				if !coin.collected() {
+					coin.set_collected();
+					self.game_data.blue_gold_count += 1; 
 				}
 			}
 		}

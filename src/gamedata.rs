@@ -5,6 +5,7 @@ pub const DEBUG_NO_WALLS: bool = false;
 use rand::Rng;
 use sdl2::rect::Rect;
 use std::time::Instant;
+use std::fs;
 
 use crate::gold::*;
 use crate::power::*;
@@ -19,7 +20,6 @@ pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
 pub const TILE_SIZE_64: u32 = 64;                           // tile sizes are all 64 px
 pub const TILE_SIZE_32: u32 = 32;                           // tile sizes are all 64 px
-pub const FRAME_GAP: u32 = 100;
 
 pub const TILE_SIZE: u32 = 64;                              // overall tile size 
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;                // generic half tile size
@@ -78,6 +78,8 @@ pub struct GameData {
     accel_rate: f64,
 
     pub gold: Vec<Gold>,
+    pub blue_gold: Vec<Gold>,
+    pub blue_gold_count: u32, // permanent currency
     pub dropped_powers: Vec<Power>,
     pub dropped_weapons: Vec<Weapon>,
     pub player_projectiles: Vec<Projectile>,
@@ -111,12 +113,16 @@ impl GameData {
 
         // objects
         let gold: Vec<Gold> = Vec::with_capacity(5);
+        let blue_gold: Vec<Gold> = Vec::with_capacity(10);
         let dropped_powers: Vec<Power> = Vec::new();
         let dropped_weapons: Vec<Weapon> = Vec::new();
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
         let frame_counter = Instant::now();
+
+        let read_coins = fs::read_to_string("currency.txt").expect("Unable to read file");
+        let blue_gold_count = read_coins.parse::<u32>().unwrap();
 
         GameData {
             map_size_w,
@@ -125,6 +131,8 @@ impl GameData {
             frame_counter, 
             current_room,
             gold,
+            blue_gold, 
+            blue_gold_count, 
             dropped_powers,
             dropped_weapons,
             player_projectiles,

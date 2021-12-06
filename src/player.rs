@@ -511,9 +511,12 @@ impl<'a> Player<'a> {
 		if self.get_mana_timer() < self.mana_restore_rate || self.get_mana() >= self.max_mana {
 			return;
 		}
-
 		self.mana += 1;
 		self.mana_timer = Instant::now();
+	}
+
+	pub fn upgrade_mana(&mut self) {
+		self.max_mana += 1;
 	}
 
 	pub fn get_weapon(&self) -> &Weapon {
