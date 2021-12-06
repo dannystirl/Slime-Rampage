@@ -258,8 +258,8 @@ impl Projectile {
 
 	pub fn set_cam_pos_large(&self, player:&Player)-> Rect{
 		return Rect::new(
-			self.x() as i32 + (CENTER_W - player.x() as i32) - (TILE_SIZE_CAM/2) as i32,
-			self.y() as i32 + (CENTER_H - player.y() as i32) - (TILE_SIZE_CAM/2) as i32,
+			self.rb.hitbox.center().x as i32 + (CENTER_W - player.x() as i32),
+			self.rb.hitbox.center().y as i32 + (CENTER_H - player.y() as i32),
 			TILE_SIZE_PROJECTILE*2,
 			TILE_SIZE_PROJECTILE*2
 		);
