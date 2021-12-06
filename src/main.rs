@@ -138,16 +138,25 @@ impl Game for ROGUELIKE  {
 						MenuState::Store => {
 							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								modifier_type = ModifierType::Fast;
-								menu_state = MenuState::Title; 
+									if modifier_type == ModifierType::None {
+										modifier_type = ModifierType::Fast;
+									}
+									else { modifier_type = ModifierType::None; }
+									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								modifier_type = ModifierType::Heavy;
-								menu_state = MenuState::Title; 
+									if modifier_type == ModifierType::None {
+										modifier_type = ModifierType::Heavy;
+									}
+									else { modifier_type = ModifierType::None; }
+									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								modifier_type = ModifierType::Healthy;
-								menu_state = MenuState::Title;  
+									if modifier_type == ModifierType::None {
+										modifier_type = ModifierType::Healthy;
+									}
+									else { modifier_type = ModifierType::None; }
+									menu_state = MenuState::Title; 
 							}
 						}
 						MenuState::Credits => {
