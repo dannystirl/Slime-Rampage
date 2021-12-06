@@ -132,7 +132,7 @@ impl<'a> Player<'a> {
 				max_hp = 20; 
 				max_mana = 5; 
 				mana_restore_rate = 1300;
-				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
+				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Dagger); 
 				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); 
 				speed_delta = 1.9; 
 			}
@@ -373,7 +373,7 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x, //(TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.x() as i32 - x, //- (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
 			self.y() as i32 - y, //- (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
@@ -467,12 +467,13 @@ impl<'a> Player<'a> {
 		if vec[1] < 0.0 {
 			y *= -1.0;
 		}
-		let angle = ((vec[1] / vec[0])).atan();
+		let angle = ((vec[1] / vec[0]).abs()).atan();
+		//println!("{}", angle*57.3);
 
 		let bullet = projectile::Projectile::new(
 			Rect::new(
-				self.rb.hitbox.x as i32,
-				self.rb.hitbox.y as i32,
+				self.rb.hitbox.x as i32 ,
+				self.rb.hitbox.y as i32 ,
 				TILE_SIZE_PROJECTILE,
 				TILE_SIZE_PROJECTILE,
 			),

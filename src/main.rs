@@ -175,7 +175,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(1)?;
+		music.play(-1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
@@ -245,6 +245,7 @@ impl Game for ROGUELIKE  {
 		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
 		let sword_texture = texture_creator.load_texture("images/weapons/sword.png")?;
 		let spear_texture = texture_creator.load_texture("images/weapons/spear.png")?;
+		let dagger_texture = texture_creator.load_texture("images/weapons/dagger.png")?;
 		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
 		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
 		let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?; //need to change it to a new texture
@@ -527,13 +528,13 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
 				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
 				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
-				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture);
+				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture, &dagger_texture);
 				
 				// UPDATE INTERACTABLES
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
 										&dash_texture, &health_texture, &health_upgrade_texture,
-										&sword_texture, &spear_texture, &rock_texture,);
+										&sword_texture, &spear_texture, &dagger_texture, &rock_texture,);
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
@@ -595,8 +596,8 @@ impl ROGUELIKE {
 		let shop = texture_creator.load_texture("images/background/floor_tile_maroon.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
 		let moss_tile = texture_creator.load_texture("images/background/moss_tile.png")?;
-		let upstairs = texture_creator.load_texture("images/background/upstairs.png")?;
-		let downstairs = texture_creator.load_texture("images/background/downstairs.png")?;
+		let upstairs = texture_creator.load_texture("images/background/new_stairs.png")?;
+		let downstairs = texture_creator.load_texture("images/background/new_stairs.png")?;
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
@@ -663,7 +664,7 @@ impl ROGUELIKE {
 	pub fn update_drops(&mut self, enemies: &mut Vec<Enemy>, player: &mut Player, map_data: &mut Map, coin_texture: &Texture,
 						fireball_texture: &Texture, slimeball_texture: &Texture, shield_texture: &Texture,
 						dash_texture: &Texture, health_texture: &Texture, health_upgrade_texture: &Texture,
-						sword_texture: &Texture, spear_texture: &Texture, rock_texture: &Texture,) {
+						sword_texture: &Texture, spear_texture: &Texture, dagger_texture: &Texture,  rock_texture: &Texture,) {
 		//add enemy drops to game
 		for enemy in enemies {
 			if !enemy.is_alive() && enemy.has_item() {
@@ -724,6 +725,9 @@ impl ROGUELIKE {
 				WeaponType::Spear => {
 					self.core.wincan.copy_ex(&spear_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
 				},
+				WeaponType::Dagger => {
+					self.core.wincan.copy_ex(&dagger_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
+				},
 			}
 		}
 
@@ -756,6 +760,9 @@ impl ROGUELIKE {
 				}
 				ShopItems::Spear => {
 					self.core.wincan.copy_ex(&spear_texture, src, pos, 0.0, None, false, false).unwrap();
+				}
+				ShopItems::Spear => {
+					self.core.wincan.copy_ex(&dagger_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
 				ShopItems::HealthUpgrade => {
 					self.core.wincan.copy_ex(&health_upgrade_texture, src, pos, 0.0, None, false, false).unwrap();
@@ -1259,19 +1266,32 @@ impl ROGUELIKE {
 
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
 							projectile.facing_right = true;
+							if mousestate.y() < player.get_cam_pos().y(){//1st quadrant
+								//println!("NE");
+								projectile.angle = projectile.angle- 2.0*projectile.angle;
+								//projectile.facing_up = true;
+							}
+							
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
 							projectile.facing_right = false;
+							if mousestate.y() < player.get_cam_pos().y(){//2nd quadrant
+								projectile.angle = projectile.angle - 180.0;
+							
+							}else if mousestate.y() > player.get_cam_pos().y(){//third quadrant
+								projectile.angle = projectile.angle- 2.0*projectile.angle - 180.0;
+							}
 						}
+						/*
 						if mousestate.y() > player.get_cam_pos().y() && time == 0{
-							projectile.facing_up = false;
+							//projectile.facing_up = false;
 						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
-							projectile.facing_up = true;
+							//projectile.facing_up = true;
 						}
-					
+						*/
 						projectile.elapsed += 1;
 						if projectile.elapsed == 127 {projectile.die();}
 
-						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), projectile.angle, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), projectile.angle, None, false, false).unwrap();
 					}
 					PowerType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
@@ -1288,7 +1308,7 @@ impl ROGUELIKE {
 	}
 
 	//draw player weapon
-	pub fn draw_weapon(&mut self, player: &Player, sword_texture: &Texture, spear_texture: &Texture){
+	pub fn draw_weapon(&mut self, player: &Player, sword_texture: &Texture, spear_texture: &Texture, dagger_texture: &Texture){
 		let rotation_point;
 		let pos;
 		let mut angle = 0.0;
@@ -1340,6 +1360,27 @@ impl ROGUELIKE {
 					angle = -angle;
 				}
 				self.core.wincan.copy_ex(&spear_texture, None, pos, angle, rotation_point,
+					player.facing_right, false).unwrap();
+			},
+			WeaponType::Dagger => {
+				// weapon animation
+				if player.get_attacking() {
+					angle = (player.get_attack_timer() * 60 / 250 ) as f64 - 60.0;
+				} else { angle = - 60.0; }
+				// weapon position
+				if player.facing_right{
+					pos = Rect::new(player.get_cam_pos().x() + TILE_SIZE_CAM as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(0, (TILE_SIZE_HALF) as i32); //rotation center
+				} else{
+					pos = Rect::new(player.get_cam_pos().x() - player.get_weapon().attack_length as i32, 
+									player.get_cam_pos().y()+(TILE_SIZE_CAM/2) as i32, 
+									player.get_weapon().attack_length, TILE_SIZE_CAM * 7/5);
+					rotation_point = Point::new(player.get_weapon().attack_length as i32,  (TILE_SIZE_HALF)  as i32); //rotation center
+					angle = -angle;
+				}
+				self.core.wincan.copy_ex(&dagger_texture, None, pos, angle, rotation_point,
 					player.facing_right, false).unwrap();
 			},
 		}

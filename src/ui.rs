@@ -167,6 +167,18 @@ impl<'a> UI<'a> {
 					texture_creator.load_texture("images/weapons/spear.png")?,
 				);
 				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
+			},
+			WeaponType::Dagger => {
+				let weapon = UI::new(
+					Rect::new(
+						(CAM_W-((TILE_SIZE_64 as f64 * 1.2) as u32)*8) as i32,
+						(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
+						(TILE_SIZE_64 as f64 * 1.2) as u32,
+						(TILE_SIZE_64 as f64 * 1.2) as u32,
+					),
+					texture_creator.load_texture("images/weapons/dagger.png")?,
+				);
+				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
 			}
 		}
 		

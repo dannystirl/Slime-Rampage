@@ -67,7 +67,7 @@ impl Rigidbody{
         let accel = Vector2D{x:0.0, y: 0.0};
         let i_mass = 1.0/mass;
         let elasticity  =1.0;
-        let radius = TILE_SIZE_PROJECTILE as f64/3.0;
+        let radius = hitbox.center().x-hitbox.right();
         let s = false;
         Rigidbody{
             hitbox,
@@ -186,7 +186,7 @@ impl Rigidbody{
     }
 
     pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
-        let a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+        let a_to_b = other.hitbox.center() - self.hitbox.center() ;
 
         let mut closest_point = a_to_b;
         let self_x_extreme = (self.hitbox.right() - self.hitbox.left()) / 2.0;
@@ -205,7 +205,7 @@ impl Rigidbody{
                     closest_point.x = -self_x_extreme;
                 }
             }else{
-                if closest_point.y < 0.0 {
+                if closest_point.y > 0.0 {
                     closest_point.y = self_y_extreme;
                 } else {
                     closest_point.y = -self_y_extreme;

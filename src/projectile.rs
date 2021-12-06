@@ -124,16 +124,6 @@ impl Projectile {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5 {
-
-					/*
-					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
-					let pen = &mut 0.0;
-					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 2.0);
-					if wall.rect_vs_circle(self.rb, normal_collision,  pen){
-						wall.resolve_col(&mut self.rb, *normal_collision, *pen);
-						self.inc_bounce();
-					}
-					 */
 					if GameData::check_collision(&self.rb.pos(), &w_pos) {
 						wall_collisions.push(self.collect_col(self.rb.pos(), self.pos().center(), w_pos));
 					}
@@ -246,16 +236,18 @@ impl Projectile {
     }
 	// screen coordinates
 	pub fn set_cam_pos(&self, player:&Player)-> Rect{
-		Rect::new(self.rb.hitbox.center().x as i32 + (CENTER_W - player.x() as i32),
-				  self.rb.hitbox.center().y as i32 + (CENTER_H - player.y() as i32),
-				  self.rb.hitbox.width(),
-				  self.rb.hitbox.height())
+		return Rect::new(
+			self.rb.hitbox.x as i32 + (CENTER_W - player.x() as i32),
+			self.rb.hitbox.y as i32 + (CENTER_H - player.y() as i32),
+			self.rb.hitbox.width(),
+			self.rb.hitbox.height()
+		);
 	}
 
 	pub fn set_cam_pos_large(&self, player:&Player)-> Rect{
 		return Rect::new(
-			self.rb.hitbox.center().x as i32 + (CENTER_W - player.x() as i32),
-			self.rb.hitbox.center().y as i32 + (CENTER_H - player.y() as i32),
+			self.rb.hitbox.x as i32 + (CENTER_W - player.x() as i32) - (TILE_SIZE_CAM/2) as i32,
+			self.rb.hitbox.y as i32 + (CENTER_H - player.y() as i32) - (TILE_SIZE_CAM/2) as i32,
 			TILE_SIZE_PROJECTILE*2,
 			TILE_SIZE_PROJECTILE*2
 		);
