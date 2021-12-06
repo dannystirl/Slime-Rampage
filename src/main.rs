@@ -300,7 +300,7 @@ impl Game for ROGUELIKE  {
 					TILE_SIZE,
 					TILE_SIZE
 				);
-				self.game_data.crates.push(crateobj::Crate::new(pos));
+				self.game_data.crates.push(crateobj::Crate::new(pos, CrateType::Regular));
 			}
 
 			// create enemies
@@ -351,41 +351,44 @@ impl Game for ROGUELIKE  {
 							enemy_count += 1;
 						}
 						3 => {
-							let roll= rng.gen_range(0..10);
-							//let roll = 1;
-							if roll == 0 {
-								let c = crateobj::Crate::new_heavy(
-									Rect::new(
-										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										62,
-										62
-									)
-								);
-								self.game_data.crates.push(c);
-							}else if roll == 1 {
-								let c = crateobj::Crate::new_explosive(
-									Rect::new(
-										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										//TILE_SIZE_64,
-										TILE_SIZE_PLAYER*2,
-										TILE_SIZE_PLAYER*2
-									)
-								);
-								self.game_data.crates.push(c);
-							}else{
-								let c = crateobj::Crate::new(
-									Rect::new(
-										w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-										h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-										TILE_SIZE_PLAYER,
-										TILE_SIZE_PLAYER
-									)
-								);
-								self.game_data.crates.push(c);
+							let roll= rng.gen_range(0..12);
+							let c: crateobj::Crate; 
+							match roll {
+								0..=2 => {
+									c = crateobj::Crate::new(
+										Rect::new(
+											w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+											h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+											62,
+											62
+										), 
+										CrateType::Heavy, 
+									); 
+								}
+								3..=4 => {
+									c = crateobj::Crate::new(
+										Rect::new(
+											w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+											h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+											TILE_SIZE_PLAYER*3/2,
+											TILE_SIZE_PLAYER*3/2
+										), 
+										CrateType::Explosive, 
+									);
+								}
+								_ => {
+									c = crateobj::Crate::new(
+										Rect::new(
+											w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+											h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+											TILE_SIZE_PLAYER,
+											TILE_SIZE_PLAYER
+										), 
+										CrateType::Regular, 
+									);
+								}
 							}
-							
+							self.game_data.crates.push(c);
 						}
 						4 => {
 							let e = enemy::Enemy::new(
@@ -421,7 +424,6 @@ impl Game for ROGUELIKE  {
                             rngt.push(rng.gen_range(1..5));
                             enemy_count += 1;
                         }
-
                         6 => {
                             let e = enemy::Enemy::new(
                                 Rect::new(
@@ -439,7 +441,6 @@ impl Game for ROGUELIKE  {
                             rngt.push(rng.gen_range(1..5));
                             enemy_count += 1;
                         }
-
 						7 => {
 							let e = enemy::Enemy::new(
 								Rect::new(
@@ -530,7 +531,6 @@ impl Game for ROGUELIKE  {
 				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture, &dagger_texture);
 				
 				// UPDATE INTERACTABLES
-
 				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture,
 										&fireball_texture, &slimeball_texture, &shield_texture,
 										&dash_texture, &health_texture, &health_upgrade_texture,
@@ -589,11 +589,6 @@ fn check_collision(a: &Rect, b: &Rect) -> bool {
 
 // Create map
 impl ROGUELIKE {
-	// draw background
-//	pub fn draw_everything(&mut self,player: &Player, enemies: Vec<Enemy>){
-		
-
-//	}
 	pub fn draw_background(&mut self, player: &Player, background: &mut Background, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H], dirt_map: [[(i32,i32); MAP_SIZE_W]; MAP_SIZE_H]) -> Result<(), String> {
 		let texture_creator = self.core.wincan.texture_creator();
 		let _floor = texture_creator.load_texture("images/background/floor_tile_1.png")?;
@@ -634,7 +629,7 @@ impl ROGUELIKE {
 						3 => { self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// upstairs tile
 						_ => { self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// downstairs tile
 					}
-				}					
+				}
 			}
 		}
 		Ok(())
@@ -1011,7 +1006,6 @@ impl ROGUELIKE {
 				let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 				let pen = &mut 0.0;
 				if player.rb.rect_vs_rect(c.rb, normal_collision, pen) {
-					//println!("player hits crate");
 					// provide impulse
 					player.rb.resolve_col(&mut c.rb, *normal_collision, *pen);
 				} else {
@@ -1024,30 +1018,60 @@ impl ROGUELIKE {
 		for c in self.game_data.crates.iter_mut() {
 			if c.is_active() {
 				for enemy in enemies.iter_mut() {
+					let mut collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 					if enemy.is_alive() {
 						let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 						let pen = &mut 0.0;
-						if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.rb.vel.length() > 1.5 {//rb collision. rect vs rect
+						if enemy.rb.rect_vs_rect(c.rb, normal_collision, pen) && c.rb.vel.length() > 1.5 {
 							enemy.projectile_knockback(c.x_vel(), c.y_vel());
 						}
+						if GameData::check_collision(&enemy.rb.pos(),&c.pos()){
+							// crate squishes enemy
+							match c.crate_type {
+								CrateType::Explosive => {
+									if c.rb.vel.length() > (c.killing_weight) * 7.0 {
+										let  scraps = c.explode(0);
+										for scrap in scraps {
+											explosion_shrapnel.push(scrap);
+										}
+										enemy.die();
+									}
+								}
+								CrateType::Heavy => {
+									if c.rb.vel.length() > (c.killing_weight) * 1.2 {
+										enemy.die();
+									}
+								}
+								_ => {
+									if c.rb.vel.length() > (c.killing_weight) * 16.0 {
+										enemy.minus_hp(c.rb.vel.length() as i32);
+									}
+								}
+							}
+							if c.rb.vel.length() > (c.rb.i_mass * c.rb.friction) * 35.0 {
+								enemy.die();
+							}
+							collisions.push(enemy.collect_col(enemy.rb.pos(), enemy.rb.hitbox.center_point(), c.pos()));
+						}
 					}
+					enemy.resolve_col(&collisions);
 				}
 			}
 		}
 
 		// CRATE COLLISION vs CRATE COLLISION
 		for i in 0 .. self.game_data.crates.len(){
-				let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
-				let (source, after) = other_crates.split_first_mut().unwrap();
-				for target in sp.iter_mut().chain(after.iter_mut()) {
-					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
-					let pen = &mut 0.0;
-					if source.is_active() && target.is_active(){
-						if source.rb.rect_vs_rect(target.rb, normal_collision, pen) {
-							source.rb.resolve_col(&mut target.rb, *normal_collision, *pen);
-						}
+			let (sp, other_crates) = self.game_data.crates.split_at_mut(i);
+			let (source, after) = other_crates.split_first_mut().unwrap();
+			for target in sp.iter_mut().chain(after.iter_mut()) {
+				let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
+				let pen = &mut 0.0;
+				if source.is_active() && target.is_active(){
+					if source.rb.rect_vs_rect(target.rb, normal_collision, pen) {
+						source.rb.resolve_col(&mut target.rb, *normal_collision, *pen);
 					}
 				}
+			}
 		}
 
 		// PLAYER PROJECTILE COLLISIONS VS ALL 
@@ -1057,39 +1081,38 @@ impl ROGUELIKE {
 				for enemy in enemies.iter_mut() {
 					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 					let pen = &mut 0.0;
-						if enemy.is_alive() {
-							if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
-								match enemy.enemy_type {
-									EnemyType::Boss => {
-										enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-										enemy.minus_hp(projectile.power.damage/3);
-									}
-									EnemyType::Skeleton=>{
-										enemy.minus_hp(projectile.power.damage/2);
-									}
-									_ =>{
-										enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-										enemy.minus_hp(projectile.power.damage);
-									}
+					if enemy.is_alive() {
+						if enemy.rb.rect_vs_circle(projectile.rb, normal_collision, pen) && projectile.is_active() {
+							match enemy.enemy_type {
+								EnemyType::Boss => {
+									enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+									enemy.minus_hp(projectile.power.damage/3);
 								}
-								projectile.die();
+								EnemyType::Skeleton=>{
+									enemy.minus_hp(projectile.power.damage/2);
+								}
+								_ =>{
+									enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
+									enemy.minus_hp(projectile.power.damage);
+								}
 							}
+							projectile.die();
 						}
 					}
+				}
 
 				// PLAYER PROJECTILE vs CRATES
 				for c in self.game_data.crates.iter_mut(){
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
 					if c.is_active() {
-						if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
-							if projectile.is_flammable() && c.explosive {
+						if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) && projectile.is_active() {
+							if projectile.is_flammable() && c.crate_type == CrateType::Explosive {
 								// Explode
 								let  scraps = c.explode(0);
 								for scrap in scraps {
 									explosion_shrapnel.push(scrap);
 								}
-								println!("KABOOOOOOOM!!!!!!!!");
 							} else { c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen); }
 							projectile.inc_bounce();
 						}
@@ -1101,7 +1124,7 @@ impl ROGUELIKE {
 					if enemy_projectile.is_active() {
 						let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 						let pen = &mut 0.0;
-						if projectile.rb.circle_vs_circle(enemy_projectile.rb, normal_collision, pen){
+						if projectile.rb.circle_vs_circle(enemy_projectile.rb, normal_collision, pen) && projectile.is_active() {
 							projectile.rb.resolve_col(&mut enemy_projectile.rb, *normal_collision, *pen);
 							projectile.inc_bounce();
 							enemy_projectile.inc_bounce();
@@ -1113,14 +1136,13 @@ impl ROGUELIKE {
 				if projectile.is_shrapnel(){
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
-					if player.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
+					if player.rb.rect_vs_circle(projectile.rb, normal_collision, pen) && projectile.is_active() {
 						player.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
-						player.minus_hp(10);
+						player.minus_hp(6);
 						projectile.die();
 					}
 				}
 				projectile.check_bounce(&mut self.game_data.crates, map);
-
 			}
 		}
 
@@ -1129,25 +1151,23 @@ impl ROGUELIKE {
 			// ENEMY PROJECTILES vs PLAYER
 			// TODO: POSSIBLY ADD PLAYER KNOCKBACK
 			if check_collision(&projectile.pos(), &player.pos()) && projectile.is_active() {
-				player.minus_hp(projectile.power.damage as u32);
+				player.minus_hp(projectile.power.damage);
 				projectile.die();
 			}
+			// ENEMY PROJECTILE vs CRATES
 			for c in self.game_data.crates.iter_mut(){
 				if c.is_active() {
 					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
 					let pen = &mut 0.0;
-					if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) {
+					if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) && projectile.is_active() {
 						c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
 						projectile.inc_bounce();
 					}
 				}
 			}
-
 			// ENEMY PROJECTILE vs CRATES + WALLS
 			projectile.check_bounce(&mut self.game_data.crates, map);
-		}
-		// ENEMY PROJECTILE vs CRATES
-	
+		}	
 
 		// COINS
 		for coin in self.game_data.gold.iter_mut() {
@@ -1264,7 +1284,7 @@ impl ROGUELIKE {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
 					}
 					PowerType::Shrapnel => {
-						self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), 0.0, None, !projectile.facing_right, false).unwrap();				
+						self.core.wincan.copy_ex(&ability_textures[5], projectile.src(), projectile.set_cam_pos(player), projectile.angle, None, !projectile.facing_right, false).unwrap();				
 					}
 					_=>{}
 				}	
