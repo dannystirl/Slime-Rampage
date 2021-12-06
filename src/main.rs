@@ -9,6 +9,7 @@ use std::time::Duration;
 use std::time::Instant;
 //use std::cmp;
 use std::collections::HashSet;
+use std::fs;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
@@ -196,6 +197,11 @@ impl Game for ROGUELIKE  {
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 
+			let read_coins = fs::read_to_string("currency.txt").expect("Unable to read file");
+			let parse_coins = read_coins.parse::<u32>().unwrap();
+			player.add_coins(parse_coins);
+			println!("{}", parse_coins);
+
 			// reset arrays
 			self.game_data.crates = Vec::<Crate>::with_capacity(0);
 			self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
@@ -381,7 +387,9 @@ impl Game for ROGUELIKE  {
 				for event in self.core.event_pump.poll_iter() {
 					match event {
 						Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
-						_ => {},
+						_ => {let currency = player.get_coins();
+							let store = currency.to_string();
+							fs::write("currency.txt", store).expect("Unable to write file");},
 					}
 				}
 				// fps calculations
@@ -447,7 +455,12 @@ impl Game for ROGUELIKE  {
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
-				if player.is_dead(){break 'gameloop;}
+				if player.is_dead(){
+					let currency = player.get_coins();
+					let store = currency.to_string();
+					fs::write("currency.txt", store).expect("Unable to write file");
+					break 'gameloop;
+				}
 
 				// Check if any shrapnel has been added and append
 				if explosion_shrapnel.len() > 0{
