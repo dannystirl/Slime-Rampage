@@ -18,6 +18,7 @@ use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
+use sdl2::pixels::Color;
 //use std::env;
 use std::path::Path;
 mod background;
@@ -47,6 +48,11 @@ use crate::map::*;
 use crate::crateobj::*;
 use crate::gold::*;
 
+pub enum MenuState {
+	Title,
+	ClassSelection,
+}
+
 pub struct ROGUELIKE {
 	core: SDLCore,
 	game_data: GameData,
@@ -64,7 +70,84 @@ impl Game for ROGUELIKE  {
 	fn run(&mut self) -> Result<(), String> {
 		// CREATE GAME CONSTANTS
         let texture_creator = self.core.wincan.texture_creator();
-		//let rng = rand::thread_rng();
+
+		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
+		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
+
+		let mut class = PlayerType::Jelly; 
+		let mut menu_state = MenuState::Title;
+		let mut exit = false;
+		let mut click_timer = Instant::now();
+		'menuloop: loop {
+			for event in self.core.event_pump.poll_iter() {
+				match event {
+					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
+						exit = true;
+						break 'menuloop;
+					},
+					_ => {},
+				}
+			}
+
+			let mousestate= self.core.event_pump.mouse_state();
+			if mousestate.left() {
+				if click_timer.elapsed().as_millis() > 200 {
+					click_timer = Instant::now();
+					// PLAY
+					match menu_state {
+						MenuState::Title => {
+							if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+								mousestate.y() >= 340 && mousestate.y() <= 424 {
+								menu_state = MenuState::ClassSelection;
+							// STORE
+							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+								mousestate.y() >= 340 && mousestate.y() <= 424 {
+								// GO TO STORE
+							// CREDITS
+							} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+								mousestate.y() >= 458 && mousestate.y() <= 542 {
+								credits::run_credits();
+							// QUIT
+							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+								mousestate.y() >= 458 && mousestate.y() <= 542 {
+								exit = true;
+								break 'menuloop;
+							}
+						},
+						MenuState::ClassSelection => {
+							// JELLY CLASS
+							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Jelly;
+								break 'menuloop;
+							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Warrior;
+								break 'menuloop;
+							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Assassin;
+								break 'menuloop;
+							}
+						},
+					}
+				}
+			}
+
+			match menu_state {
+				MenuState::Title => {
+					self.core.wincan.copy(&title_screen, None, None)?;
+				},
+				MenuState::ClassSelection => {
+					self.core.wincan.copy(&class_selection_screen, None, None)?;
+				}
+			}
+
+			self.core.wincan.present();
+		}
+		if exit {
+			return Ok(());
+		}
 
 		// AUDIO SYSTEM
 		let frequency = 44_100;
@@ -96,25 +179,24 @@ impl Game for ROGUELIKE  {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
-		let class = PlayerType::Classic; 
 		let mut player: Player; 
 		match class {
 			PlayerType::Warrior => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
-					class, 
-				); 
+					class,
+				);
 			}, 
 			PlayerType::Assassin => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
-					class, 
-				); 
+					class,
+				);
 			}, 
 			_ => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
-					class, 
+					class,
 				);
 			}, 
 		};
@@ -486,7 +568,7 @@ impl Game for ROGUELIKE  {
 
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
-	//credits::run_credits()
+	// credits::run_credits();
 	Ok(())
 }
 
