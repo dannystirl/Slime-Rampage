@@ -467,7 +467,8 @@ impl<'a> Player<'a> {
 		if vec[1] < 0.0 {
 			y *= -1.0;
 		}
-		let angle = ((vec[1] / vec[0])).atan();
+		let angle = ((vec[1] / vec[0]).abs()).atan();
+		//println!("{}", angle*57.3);
 
 		let bullet = projectile::Projectile::new(
 			Rect::new(
