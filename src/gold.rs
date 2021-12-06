@@ -1,8 +1,6 @@
 extern crate rogue_sdl;
 
 use sdl2::rect::Rect;
-//use crate::gamedata::*;
-//use sdl2::render::Texture;
 use crate::gamedata::*;
 use crate::Player;
 

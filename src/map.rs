@@ -35,6 +35,7 @@ pub enum ShopItems{
 	Sword,
 	Spear,
 	Dagger,
+	ManaUpgrade, 
 	None,
 }
 
@@ -558,7 +559,7 @@ impl<'a> Map<'a> {
 								// should ensure no duplicate powers at some point
 								let mut item = rng.gen_range(1..9);
 								while self.shop_creation.contains(&item) {
-									item = rng.gen_range(1..20);
+									item = rng.gen_range(1..21);
 								}
 								// type, purchased, cost
 								match item {
@@ -579,7 +580,7 @@ impl<'a> Map<'a> {
 										self.shop_creation.push(7); 
 									}
 									8 => {
-										self.shop_items.push((ShopItems::HealthUpgrade, false, 6)); 
+										self.shop_items.push((ShopItems::HealthUpgrade, false, 7)); 
 										self.shop_creation.push(8); 
 									}
 									9..=10 => {
@@ -598,8 +599,12 @@ impl<'a> Map<'a> {
                                         self.shop_items.push((ShopItems::Rock, false, 10));
                                         self.shop_creation.push(13);
                                     }
+									16 => {
+										self.shop_items.push((ShopItems::ManaUpgrade, false, 9)); 
+										self.shop_creation.push(16); 
+									}
 									_ => {
-										self.shop_items.push((ShopItems::Health, false, 3)); 
+										self.shop_items.push((ShopItems::Health, false, 4)); 
 										self.shop_creation.push(item); 
 									}
 								}
