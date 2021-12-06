@@ -54,7 +54,7 @@ pub const SHIELD_TIME: u128 = 1800;         // how long player shield lasts
 // enemy globals
 pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum PowerType {
     None,
     Fireball,
@@ -70,6 +70,65 @@ pub enum CrateType {
     Explosive, 
     Heavy, 
     Regular, 
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub enum ModifierType {
+    Heavy, 
+    Fast, 
+    Healthy, 
+    None, 
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub struct Modifier {
+    pub modifier_type: ModifierType, 
+    pub health: i32, 
+    pub mana_restore_rate: i128, 
+    pub max_mana: i32, 
+    pub weapon: WeaponType, 
+    pub power: PowerType, 
+}
+
+#[allow(unused_mut)]
+impl Modifier {
+    pub fn new(modifier_type: ModifierType) -> Modifier {
+        let health: i32; 
+        let mana_restore_rate: i128; 
+        let max_mana: i32; 
+        let mut weapon = WeaponType::None; 
+        let mut power = PowerType::None; 
+        match modifier_type {
+            ModifierType::Heavy => {
+                health = 10; 
+                mana_restore_rate = -500; 
+                max_mana = 3;
+            }
+            ModifierType::Fast => {
+                health = -10; 
+                mana_restore_rate = 200; 
+                max_mana = 1;
+            }
+            ModifierType::Healthy => {
+                health = 20; 
+                mana_restore_rate = -200; 
+                max_mana = 1;
+            }
+            ModifierType::None => {
+                health = 0; 
+                mana_restore_rate = 0; 
+                max_mana = 0;
+            }
+        }
+        Modifier {
+            modifier_type,
+            health,
+            mana_restore_rate,
+            max_mana,
+            weapon,
+            power,
+        }
+    }
 }
 
 pub struct GameData {
