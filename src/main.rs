@@ -47,6 +47,11 @@ use crate::map::*;
 use crate::crateobj::*;
 use crate::gold::*;
 
+pub enum MenuState {
+	Title,
+	ClassSelection,
+}
+
 pub struct ROGUELIKE {
 	core: SDLCore,
 	game_data: GameData,
@@ -66,8 +71,12 @@ impl Game for ROGUELIKE  {
         let texture_creator = self.core.wincan.texture_creator();
 
 		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
+		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 
+		let mut class = PlayerType::Jelly; 
+		let mut menu_state = MenuState::Title;
 		let mut exit = false;
+		let mut click_timer = Instant::now();
 		'menuloop: loop {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -80,41 +89,64 @@ impl Game for ROGUELIKE  {
 			}
 
 			let mousestate= self.core.event_pump.mouse_state();
-			let keystate: HashSet<Keycode> = self.core.event_pump
-				.keyboard_state()
-				.pressed_scancodes()
-				.filter_map(Keycode::from_scancode)
-				.collect();
-			
 			if mousestate.left() {
-				// PLAY
-				if mousestate.x() >= 107 && mousestate.x() <= 557 &&
-					mousestate.y() >= 340 && mousestate.y() <= 424 {
-					break 'menuloop;
-				// STORE
-				} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
-					mousestate.y() >= 340 && mousestate.y() <= 424 {
-					// GO TO STORE
-				// CREDITS
-				} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
-					mousestate.y() >= 458 && mousestate.y() <= 542 {
-					credits::run_credits();
-				// QUIT
-				} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
-					mousestate.y() >= 458 && mousestate.y() <= 542 {
-					exit = true;
-					break 'menuloop;
+				if click_timer.elapsed().as_millis() > 200 {
+					click_timer = Instant::now();
+					// PLAY
+					match menu_state {
+						MenuState::Title => {
+							if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+								mousestate.y() >= 340 && mousestate.y() <= 424 {
+								menu_state = MenuState::ClassSelection;
+							// STORE
+							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+								mousestate.y() >= 340 && mousestate.y() <= 424 {
+								// GO TO STORE
+							// CREDITS
+							} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+								mousestate.y() >= 458 && mousestate.y() <= 542 {
+								credits::run_credits();
+							// QUIT
+							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+								mousestate.y() >= 458 && mousestate.y() <= 542 {
+								exit = true;
+								break 'menuloop;
+							}
+						},
+						MenuState::ClassSelection => {
+							// JELLY CLASS
+							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Jelly;
+								break 'menuloop;
+							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Warrior;
+								break 'menuloop;
+							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Assassin;
+								break 'menuloop;
+							}
+						},
+					}
 				}
 			}
 
-			self.core.wincan.copy(&title_screen, None, None)?;
+			match menu_state {
+				MenuState::Title => {
+					self.core.wincan.copy(&title_screen, None, None)?;
+				},
+				MenuState::ClassSelection => {
+					self.core.wincan.copy(&class_selection_screen, None, None)?;
+				}
+			}
 
 			self.core.wincan.present();
 		}
 		if exit {
 			return Ok(());
 		}
-		//let rng = rand::thread_rng();
 
 		// AUDIO SYSTEM
 		let frequency = 44_100;
@@ -146,25 +178,24 @@ impl Game for ROGUELIKE  {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
-		let class = PlayerType::Classic; 
 		let mut player: Player; 
 		match class {
 			PlayerType::Warrior => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
-					class, 
-				); 
+					class,
+				);
 			}, 
 			PlayerType::Assassin => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
-					class, 
-				); 
+					class,
+				);
 			}, 
 			_ => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
-					class, 
+					class,
 				);
 			}, 
 		};

@@ -41,7 +41,7 @@ impl CollisionDecider{
 
 #[derive(Copy, Clone)]
 pub enum PlayerType{
-	Classic, 
+	Jelly, 
 	Warrior, 
 	Assassin, 
 }
@@ -121,8 +121,8 @@ impl<'a> Player<'a> {
 		let speed_delta: f64; 
 		match class {
 			PlayerType::Warrior => {
-				max_hp = 50; 
-				max_mana = 5; 
+				max_hp = 40; 
+				max_mana = 4; 
 				mana_restore_rate = 800; 
 				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Spear); 
 				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball); 
@@ -130,8 +130,8 @@ impl<'a> Player<'a> {
 			}
 			PlayerType::Assassin => {
 				max_hp = 20; 
-				max_mana = 4; 
-				mana_restore_rate = 1300; 
+				max_mana = 5; 
+				mana_restore_rate = 1300;
 				weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), WeaponType::Sword); 
 				power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); 
 				speed_delta = 1.9; 
