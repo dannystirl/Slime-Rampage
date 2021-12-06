@@ -97,7 +97,6 @@ impl Game for ROGUELIKE  {
 			if mousestate.left() {
 				if click_timer.elapsed().as_millis() > 200 {
 					click_timer = Instant::now();
-					// PLAY
 					match menu_state {
 						MenuState::Title => {
 							// SELECT CLASS -> PLAY
@@ -121,7 +120,6 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::ClassSelection => {
-							// JELLY CLASS
 							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
 								class = PlayerType::Jelly;
@@ -137,7 +135,19 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::Store => {
-
+							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Jelly;
+								break 'menuloop;
+							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Warrior;
+								break 'menuloop;
+							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Assassin;
+								break 'menuloop;
+							}
 						}
 						MenuState::Credits => {
 							menu_state = MenuState::Title; 
