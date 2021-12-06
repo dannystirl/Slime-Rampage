@@ -15,61 +15,47 @@ use crate::projectile::*;
 use crate::SDLCore;
 
 pub const EXPLODE_SPEED: f64 = 6.0;
-//pub const MAX_CRATE_SPEED: f64 =10.0; 
-pub const MAX_CRATE_VEL: f64 = 10.0; 
 
 pub struct Crate{
 	src: Rect,
 	pub rb:  Rigidbody,
-	heavy: bool,
-	pub explosive: bool,
-	active: bool,
+	pub crate_type: CrateType, 
+	pub killing_weight: f64, 
+	pub max_crate_vel: f64, 
+	active: bool,  
 }
-//impl Explosive for Crate{
 
-//}
 impl Crate {
-	pub fn new(pos: Rect) -> Crate {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
-		let heavy= false;
-		let explosive = false;
-		let active = true;
-		Crate{
-			src,
-			rb,
-			heavy,
-			explosive,
-			active,
+	pub fn new(pos: Rect, crate_type: CrateType) -> Crate {	
+		let src: Rect; 
+		let active = true; 
+		let rb: Rigidbody; 
+		let max_crate_vel: f64; 
+		match crate_type {
+			CrateType::Explosive => {
+				src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
+				rb = Rigidbody::new(pos, 0.0, 0.0, 3.0, 0.4);
+				max_crate_vel = 7.0; 
+			}
+			CrateType::Heavy => {
+				src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_32, TILE_SIZE_32);
+				rb = Rigidbody::new(pos, 0.0, 0.0, 7.0, 0.8);
+				max_crate_vel = 4.0; 
+			}
+			_ => { 
+				src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_32, TILE_SIZE_32);
+				rb = Rigidbody::new(pos, 0.0, 0.0, 1.0, 0.25); 
+				max_crate_vel = 10.0; 
+			}
 		}
-	}
-	pub fn new_heavy(pos: Rect) -> Crate {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		let rb = Rigidbody::new(pos, 0.0, 0.0,10.0, 0.1);
-		let heavy = true;
-		let explosive = false;
-		let active = true;
+		let killing_weight = rb.mass * rb.friction; 
 		Crate{
 			src,
 			rb,
-			heavy,
-			explosive,
-			active,
-		}
-	}
-	pub fn new_explosive(pos: Rect) -> Crate {
-		let src = Rect::new(0 as i32, 0 as i32, TILE_SIZE_64, TILE_SIZE_64);
-		//let rb = Rigidbody::new(pos, 0.0, 0.0, 5.0, 0.1);
-		let rb = Rigidbody::new(pos, 0.0, 0.0,1.0, 0.05);
-		let heavy = false;
-		let explosive = true;
-		let active = true;
-		Crate{
-			src,
-			rb,
-			heavy,
-			explosive,
-			active,
+			crate_type, 
+			killing_weight, 
+			max_crate_vel, 
+			active, 
 		}
 	}
 
@@ -99,8 +85,8 @@ impl Crate {
 		return self.rb.vel.y;
 	}
 	pub fn update_velocity(&mut self, x: f64, y: f64){
-		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
-		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = (self.rb.vel.x + x as f64).clamp(-self.max_crate_vel, self.max_crate_vel);
+		self.rb.vel.y = (self.rb.vel.y + y as f64).clamp(-self.max_crate_vel, self.max_crate_vel);
 	}
 	
 	pub fn get_magnitude(&self) -> f64{
@@ -113,15 +99,14 @@ impl Crate {
 		self.rb.hitbox.y = y as f64;
 	}
 	pub fn set_x_vel(&mut self, x_vel: f64) {
-		self.rb.vel.x = x_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.x = x_vel.clamp(-self.max_crate_vel, self.max_crate_vel);
 	}
 	pub fn set_y_vel(&mut self, y_vel: f64) {
-		self.rb.vel.y = y_vel.clamp(-MAX_CRATE_VEL, MAX_CRATE_VEL);
+		self.rb.vel.y = y_vel.clamp(-self.max_crate_vel, self.max_crate_vel);
 	}
 	pub fn update_crates(&mut self, core :&mut SDLCore, crate_textures: &Vec<Texture>, player: &Player, map: [[i32; MAP_SIZE_W]; MAP_SIZE_H]) {
 		let h_bounds_offset = (self.y() / TILE_SIZE as i32) as i32;
 		let w_bounds_offset = (self.x() / TILE_SIZE as i32) as i32;
-		//let  collisions: Vec<CollisionDecider> = Vec::with_capacity(5);
 
 		for h in 0..(CAM_H / TILE_SIZE) + 1 {
 			for w in 0..(CAM_W / TILE_SIZE) + 1 {
@@ -148,15 +133,16 @@ impl Crate {
 				}
 			}
 		}
-		// self.resolve_col(&collisions);
 		self.set_x(self.x() + self.rb.vel.x as i32);
 		self.set_y(self.y() + self.rb.vel.y as i32);
-		if self.heavy{
-			core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
-		}else if self.explosive{
-			core.wincan.copy(&crate_textures[2],self.src(),self.offset_pos(player)).unwrap();
-		}else{//normal crate
-			core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap();
+		match self.crate_type {
+			CrateType::Explosive => {
+				core.wincan.copy(&crate_textures[2],self.src(),self.offset_pos(player)).unwrap();
+			}
+			CrateType::Heavy => {
+				core.wincan.copy(&crate_textures[1],self.src(),self.offset_pos(player)).unwrap();
+			}
+			_ => { core.wincan.copy(&crate_textures[0],self.src(),self.offset_pos(player)).unwrap(); }
 		}
 	}
 	
@@ -327,7 +313,7 @@ impl Crate {
 					vec![0.0, -EXPLODE_SPEED],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0,
+					0.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -340,7 +326,7 @@ impl Crate {
 					vec![EXPLODE_SPEED, -EXPLODE_SPEED],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					45.0,
 				);
 				shrapnel.push(scrap);
 			}
@@ -353,7 +339,7 @@ impl Crate {
 					vec![EXPLODE_SPEED, 0.0],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					90.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -366,7 +352,7 @@ impl Crate {
 					vec![EXPLODE_SPEED, EXPLODE_SPEED],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					135.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -379,7 +365,7 @@ impl Crate {
 					vec![0.0, EXPLODE_SPEED],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					180.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -392,7 +378,7 @@ impl Crate {
 					vec![-EXPLODE_SPEED, EXPLODE_SPEED],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					225.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -405,7 +391,7 @@ impl Crate {
 					vec![-EXPLODE_SPEED, 0.0],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					270.0
 				);
 				shrapnel.push(scrap);
 			}
@@ -418,7 +404,7 @@ impl Crate {
 					vec![-EXPLODE_SPEED, -EXPLODE_SPEED],
 					PowerType::Shrapnel,
 					elapsed,
-					0.0
+					315.0
 				);
 				shrapnel.push(scrap);
 			}

@@ -647,7 +647,7 @@ impl<'a> Map<'a> {
 
 			let mut tests = 0; 
 			let mut enemy_number = vec![0,0,0,0,0,0]; // not really a direct number for num[0], mostly a weighted value 
-			let enemy_number_max = vec![spawn_positions.len()/32 + rng.gen_range(1..4), 	// total enemies is based on room size + 1:4 enemies
+			let enemy_number_max = vec![spawn_positions.len()/30 + rng.gen_range(1..4), 	// total enemies is based on room size + 1:4 enemies
 										rng.gen_range(2..6), 	// ghosts
 										rng.gen_range(0..3), 	// gellems
 										rng.gen_range(1..3),    // skeletons

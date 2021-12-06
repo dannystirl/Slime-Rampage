@@ -121,7 +121,6 @@ impl Rigidbody{
     }
     
     pub fn rect_vs_rect(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64)->bool{ // farnan SAT collision detection 
-        
         let vec_from_a_to_b =  Vector2D{x:other.hitbox.x , y: other.hitbox.y} - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
         let a = self.hitbox;
         let b = other.hitbox;
@@ -249,22 +248,18 @@ impl Rigidbody{
         let imp_scalar = (-(1.0 + f64::min(self.elasticity,other.elasticity)) * normal_vel) / (self.i_mass + other.i_mass);
         let impulse_vec = normal_collision * imp_scalar;
         if !self.s{
-        self.vel = self.vel - ((self.i_mass) * impulse_vec);
+            self.vel = self.vel - ((self.i_mass) * impulse_vec);
         }else{
             // self.hitbox.x -= (self.i_mass) * correction.x;
             // self.hitbox.y -= (self.i_mass) * correction.y; 
-          
-  
         }
         if !other.s{
-        other.vel = other.vel + ((other.i_mass) * impulse_vec);
+            other.vel = other.vel + ((other.i_mass) * impulse_vec);
         }else{
-            
-        // other.hitbox.x += (self.i_mass) * correction.x;
-        // other.hitbox.y += (self.i_mass) * correction.y;  
-        // other.vel.x = 0.0;
-        // other.vel.y =0.0;
-
+            // other.hitbox.x += (self.i_mass) * correction.x;
+            // other.hitbox.y += (self.i_mass) * correction.y;  
+            // other.vel.x = 0.0;
+            // other.vel.y =0.0;
         }
        
         /*  this if for bounce based on mass ratio   
