@@ -591,7 +591,7 @@ impl<'a> Map<'a> {
 										self.shop_creation.extend(11..=12); 
 									}
 									13..=14 => {
-										self.shop_items.push((ShopItems::Dagger, false, 4));
+										self.shop_items.push((ShopItems::Dagger, false, 3));
 										self.shop_creation.extend(13..=14); 
 									}
 									15 => {

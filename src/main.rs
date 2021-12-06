@@ -18,7 +18,6 @@ use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
-use sdl2::pixels::Color;
 //use std::env;
 use std::path::Path;
 mod background;
@@ -51,6 +50,8 @@ use crate::gold::*;
 pub enum MenuState {
 	Title,
 	ClassSelection,
+	Credits, 
+	Store, 
 }
 
 pub struct ROGUELIKE {
@@ -74,10 +75,14 @@ impl Game for ROGUELIKE  {
 		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 
+
+
 		let mut class = PlayerType::Jelly; 
 		let mut menu_state = MenuState::Title;
 		let mut exit = false;
 		let mut click_timer = Instant::now();
+		let mut credit_timer = Instant::now(); 
+		let mut credits_done = false; 
 		'menuloop: loop {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -88,7 +93,6 @@ impl Game for ROGUELIKE  {
 					_ => {},
 				}
 			}
-
 			let mousestate= self.core.event_pump.mouse_state();
 			if mousestate.left() {
 				if click_timer.elapsed().as_millis() > 200 {
@@ -102,101 +106,14 @@ impl Game for ROGUELIKE  {
 							// STORE
 							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
 								mousestate.y() >= 340 && mousestate.y() <= 424 {
+									menu_state = MenuState::Store;
 								// GO TO STORE
 							// CREDITS
 							} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
-									//return Err("hack".to_string());
-
-								
-									let mut i = 0;
-									'credits_loop: loop {
-										for event in self.core.event_pump.poll_iter() {
-											match event {
-												Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'credits_loop,
-												Event::KeyDown{keycode: Some(Keycode::Q), ..} => break 'credits_loop,
-												_ => {},
-											}
-										}
-										// Copy image texture to self.core.wincan, present, timeout
-								
-									let texture;
-								
-										match i {
-											i if i < FRAME_GAP * 1 => {
-										// Title
-												texture = texture_creator.load_texture("images/credits/credits_title.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 2 => {
-										// Physics Engine Team
-												texture = texture_creator.load_texture("images/credits/credits_physics.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 3 => {
-										// Davon Allensworth
-												texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 4 => {
-										// Zirui Huang
-												texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 5 => {
-										// Victor Mui
-												texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 6 => {
-										// Adam Wachowicz
-												texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 7 => {
-										// Procedural Generation Team
-												texture = texture_creator.load_texture("images/credits/credits_procedural_gen.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 8 => {
-										// Yihua Pu
-												texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
-												self.core.wincan.copy(&texture, None, None)?;
-												self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 9 => {
-										// Marshall Lentz
-											texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
-											self.core.wincan.copy(&texture, None, None)?;
-											self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 10 => {
-										// Josh Friedman
-											texture = texture_creator.load_texture("images/credits/friedman_credits.png")?;
-											self.core.wincan.copy(&texture, None, None)?;
-											self.core.wincan.present();
-											}
-											i if i < FRAME_GAP * 11 => {
-										// Daniel Stirling
-											texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
-											self.core.wincan.copy(&texture, None, None)?;
-											self.core.wincan.present();
-										}
-											_ => {}
-									}
-								
-									i += 1;
-										if i > FRAME_GAP * 12 {
-											i = 0;
-										}
-									}							// QUIT
+									credits_done = false; 
+									credit_timer = Instant::now(); 	
+									menu_state = MenuState::Credits; 
 							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
 								exit = true;
@@ -219,6 +136,12 @@ impl Game for ROGUELIKE  {
 								break 'menuloop;
 							}
 						},
+						MenuState::Store => {
+
+						}
+						MenuState::Credits => {
+							menu_state = MenuState::Title; 
+						}
 					}
 				}
 			}
@@ -229,6 +152,80 @@ impl Game for ROGUELIKE  {
 				},
 				MenuState::ClassSelection => {
 					self.core.wincan.copy(&class_selection_screen, None, None)?;
+				}
+				MenuState::Store => {
+
+				}
+				MenuState::Credits => {
+					for event in self.core.event_pump.poll_iter() {
+						match event {
+							Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => { menu_state = MenuState::Title; credits_done=true; },
+							Event::KeyDown{keycode: Some(Keycode::Q), ..} => { menu_state = MenuState::Title; credits_done=true; },
+							_ => {},
+						}
+					}
+					let texture;
+					let scene_time = 200; // how long each credit scene lasts. 
+					match ((credit_timer.elapsed().as_millis()/scene_time) / 11) as i32  {
+						0 => {
+						// Title
+							texture = texture_creator.load_texture("images/credits/credits_title.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						1 => {
+						// Physics Engine Team
+							texture = texture_creator.load_texture("images/credits/credits_physics.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						2 => {
+						// Davon Allensworth
+							texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						3 => {
+						// Zirui Huang
+							texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						4 => {
+						// Victor Mui
+							texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						5 => {
+						// Adam Wachowicz
+							texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						6 => {
+						// Procedural Generation Team
+							texture = texture_creator.load_texture("images/credits/credits_procedural_gen.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						7 => {
+						// Yihua Pu
+							texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						8 => {
+						// Marshall Lentz
+							texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						9 => {
+						// Josh Friedman
+							texture = texture_creator.load_texture("images/credits/friedman_credits.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+						}
+						10 => {
+						// Daniel Stirling
+							texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
+							self.core.wincan.copy(&texture, None, None)?;
+							credits_done = true; 
+						}
+						_ => { println!("idk lol"); } 
+					}
+					if credits_done { menu_state = MenuState::Title; }
 				}
 			}
 
@@ -734,7 +731,7 @@ impl ROGUELIKE {
 				if self.game_data.frame_counter.elapsed().as_millis() % 120 as u128 == 0 as u128 || enemy.force_move(map) { 
 					rngt[i] = rand::thread_rng().gen_range(1..5);
 				}
-				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
+				enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
 				self.core.wincan.copy_ex(enemy.txtre(), enemy.src(), enemy.offset_pos(player), 0.0, None, enemy.facing_right, false).unwrap();
 				i += 1;
 			}
@@ -850,7 +847,7 @@ impl ROGUELIKE {
 				ShopItems::Spear => {
 					self.core.wincan.copy_ex(&spear_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
-				ShopItems::Spear => {
+				ShopItems::Dagger => {
 					self.core.wincan.copy_ex(&dagger_texture, src, pos, 0.0, None, false, false).unwrap();
 				}
 				ShopItems::HealthUpgrade => {

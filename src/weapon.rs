@@ -68,9 +68,9 @@ impl Weapon {
 
     pub fn set_weapon_type(&mut self, weapon_type: WeaponType) {
         match weapon_type {
-            WeaponType::Spear => { self.damage = 4; self.attack_cooldown = 800; self.attack_length = TILE_SIZE_CAM * 2; }
-            WeaponType::Sword => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
-            WeaponType::Dagger => { self.damage = 2; self.attack_cooldown = 150; self.attack_time = 200; self.attack_length = TILE_SIZE_CAM * 1/2;}
+            WeaponType::Spear => { self.damage = 4; self.attack_cooldown = 800; self.attack_time = 800; self.attack_length = TILE_SIZE_CAM * 2; }
+            WeaponType::Sword => { self.damage = 2; self.attack_cooldown = 300; self.attack_time = 400; self.attack_length = TILE_SIZE_CAM * 3/2; }
+            WeaponType::Dagger => { self.damage = 2; self.attack_cooldown = 150; self.attack_time = 200; self.attack_length = TILE_SIZE_CAM * 3/4;}
             _ => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
         }
     }
