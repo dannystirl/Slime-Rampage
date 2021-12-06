@@ -66,7 +66,7 @@ pub struct Player<'a> {
 	dash_timer: Instant,
 	// player attributes
 	pub class: PlayerType, 
-	hp: u32,
+	hp: i32,
 	mana: i32,
 	weapon: Weapon,
 	pub power: Power,
@@ -74,7 +74,7 @@ pub struct Player<'a> {
 	pub speed_delta: f64, 
 	// check values
 	max_mana: i32,
-	max_hp: u32, 
+	max_hp: i32, 
 	invincible: bool,
 	shielded: bool,
 	can_pickup: bool,
@@ -113,7 +113,7 @@ impl<'a> Player<'a> {
 		let shield_timer = Instant::now();
 		let dash_timer = Instant::now();
 		// player attributes
-		let max_hp: u32; 
+		let max_hp: i32; 
 		let max_mana: i32; 
 		let mana_restore_rate: u128;   // how quickly mana is restored
 		let weapon: Weapon; 
@@ -601,7 +601,7 @@ impl<'a> Player<'a> {
 	}
 
 	// heatlh values
-	pub fn get_hp(&self) -> u32 {
+	pub fn get_hp(&self) -> i32 {
 		return self.hp
 	}
 
@@ -609,11 +609,11 @@ impl<'a> Player<'a> {
 		return self.hp <= 0;
 	}
 
-	pub fn minus_hp(&mut self, dmg: u32) {
+	pub fn minus_hp(&mut self, dmg: i32) {
 		if self.set_get_invincible() || self.god_mode {
 			return;
 		}
-		let adjusted_dmg: u32;
+		let adjusted_dmg: i32;
 		if self.get_shielded() {
 			adjusted_dmg = dmg - 5;
 			self.set_shielded(false);
@@ -622,13 +622,13 @@ impl<'a> Player<'a> {
 		self.hp -= adjusted_dmg;
 	}
 
-	pub fn plus_hp(&mut self, health: u32) {
+	pub fn plus_hp(&mut self, health: i32) {
 		if self.hp + health >= self.max_hp {
 			self.hp = self.max_hp;
 		} else { self.hp += health; }
 	}
 
-	pub fn upgrade_hp(&mut self, health: u32) {
+	pub fn upgrade_hp(&mut self, health: i32) {
 		self.max_hp += health;
 	}
 

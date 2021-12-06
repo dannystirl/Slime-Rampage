@@ -46,7 +46,7 @@ pub struct Enemy<'a> {
 	// enemy attributes
 	pub alive: bool,
 	pub hp: i32,
-	pub collision_damage: u32, 
+	pub collision_damage: i32, 
 	pub power: Power,
 	stun_time: u128, 
 	knockback_vel: f64,
@@ -69,14 +69,14 @@ pub struct Enemy<'a> {
 		let is_stunned = false;
 		let is_firing =false;
 		let alive = true;
-		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0, 0.0);//enemy rb
+		let rb = Rigidbody::new(pos, 0.0, 0.0, 4.0, 0.0);
 
 		let hp: i32;
 		let stun_time: u128; 
 		let knockback_vel: f64; 
 		let speed_delta: f64; // multiplicitive value
 		let aggro_range: f64; // ~ number of tiles
-		let collision_damage: u32; 
+		let collision_damage: i32; 
 		let power: Power; 
 		match enemy_type {
 			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 15.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=5; 
@@ -173,7 +173,6 @@ pub struct Enemy<'a> {
 	}
 	pub fn draw_pos(&self, x: i32, y:i32)-> Rect{
 		let r;
-
 		match self.enemy_type {
 			EnemyType::Boss => {
 				r = Rect::new(
@@ -255,15 +254,11 @@ pub struct Enemy<'a> {
 			}
 		}
 		for c in &game_data.crates{
-			//if GameData::check_collision(&self.pos,&c.pos()){
 			  if GameData::check_collision(&self.rb.pos(),&c.pos()){
-				// crate squishes enemy
-				if c.rb.vel.length() > 1.5{
-					self.die();
-				}
 				collisions.push(self.collect_col(self.rb.pos(), self.rb.hitbox.center_point(), c.pos()));
 			}
 		}
+
 		self.resolve_col(&collisions);
 		self.update_pos();
 		if self.is_stunned {
