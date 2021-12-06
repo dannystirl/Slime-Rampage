@@ -186,7 +186,7 @@ impl Rigidbody{
     }
 
     pub fn rect_vs_circle(self, other: Rigidbody, normal_collision : &mut Vector2D, pen: &mut f64) -> bool {
-        let a_to_b = other.hitbox.center() - Vector2D{x:self.hitbox.x , y:self.hitbox.y} ;
+        let a_to_b = other.hitbox.center() - self.hitbox.center() ;
 
         let mut closest_point = a_to_b;
         let self_x_extreme = (self.hitbox.right() - self.hitbox.left()) / 2.0;

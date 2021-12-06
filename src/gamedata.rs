@@ -95,7 +95,7 @@ impl GameData {
         // creating a level: room data
         let map_size_w = 61;
         let map_size_h = 61;
-        let current_floor = 4; // starting floor
+        let current_floor = 1; // starting floor
         let current_room = 0; // starting room
         let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11));
         let mut i = 0;
