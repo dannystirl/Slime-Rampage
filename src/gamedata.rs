@@ -27,8 +27,8 @@ pub const TILE_SIZE_PLAYER: u32 = TILE_SIZE_CAM * 4/5;      // player (and gener
 pub const TILE_SIZE_PROJECTILE: u32 = TILE_SIZE * 2/3;      // projectile hitboxes are slightly smaller than visual hitboxes
 pub const TILE_SIZE_POWER: u32 = TILE_SIZE;
 
-pub const CENTER_W: i32 = (CAM_W / 2 - TILE_SIZE_HALF) as i32;
-pub const CENTER_H: i32 = (CAM_H / 2 - TILE_SIZE_HALF) as i32;
+pub const CENTER_W: i32 = ((CAM_W / 2)- TILE_SIZE_HALF) as i32;
+pub const CENTER_H: i32 = ((CAM_H / 2)- TILE_SIZE_HALF) as i32;
 
 // room globals
 pub const MIN_ROOM_W: usize = 11;
@@ -95,7 +95,7 @@ impl GameData {
         // creating a level: room data
         let map_size_w = 61;
         let map_size_h = 61;
-        let current_floor = 0; // starting floor
+        let current_floor = 4; // starting floor
         let current_room = 0; // starting room
         let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11));
         let mut i = 0;

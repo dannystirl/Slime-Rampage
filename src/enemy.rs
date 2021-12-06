@@ -165,8 +165,8 @@ pub struct Enemy<'a> {
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
 	pub fn offset_pos(&self, player:&Player)-> Rect{
-		Rect::new(self.rb.hitbox.left() as i32 + (CENTER_W - player.x() as i32), //+(player.x() / TILE_SIZE as f64) as i32,
-					self.rb.hitbox.top() as i32 + (CENTER_H - player.y() as i32),//+(player.x() / TILE_SIZE as f64) as i32,
+		Rect::new(self.rb.hitbox.left() as i32 + (CENTER_W - player.x() as i32) -( self.rb.hitbox.width()/2 ) as i32,
+					self.rb.hitbox.top() as i32 + (CENTER_H - player.y() as i32) -(self.rb.hitbox.height()/2) as i32,
 					self.rb.hitbox.width(),
 					self.rb.hitbox.height())
 
