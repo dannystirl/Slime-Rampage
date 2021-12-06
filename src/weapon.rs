@@ -8,6 +8,7 @@ use sdl2::rect::Rect;
 pub enum WeaponType {
     Sword,
     Spear,
+    Dagger,
 }
 
 pub struct Weapon {
@@ -31,6 +32,7 @@ impl Weapon {
         match weapon_type {
             WeaponType::Spear => { damage = 6; attack_cooldown = 800; attack_time = 800; attack_length = TILE_SIZE_CAM * 2; }
             WeaponType::Sword => { damage = 3; attack_cooldown = 300; attack_time = 400; attack_length = TILE_SIZE_CAM * 3/2; }
+            WeaponType::Dagger => { damage = 2; attack_cooldown = 150; attack_time = 200; attack_length = TILE_SIZE_CAM * 3/4;}
             _ => { damage = 2; attack_cooldown = 300; attack_time = 400; attack_length = TILE_SIZE_CAM * 3/2; }
         }
         Weapon {
@@ -68,6 +70,7 @@ impl Weapon {
         match weapon_type {
             WeaponType::Spear => { self.damage = 4; self.attack_cooldown = 800; self.attack_length = TILE_SIZE_CAM * 2; }
             WeaponType::Sword => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
+            WeaponType::Dagger => { self.damage = 2; self.attack_cooldown = 150; self.attack_time = 200; self.attack_length = TILE_SIZE_CAM * 1/2;}
             _ => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
         }
     }

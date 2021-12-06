@@ -34,6 +34,7 @@ pub enum ShopItems{
 	Health,
 	Sword,
 	Spear,
+	Dagger,
 	None,
 }
 
@@ -589,7 +590,11 @@ impl<'a> Map<'a> {
 										self.shop_items.push((ShopItems::Spear, false, 5));
 										self.shop_creation.extend(11..=12); 
 									}
-									13 => {
+									13..=14 => {
+										self.shop_items.push((ShopItems::Dagger, false, 4));
+										self.shop_creation.extend(13..=14); 
+									}
+									15 => {
                                         self.shop_items.push((ShopItems::Rock, false, 10));
                                         self.shop_creation.push(13);
                                     }
