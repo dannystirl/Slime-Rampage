@@ -596,8 +596,8 @@ impl ROGUELIKE {
 		let shop = texture_creator.load_texture("images/background/floor_tile_maroon.png")?;
 		let tile = texture_creator.load_texture("images/background/tile.png")?;
 		let moss_tile = texture_creator.load_texture("images/background/moss_tile.png")?;
-		let upstairs = texture_creator.load_texture("images/background/upstairs.png")?;
-		let downstairs = texture_creator.load_texture("images/background/downstairs.png")?;
+		let upstairs = texture_creator.load_texture("images/background/new_stairs.png")?;
+		let downstairs = texture_creator.load_texture("images/background/new_stairs.png")?;
 		background.set_curr_background(player.x(), player.y(), player.width(), player.height());
 
 		let h_bounds_offset = (player.y() / TILE_SIZE as f64) as i32;
@@ -1266,19 +1266,32 @@ impl ROGUELIKE {
 
 						if mousestate.x() > player.get_cam_pos().x() && time == 0{
 							projectile.facing_right = true;
+							if mousestate.y() < player.get_cam_pos().y(){//1st quadrant
+								//println!("NE");
+								projectile.angle = projectile.angle- 2.0*projectile.angle;
+								//projectile.facing_up = true;
+							}
+							
 						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
 							projectile.facing_right = false;
+							if mousestate.y() < player.get_cam_pos().y(){//2nd quadrant
+								projectile.angle = projectile.angle - 180.0;
+							
+							}else if mousestate.y() > player.get_cam_pos().y(){//third quadrant
+								projectile.angle = projectile.angle- 2.0*projectile.angle - 180.0;
+							}
 						}
+						/*
 						if mousestate.y() > player.get_cam_pos().y() && time == 0{
-							projectile.facing_up = false;
+							//projectile.facing_up = false;
 						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
-							projectile.facing_up = true;
+							//projectile.facing_up = true;
 						}
-					
+						*/
 						projectile.elapsed += 1;
 						if projectile.elapsed == 127 {projectile.die();}
 
-						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), projectile.angle, None, !projectile.facing_right, false).unwrap();
+						self.core.wincan.copy_ex(&ability_textures[1], s, projectile.set_cam_pos_large(player), projectile.angle, None, false, false).unwrap();
 					}
 					PowerType::Shield => {
 						self.core.wincan.copy(&ability_textures[3], projectile.src(), projectile.set_cam_pos(player)).unwrap();
