@@ -9,6 +9,7 @@ pub enum WeaponType {
     Sword,
     Spear,
     Dagger,
+    None, // not actually none, its just to use in modifiers
 }
 
 pub struct Weapon {
