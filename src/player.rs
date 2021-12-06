@@ -471,8 +471,8 @@ impl<'a> Player<'a> {
 
 		let bullet = projectile::Projectile::new(
 			Rect::new(
-				self.rb.hitbox.x as i32,
-				self.rb.hitbox.y as i32,
+				self.rb.hitbox.x as i32 ,
+				self.rb.hitbox.y as i32 ,
 				TILE_SIZE_PROJECTILE,
 				TILE_SIZE_PROJECTILE,
 			),
