@@ -164,7 +164,13 @@ pub struct Enemy<'a> {
 		self.rb.hitbox.x = self.rb.hitbox.x + self.rb.vel.x;
 		self.rb.hitbox.y = self.rb.hitbox.y + self.rb.vel.y;
 	}
+	pub fn offset_pos(&self, player:&Player)-> Rect{
+		Rect::new(self.rb.hitbox.left() as i32 + (CENTER_W - player.x() as i32), //+(player.x() / TILE_SIZE as f64) as i32,
+					self.rb.hitbox.top() as i32 + (CENTER_H - player.y() as i32),//+(player.x() / TILE_SIZE as f64) as i32,
+					self.rb.hitbox.width(),
+					self.rb.hitbox.height())
 
+	}
 	pub fn draw_pos(&self, x: i32, y:i32)-> Rect{
 		let r;
 		match self.enemy_type {
@@ -256,12 +262,10 @@ pub struct Enemy<'a> {
 		let r;
 		match self.enemy_type {
 			EnemyType::Boss => {
-				r = Rect::new(
-					self.x() as i32 + (CENTER_W - x as i32),
-					self.y() as i32 + (CENTER_H - y as i32),
-					TILE_SIZE_CAM * 4,
-					TILE_SIZE_CAM * 4,
-				);
+				r = Rect::new(self.rb.hitbox.left() as i32 + (CENTER_W - x as i32),
+				self.rb.hitbox.top() as i32 + (CENTER_H - y as i32),
+				self.rb.hitbox.width(),
+				self.rb.hitbox.height())
 			},
 			_ => {
 				r = Rect::new(

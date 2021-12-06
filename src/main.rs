@@ -9,6 +9,7 @@ use std::time::Duration;
 use std::time::Instant;
 //use std::cmp;
 use std::collections::HashSet;
+use std::fs;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseState};
@@ -17,6 +18,7 @@ use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
+use sdl2::pixels::Color;
 //use std::env;
 use std::path::Path;
 mod background;
@@ -46,6 +48,11 @@ use crate::map::*;
 use crate::crateobj::*;
 use crate::gold::*;
 
+pub enum MenuState {
+	Title,
+	ClassSelection,
+}
+
 pub struct ROGUELIKE {
 	core: SDLCore,
 	game_data: GameData,
@@ -63,7 +70,84 @@ impl Game for ROGUELIKE  {
 	fn run(&mut self) -> Result<(), String> {
 		// CREATE GAME CONSTANTS
         let texture_creator = self.core.wincan.texture_creator();
-		//let rng = rand::thread_rng();
+
+		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
+		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
+
+		let mut class = PlayerType::Jelly; 
+		let mut menu_state = MenuState::Title;
+		let mut exit = false;
+		let mut click_timer = Instant::now();
+		'menuloop: loop {
+			for event in self.core.event_pump.poll_iter() {
+				match event {
+					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
+						exit = true;
+						break 'menuloop;
+					},
+					_ => {},
+				}
+			}
+
+			let mousestate= self.core.event_pump.mouse_state();
+			if mousestate.left() {
+				if click_timer.elapsed().as_millis() > 200 {
+					click_timer = Instant::now();
+					// PLAY
+					match menu_state {
+						MenuState::Title => {
+							if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+								mousestate.y() >= 340 && mousestate.y() <= 424 {
+								menu_state = MenuState::ClassSelection;
+							// STORE
+							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+								mousestate.y() >= 340 && mousestate.y() <= 424 {
+								// GO TO STORE
+							// CREDITS
+							} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
+								mousestate.y() >= 458 && mousestate.y() <= 542 {
+								credits::run_credits();
+							// QUIT
+							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
+								mousestate.y() >= 458 && mousestate.y() <= 542 {
+								exit = true;
+								break 'menuloop;
+							}
+						},
+						MenuState::ClassSelection => {
+							// JELLY CLASS
+							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Jelly;
+								break 'menuloop;
+							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Warrior;
+								break 'menuloop;
+							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
+								mousestate.y() >= 93 && mousestate.y() <= 628 {
+								class = PlayerType::Assassin;
+								break 'menuloop;
+							}
+						},
+					}
+				}
+			}
+
+			match menu_state {
+				MenuState::Title => {
+					self.core.wincan.copy(&title_screen, None, None)?;
+				},
+				MenuState::ClassSelection => {
+					self.core.wincan.copy(&class_selection_screen, None, None)?;
+				}
+			}
+
+			self.core.wincan.present();
+		}
+		if exit {
+			return Ok(());
+		}
 
 		// AUDIO SYSTEM
 		let frequency = 44_100;
@@ -95,25 +179,24 @@ impl Game for ROGUELIKE  {
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
-		let class = PlayerType::Classic; 
 		let mut player: Player; 
 		match class {
 			PlayerType::Warrior => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
-					class, 
-				); 
+					class,
+				);
 			}, 
 			PlayerType::Assassin => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
-					class, 
-				); 
+					class,
+				);
 			}, 
 			_ => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
-					class, 
+					class,
 				);
 			}, 
 		};
@@ -195,6 +278,11 @@ impl Game for ROGUELIKE  {
 			// set starting position
 			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
 			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
+
+			let read_coins = fs::read_to_string("currency.txt").expect("Unable to read file");
+			let parse_coins = read_coins.parse::<u32>().unwrap();
+			player.add_coins(parse_coins);
+			println!("{}", parse_coins);
 
 			// reset arrays
 			self.game_data.crates = Vec::<Crate>::with_capacity(0);
@@ -357,8 +445,8 @@ impl Game for ROGUELIKE  {
 								Rect::new(
 									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
                                     h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-                                    TILE_SIZE_CAM * 4,
-                                    TILE_SIZE_CAM * 4
+                                    128,
+                                    128
 								),
 								texture_creator.load_texture("images/enemies/boss.png")?,
 								EnemyType::Boss,
@@ -382,7 +470,9 @@ impl Game for ROGUELIKE  {
 				for event in self.core.event_pump.poll_iter() {
 					match event {
 						Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
-						_ => {},
+						_ => {let currency = player.get_coins();
+							let store = currency.to_string();
+							fs::write("currency.txt", store).expect("Unable to write file");},
 					}
 				}
 				// fps calculations
@@ -447,7 +537,12 @@ impl Game for ROGUELIKE  {
 
 				// CHECK COLLISIONS
 				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
-				if player.is_dead(){break 'gameloop;}
+				if player.is_dead(){
+					let currency = player.get_coins();
+					let store = currency.to_string();
+					fs::write("currency.txt", store).expect("Unable to write file");
+					break 'gameloop;
+				}
 
 				// Check if any shrapnel has been added and append
 				if explosion_shrapnel.len() > 0{
@@ -473,7 +568,7 @@ impl Game for ROGUELIKE  {
 
 pub fn main() -> Result<(), String> {
     rogue_sdl::runner(TITLE, ROGUELIKE::init);
-	//credits::run_credits()
+	// credits::run_credits();
 	Ok(())
 }
 
@@ -550,7 +645,7 @@ impl ROGUELIKE {
 					rngt[i] = rand::thread_rng().gen_range(1..5);
 				}
 				let t = enemy.update_enemy(&self.game_data, rngt, i, (player.x(), player.y()), map);
-				self.core.wincan.copy_ex(enemy.txtre(), enemy.src(), t, 0.0, None, enemy.facing_right, false).unwrap();
+				self.core.wincan.copy_ex(enemy.txtre(), enemy.src(), enemy.offset_pos(player), 0.0, None, enemy.facing_right, false).unwrap();
 				i += 1;
 			}
 		}
