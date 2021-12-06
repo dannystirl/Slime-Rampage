@@ -175,7 +175,7 @@ impl Game for ROGUELIKE  {
 
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(1)?;
+		music.play(-1)?;
 
 		// CREATE PLAYER SHOULD BE MOVED TO player.rs
 		// create player 
