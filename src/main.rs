@@ -139,15 +139,15 @@ impl Game for ROGUELIKE  {
 							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
 								modifier_type = ModifierType::Fast;
-								break 'menuloop;
+								menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
 								modifier_type = ModifierType::Heavy;
-								break 'menuloop;
+								menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
 								modifier_type = ModifierType::Healthy;
-								break 'menuloop;
+								menu_state = MenuState::Title;  
 							}
 						}
 						MenuState::Credits => {
@@ -165,7 +165,7 @@ impl Game for ROGUELIKE  {
 					self.core.wincan.copy(&class_selection_screen, None, None)?;
 				}
 				MenuState::Store => {
-
+					self.core.wincan.copy(&class_selection_screen, None, None)?;
 				}
 				MenuState::Credits => {
 					for event in self.core.event_pump.poll_iter() {
