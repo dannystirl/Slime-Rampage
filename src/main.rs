@@ -284,13 +284,30 @@ impl Game for ROGUELIKE  {
 		music.play(-1)?;
 		
 		let modifier = Modifier::new(modifier_type);
+		let mod_texture; 
+		match modifier_type {
+			ModifierType::Fast => {
+				mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap(); 
+			}, 
+			ModifierType::Healthy => {
+				mod_texture = texture_creator.load_texture("images/player/gnome_hat.png").unwrap(); 
+			}, 
+			ModifierType::Heavy => {
+				mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap(); 
+			}, 
+			_ => {
+				mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap()
+			}
+		}
 
 		// create player 
 		let mut player: Player; 
+		#[allow(unreachable_patterns)]
 		match class {
 			PlayerType::Warrior => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
+					mod_texture, 
 					class,
 					modifier, 
 				);
@@ -298,6 +315,15 @@ impl Game for ROGUELIKE  {
 			PlayerType::Assassin => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
+					mod_texture, 
+					class,
+					modifier, 
+				);
+			}, 
+			PlayerType::Jelly => {
+				player = player::Player::new(
+					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					mod_texture, 
 					class,
 					modifier, 
 				);
@@ -305,6 +331,7 @@ impl Game for ROGUELIKE  {
 			_ => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+					mod_texture, 
 					class,
 					modifier, 
 				);
@@ -1392,6 +1419,10 @@ impl ROGUELIKE {
 								TILE_SIZE_64+TILE_SIZE_CAM/4, 
 								TILE_SIZE_64+TILE_SIZE_CAM/4);
 			self.core.wincan.copy_ex(&shield_outline, src, pos, 0.0, None, !player.facing_right, false).unwrap(); 
+		}
+		let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+		if player.modifier.modifier_type != ModifierType::None {
+			self.core.wincan.copy_ex(&player.mod_texture(), src, player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap(); 
 		}
 	}
 

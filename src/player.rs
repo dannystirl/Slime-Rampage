@@ -55,6 +55,7 @@ pub struct Player<'a> {
 	src: Rect,
 	attack_box: Rect,
 	texture: Texture<'a>,
+	mod_texture: Texture<'a>,
 	// timers
 	attack_timer: Instant,
 	fire_timer: Instant,
@@ -72,6 +73,7 @@ pub struct Player<'a> {
 	pub power: Power,
 	coins: u32,
 	pub speed_delta: f64, 
+	pub modifier: Modifier, 
 	// check values
 	max_mana: i32,
 	max_hp: i32, 
@@ -90,7 +92,7 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new(texture: Texture<'a>, class: PlayerType, modifier: Modifier) -> Player<'a> {
+	pub fn new(texture: Texture<'a>, mod_texture: Texture<'a>, class: PlayerType, modifier: Modifier) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -186,6 +188,7 @@ impl<'a> Player<'a> {
 			src,
 			attack_box,
 			texture,
+			mod_texture, 
 			// timers
 			attack_timer,
 			fire_timer,
@@ -203,6 +206,7 @@ impl<'a> Player<'a> {
 			power,
 			coins,
 			speed_delta, 
+			modifier, 
 			// check values
 			max_mana,
 			max_hp,
@@ -399,6 +403,10 @@ impl<'a> Player<'a> {
 
 	pub fn texture(&self) -> &Texture {
         &self.texture
+    }
+
+	pub fn mod_texture(&self) -> &Texture {
+        &self.mod_texture
     }
 
 	pub fn get_frame_display(&mut self, gamedata: &mut GameData, fps_avg: f64) {
