@@ -74,6 +74,7 @@ impl Game for ROGUELIKE  {
 
 		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
+		let shop_screen = texture_creator.load_texture("images/menu/hat_shop.png")?;
 
 		let mut class = PlayerType::Jelly; 
 		let mut modifier_type = ModifierType::None; 
@@ -136,27 +137,32 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::Store => {
-							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
-								mousestate.y() >= 93 && mousestate.y() <= 628 {
+							if mousestate.x() >= 900 && mousestate.x() <= 1200 &&
+								mousestate.y() >= 500 && mousestate.y() <= 628 {
 									if modifier_type == ModifierType::None {
 										modifier_type = ModifierType::Fast;
 									}
 									else { modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
-							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
-								mousestate.y() >= 93 && mousestate.y() <= 628 {
+									println!("fas");
+							} else if mousestate.x() >= 100 && mousestate.x() <= 400 &&
+								mousestate.y() >= 500 && mousestate.y() <= 628 {
 									if modifier_type == ModifierType::None {
 										modifier_type = ModifierType::Heavy;
 									}
 									else { modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
-							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
-								mousestate.y() >= 93 && mousestate.y() <= 628 {
+									println!("heav");
+
+							} else if mousestate.x() >= 500 && mousestate.x() <= 800 &&
+								mousestate.y() >= 500 && mousestate.y() <= 628 {
 									if modifier_type == ModifierType::None {
 										modifier_type = ModifierType::Healthy;
 									}
 									else { modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
+									println!("heal");
+
 							}
 						}
 						MenuState::Credits => {
@@ -174,7 +180,7 @@ impl Game for ROGUELIKE  {
 					self.core.wincan.copy(&class_selection_screen, None, None)?;
 				}
 				MenuState::Store => {
-					self.core.wincan.copy(&class_selection_screen, None, None)?;
+					self.core.wincan.copy(&shop_screen, None, None)?;
 				}
 				MenuState::Credits => {
 					for event in self.core.event_pump.poll_iter() {
@@ -287,7 +293,7 @@ impl Game for ROGUELIKE  {
 		let mod_texture; 
 		match modifier_type {
 			ModifierType::Fast => {
-				mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap(); 
+				mod_texture = texture_creator.load_texture("images/player/propeller_hat.png").unwrap(); 
 			}, 
 			ModifierType::Healthy => {
 				mod_texture = texture_creator.load_texture("images/player/gnome_hat.png").unwrap(); 
