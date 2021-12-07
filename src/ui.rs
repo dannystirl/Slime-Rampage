@@ -179,7 +179,8 @@ impl<'a> UI<'a> {
 					texture_creator.load_texture("images/weapons/dagger.png")?,
 				);
 				core.wincan.copy(weapon.texture(), weapon.src(),weapon.pos())?;
-			}
+			}, 
+			_ => {}
 		}
 		
 		// Display current power

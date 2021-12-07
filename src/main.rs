@@ -76,6 +76,7 @@ impl Game for ROGUELIKE  {
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 
 		let mut class = PlayerType::Jelly; 
+		let mut modifier_type = ModifierType::None; 
 		let mut menu_state = MenuState::Title;
 		let mut exit = false;
 		let mut click_timer = Instant::now();
@@ -135,6 +136,7 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::Store => {
+<<<<<<< HEAD
 							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
 								class = PlayerType::Jelly;
@@ -148,6 +150,9 @@ impl Game for ROGUELIKE  {
 								class = PlayerType::Assassin;
 								break 'menuloop;
 							}
+=======
+							
+>>>>>>> 20a9526f057203966181278bf0016d9ee9fd6367
 						}
 						MenuState::Credits => {
 							menu_state = MenuState::Title; 
@@ -272,6 +277,8 @@ impl Game for ROGUELIKE  {
 		let path = Path::new("./music/Rampage.wav");
 		let music = sdl2::mixer::Music::from_file(path)?;
 		music.play(-1)?;
+		
+		let modifier = Modifier::new(modifier_type);
 
 		// create player 
 		let mut player: Player; 
@@ -280,18 +287,21 @@ impl Game for ROGUELIKE  {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
 					class,
+					modifier, 
 				);
 			}, 
 			PlayerType::Assassin => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
 					class,
+					modifier, 
 				);
 			}, 
 			_ => {
 				player = player::Player::new(
 					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
 					class,
+					modifier, 
 				);
 			}, 
 		};
@@ -843,6 +853,7 @@ impl ROGUELIKE {
 				WeaponType::Dagger => {
 					self.core.wincan.copy_ex(&dagger_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
 				},
+				_ => {} 
 			}
 		}
 
@@ -1515,6 +1526,7 @@ impl ROGUELIKE {
 				self.core.wincan.copy_ex(&dagger_texture, None, pos, angle, rotation_point,
 					player.facing_right, false).unwrap();
 			},
+			WeaponType::None => {} // this should never occur. 
 		}
 	}
 
