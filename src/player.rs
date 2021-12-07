@@ -127,7 +127,7 @@ impl<'a> Player<'a> {
 		let mut mana_restore_rate: i128;   // how quickly mana is restored
 		let mut weapon: Weapon; 
 		let mut power: Power;
-		let speed_delta: f64; 
+		let mut speed_delta: f64; 
 		match class {
 			PlayerType::Warrior => {
 				max_hp = 40; 
@@ -158,6 +158,7 @@ impl<'a> Player<'a> {
 		max_hp += modifier.health; 
 		max_mana += modifier.max_mana; 
 		mana_restore_rate += modifier.mana_restore_rate; 
+		speed_delta += modifier.speed_delta; 
 		if modifier.weapon != WeaponType::None {
 			weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), modifier.weapon); 
 		}
@@ -408,22 +409,12 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_hat_pos(&mut self, x: i32, y: i32) {
-		if self.facing_right {
-			self.hat_pos = Rect::new(
-				self.x() as i32 - x, //- (TILE_SIZE_CAM/2) as i32,
-				self.y() as i32 - y,
-				TILE_SIZE_CAM*2,
-				TILE_SIZE_CAM*2,
-			);
-		} else {
-			self.hat_pos = Rect::new(
-				self.x() as i32 - x, //+ (TILE_SIZE_CAM/2) as i32,
-				self.y() as i32 - y,
-				TILE_SIZE_CAM*2,
-				TILE_SIZE_CAM*2,
-			);
-		}
-		
+		self.hat_pos = Rect::new(
+			self.x() as i32 - x - (TILE_SIZE_CAM/2) as i32,
+			self.y() as i32 - y - (TILE_SIZE_CAM/2) as i32,
+			TILE_SIZE_CAM*2,
+			TILE_SIZE_CAM*2,
+		);
 	}
 
 	pub fn get_hat_pos(&self) -> Rect {
