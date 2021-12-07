@@ -410,14 +410,14 @@ impl<'a> Player<'a> {
 	pub fn set_hat_pos(&mut self, x: i32, y: i32) {
 		if self.facing_right {
 			self.hat_pos = Rect::new(
-				self.x() as i32 - x - (TILE_SIZE_CAM/2) as i32,
+				self.x() as i32 - x, //- (TILE_SIZE_CAM/2) as i32,
 				self.y() as i32 - y,
 				TILE_SIZE_CAM*2,
 				TILE_SIZE_CAM*2,
 			);
 		} else {
 			self.hat_pos = Rect::new(
-				self.x() as i32 - x + (TILE_SIZE_CAM/2) as i32,
+				self.x() as i32 - x, //+ (TILE_SIZE_CAM/2) as i32,
 				self.y() as i32 - y,
 				TILE_SIZE_CAM*2,
 				TILE_SIZE_CAM*2,
