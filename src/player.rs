@@ -49,12 +49,14 @@ pub enum PlayerType{
 pub struct Player<'a> {
 	// position values
 	cam_pos: Rect,
+	hat_pos: Rect,
 	height: u32,
 	width: u32,
 	// display values
 	src: Rect,
 	attack_box: Rect,
 	texture: Texture<'a>,
+	mod_texture: Texture<'a>,
 	// timers
 	attack_timer: Instant,
 	fire_timer: Instant,
@@ -72,6 +74,7 @@ pub struct Player<'a> {
 	pub power: Power,
 	coins: u32,
 	pub speed_delta: f64, 
+	pub modifier: Modifier, 
 	// check values
 	max_mana: i32,
 	max_hp: i32, 
@@ -90,9 +93,15 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new(texture: Texture<'a>, class: PlayerType, modifier: Modifier) -> Player<'a> {
+	pub fn new(texture: Texture<'a>, mod_texture: Texture<'a>, class: PlayerType, modifier: Modifier) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
+			0,
+			0,
+			TILE_SIZE_CAM,
+			TILE_SIZE_CAM,
+		);
+		let hat_pos = Rect::new(
 			0,
 			0,
 			TILE_SIZE_CAM,
@@ -118,7 +127,7 @@ impl<'a> Player<'a> {
 		let mut mana_restore_rate: i128;   // how quickly mana is restored
 		let mut weapon: Weapon; 
 		let mut power: Power;
-		let speed_delta: f64; 
+		let mut speed_delta: f64; 
 		match class {
 			PlayerType::Warrior => {
 				max_hp = 40; 
@@ -149,6 +158,7 @@ impl<'a> Player<'a> {
 		max_hp += modifier.health; 
 		max_mana += modifier.max_mana; 
 		mana_restore_rate += modifier.mana_restore_rate; 
+		speed_delta += modifier.speed_delta; 
 		if modifier.weapon != WeaponType::None {
 			weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), modifier.weapon); 
 		}
@@ -180,12 +190,14 @@ impl<'a> Player<'a> {
 		Player {
 			// position values
 			cam_pos,
+			hat_pos, 
 			height,
 			width,
 			// display values
 			src,
 			attack_box,
 			texture,
+			mod_texture, 
 			// timers
 			attack_timer,
 			fire_timer,
@@ -203,6 +215,7 @@ impl<'a> Player<'a> {
 			power,
 			coins,
 			speed_delta, 
+			modifier, 
 			// check values
 			max_mana,
 			max_hp,
@@ -384,8 +397,8 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x, //- (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
-			self.y() as i32 - y, //- (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.x() as i32 - x,
+			self.y() as i32 - y,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
@@ -395,10 +408,27 @@ impl<'a> Player<'a> {
 		self.cam_pos
 	}
 
+	pub fn set_hat_pos(&mut self, x: i32, y: i32) {
+		self.hat_pos = Rect::new(
+			self.x() as i32 - x - (TILE_SIZE_CAM/2) as i32,
+			self.y() as i32 - y - (TILE_SIZE_CAM/2) as i32,
+			TILE_SIZE_CAM*2,
+			TILE_SIZE_CAM*2,
+		);
+	}
+
+	pub fn get_hat_pos(&self) -> Rect {
+		self.hat_pos
+	}
+
 	pub fn get_mass(&self) -> f64 { self.rb.mass }
 
 	pub fn texture(&self) -> &Texture {
         &self.texture
+    }
+
+	pub fn mod_texture(&self) -> &Texture {
+        &self.mod_texture
     }
 
 	pub fn get_frame_display(&mut self, gamedata: &mut GameData, fps_avg: f64) {

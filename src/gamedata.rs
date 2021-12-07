@@ -88,7 +88,8 @@ pub struct Modifier {
     pub max_mana: i32, 
     pub weapon: WeaponType, 
     pub power: PowerType, 
-}
+    pub speed_delta: f64, 
+
 
 #[allow(unused_mut)]
 impl Modifier {
@@ -98,26 +99,31 @@ impl Modifier {
         let max_mana: i32; 
         let mut weapon = WeaponType::None; 
         let mut power = PowerType::None; 
+        let mut speed_delta: f64; 
         match modifier_type {
             ModifierType::Heavy => {
                 health = 10; 
-                mana_restore_rate = -500; 
+                mana_restore_rate = -600; 
                 max_mana = 3;
+                speed_delta = -0.2; 
             }
             ModifierType::Fast => {
                 health = -10; 
-                mana_restore_rate = 200; 
-                max_mana = 1;
+                mana_restore_rate = 500; 
+                max_mana = 2;
+                speed_delta = 0.2; 
             }
             ModifierType::Healthy => {
                 health = 20; 
-                mana_restore_rate = -200; 
+                mana_restore_rate = -400; 
                 max_mana = 1;
+                speed_delta = -0.1; 
             }
             ModifierType::None => {
                 health = 0; 
                 mana_restore_rate = 0; 
                 max_mana = 0;
+                speed_delta = 0.0; 
             }
         }
         Modifier {
@@ -127,6 +133,8 @@ impl Modifier {
             max_mana,
             weapon,
             power,
+            speed_delta, 
+
         }
     }
 }
