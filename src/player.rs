@@ -60,7 +60,7 @@ pub struct Player<'a> {
 	fire_timer: Instant,
 	damage_timer: Instant,
 	mana_timer: Instant,
-	mana_restore_rate: u128, 
+	mana_restore_rate: i128, 
 	pickup_timer: Instant,
 	shield_timer: Instant,
 	dash_timer: Instant,
@@ -90,7 +90,7 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-	pub fn new(texture: Texture<'a>, class: PlayerType) -> Player<'a> {
+	pub fn new(texture: Texture<'a>, class: PlayerType, modifier: Modifier) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
 			0,
@@ -113,10 +113,10 @@ impl<'a> Player<'a> {
 		let shield_timer = Instant::now();
 		let dash_timer = Instant::now();
 		// player attributes
-		let max_hp: i32; 
-		let max_mana: i32; 
-		let mana_restore_rate: u128;   // how quickly mana is restored
-		let weapon: Weapon; 
+		let mut max_hp: i32; 
+		let mut max_mana: i32; 
+		let mut mana_restore_rate: i128;   // how quickly mana is restored
+		let mut weapon: Weapon; 
 		let mut power: Power;
 		let speed_delta: f64; 
 		match class {
@@ -145,6 +145,17 @@ impl<'a> Player<'a> {
 				speed_delta = 1.5; 
 			}
 		}
+		// alter values from modifiers
+		max_hp += modifier.health; 
+		max_mana += modifier.max_mana; 
+		mana_restore_rate += modifier.mana_restore_rate; 
+		if modifier.weapon != WeaponType::None {
+			weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), modifier.weapon); 
+		}
+		if modifier.power != PowerType::None {
+			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), modifier.power); 
+		}
+
 		let hp = max_hp; 
 		let mana = max_mana;
 		let mut coins: u32 = 0; 
@@ -508,7 +519,7 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn restore_mana(&mut self) {
-		if self.get_mana_timer() < self.mana_restore_rate || self.get_mana() >= self.max_mana {
+		if self.get_mana_timer() < self.mana_restore_rate as u128 || self.get_mana() >= self.max_mana {
 			return;
 		}
 		self.mana += 1;
