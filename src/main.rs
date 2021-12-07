@@ -136,23 +136,7 @@ impl Game for ROGUELIKE  {
 							}
 						},
 						MenuState::Store => {
-<<<<<<< HEAD
-							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
-								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								class = PlayerType::Jelly;
-								break 'menuloop;
-							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
-								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								class = PlayerType::Warrior;
-								break 'menuloop;
-							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
-								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								class = PlayerType::Assassin;
-								break 'menuloop;
-							}
-=======
 							
->>>>>>> 20a9526f057203966181278bf0016d9ee9fd6367
 						}
 						MenuState::Credits => {
 							menu_state = MenuState::Title; 
