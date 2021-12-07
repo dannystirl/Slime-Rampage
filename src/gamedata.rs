@@ -89,7 +89,7 @@ pub struct Modifier {
     pub weapon: WeaponType, 
     pub power: PowerType, 
     pub speed_delta: f64, 
-}
+
 
 #[allow(unused_mut)]
 impl Modifier {
@@ -134,6 +134,7 @@ impl Modifier {
             weapon,
             power,
             speed_delta, 
+
         }
     }
 }
