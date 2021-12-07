@@ -106,8 +106,8 @@ impl Modifier {
             }
             ModifierType::Fast => {
                 health = -10; 
-                mana_restore_rate = 200; 
-                max_mana = 1;
+                mana_restore_rate = 500; 
+                max_mana = 2;
             }
             ModifierType::Healthy => {
                 health = 20; 

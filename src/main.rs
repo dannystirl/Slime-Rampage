@@ -75,6 +75,7 @@ impl Game for ROGUELIKE  {
 		let title_screen = texture_creator.load_texture("images/menu/title.png")?;
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 		let shop_screen = texture_creator.load_texture("images/menu/hat_shop.png")?;
+		let player_shop = texture_creator.load_texture("images/player/blue_slime_l.png")?;
 
 		let mut class = PlayerType::Jelly; 
 		let mut modifier_type = ModifierType::None; 
@@ -144,7 +145,7 @@ impl Game for ROGUELIKE  {
 									}
 									else { modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
-									println!("fas");
+									println!("{}", modifier_type); 
 							} else if mousestate.x() >= 100 && mousestate.x() <= 400 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
 									if modifier_type == ModifierType::None {
@@ -152,8 +153,6 @@ impl Game for ROGUELIKE  {
 									}
 									else { modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
-									println!("heav");
-
 							} else if mousestate.x() >= 500 && mousestate.x() <= 800 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
 									if modifier_type == ModifierType::None {
@@ -161,8 +160,6 @@ impl Game for ROGUELIKE  {
 									}
 									else { modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
-									println!("heal");
-
 							}
 						}
 						MenuState::Credits => {
@@ -181,6 +178,26 @@ impl Game for ROGUELIKE  {
 				}
 				MenuState::Store => {
 					self.core.wincan.copy(&shop_screen, None, None)?;
+					match modifier_type {
+						ModifierType::Fast => {
+							let pos = Rect::new(1000, 100, TILE_SIZE_64, TILE_SIZE_64); 
+							let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64); 
+							self.core.wincan.copy(&player_shop, src, pos)?;
+						}, 
+						ModifierType::Healthy => {
+							let pos = Rect::new(600, 100, TILE_SIZE_64, TILE_SIZE_64); 
+							let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64); 
+							self.core.wincan.copy(&player_shop, src, pos)?;
+						}, 
+						ModifierType::Heavy => {
+							let pos = Rect::new(200, 100, TILE_SIZE_64, TILE_SIZE_64); 
+							let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64); 
+							self.core.wincan.copy(&player_shop, src, pos)?;
+						}, 
+						_ => {
+							
+						}
+					}
 				}
 				MenuState::Credits => {
 					for event in self.core.event_pump.poll_iter() {
@@ -1413,6 +1430,7 @@ impl ROGUELIKE {
 	pub fn draw_player(&mut self, fps_avg: f64, player: &mut Player, curr_bg: Rect) {
 		// draw player
 		player.set_cam_pos(curr_bg.x(), curr_bg.y());
+		player.set_hat_pos(curr_bg.x(), curr_bg.y());
 		player.get_frame_display(&mut self.game_data, fps_avg);
 		self.core.wincan.copy_ex(player.texture(), player.src(), player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap();
 		// draw shield outline on player
@@ -1428,7 +1446,7 @@ impl ROGUELIKE {
 		}
 		let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
 		if player.modifier.modifier_type != ModifierType::None {
-			self.core.wincan.copy_ex(&player.mod_texture(), src, player.get_cam_pos(), 0.0, None, player.facing_right, false).unwrap(); 
+			self.core.wincan.copy_ex(&player.mod_texture(), src, player.get_hat_pos(), 0.0, None, player.facing_right, false).unwrap(); 
 		}
 	}
 
