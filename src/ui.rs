@@ -9,6 +9,7 @@ use sdl2::render::{Texture};
 use crate::weapon::*;
 use crate::map::*;
 use sdl2::pixels::Color;
+use sdl2::ttf::Font;
 
 pub struct UI<'a>{
 	pos: Rect,
@@ -44,18 +45,16 @@ impl<'a> UI<'a> {
 
 
 	//update background
-	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map, game_data: &GameData) -> Result<(), String> {
+	pub fn update_ui(&mut self, player: &Player, core: &mut SDLCore, map_data: &Map, game_data: &GameData, ui_textures: &Vec<Texture>, get_font: &Font) -> Result<(), String> {
 		// set ui bar
 		let texture_creator = core.wincan.texture_creator();
 		let src = Rect::new(0, 0, CAM_W, TILE_SIZE_64*2);
 		let pos = Rect::new(0, (CAM_H - TILE_SIZE_64) as i32 - 16, CAM_W, TILE_SIZE_64*3/2);
-		let ui = texture_creator.load_texture("images/ui/bb_wide_yellow.png")?;
-		core.wincan.copy(&ui, src, pos)?;
+		core.wincan.copy(&ui_textures[0], src, pos)?;
 		let pos = Rect::new(0, (CAM_H - TILE_SIZE_64) as i32 - 8, CAM_W, TILE_SIZE_64*3/2);
-		let ui = texture_creator.load_texture("images/ui/bb_wide.png")?;
-		core.wincan.copy(&ui, src, pos)?;
-		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
-		let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
+		core.wincan.copy(&ui_textures[1], src, pos)?;
+		//let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
+		//let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
 
 		//create hearts
 		let mut i=0;

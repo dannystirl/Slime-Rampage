@@ -411,6 +411,26 @@ impl Game for ROGUELIKE  {
 		let mana_upgrade_texture = texture_creator.load_texture("images/ui/mana_upgrade.png")?;
 		let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?; //need to change it to a new texture
 
+
+		let mut ui_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
+
+		let uibb = texture_creator.load_texture("images/ui/bb_wide_yellow.png")?;
+	
+		ui_textures.push(uibb);//0
+		let uibb = texture_creator.load_texture("images/ui/bb_wide.png")?;
+		ui_textures.push(uibb);//1
+		let full = texture_creator.load_texture("images/ui/heart.png")? ;
+		ui_textures.push(full);//2
+		let half = texture_creator.load_texture("images/ui/half_heart.png")?;
+		ui_textures.push(half);//3
+
+		ui_textures.push(		texture_creator.load_texture("images/ui/mana.png")?	);//4
+
+
+		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
+		let font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
+
+		
 		// MAIN GAME LOOP
 		'gameloop: loop {
 			// CREATE MAPS
@@ -710,7 +730,7 @@ impl Game for ROGUELIKE  {
 				}
 
 				// UPDATE UI
-				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
+				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data, &ui_textures, &font)?;
 				
 				// UPDATE FRAME
 				self.core.wincan.present();
