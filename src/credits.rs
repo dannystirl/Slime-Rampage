@@ -7,7 +7,7 @@ use sdl2::keyboard::Keycode;
 const TITLE: &str = "Roguelike Credits";
 const CAM_W: u32 = 1280;
 const CAM_H: u32 = 720;
-const FRAME_GAP: u32 = 200;
+pub const FRAME_GAP: u32 = 200;
 
 #[allow(dead_code)]
 pub fn run_credits() -> Result<(), String> {

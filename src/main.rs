@@ -106,8 +106,97 @@ impl Game for ROGUELIKE  {
 							// CREDITS
 							} else if mousestate.x() >= 107 && mousestate.x() <= 557 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
-								credits::run_credits();
-							// QUIT
+									//return Err("hack".to_string());
+
+								
+									let mut i = 0;
+									'credits_loop: loop {
+										for event in self.core.event_pump.poll_iter() {
+											match event {
+												Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'credits_loop,
+												Event::KeyDown{keycode: Some(Keycode::Q), ..} => break 'credits_loop,
+												_ => {},
+											}
+										}
+										// Copy image texture to self.core.wincan, present, timeout
+								
+									let texture;
+								
+										match i {
+											i if i < FRAME_GAP * 1 => {
+										// Title
+												texture = texture_creator.load_texture("images/credits/credits_title.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 2 => {
+										// Physics Engine Team
+												texture = texture_creator.load_texture("images/credits/credits_physics.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 3 => {
+										// Davon Allensworth
+												texture = texture_creator.load_texture("images/credits/credits_davon.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 4 => {
+										// Zirui Huang
+												texture = texture_creator.load_texture("images/credits/zih_credit.jpg")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 5 => {
+										// Victor Mui
+												texture = texture_creator.load_texture("images/credits/credits_victor.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 6 => {
+										// Adam Wachowicz
+												texture = texture_creator.load_texture("images/credits/credits_adam.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 7 => {
+										// Procedural Generation Team
+												texture = texture_creator.load_texture("images/credits/credits_procedural_gen.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 8 => {
+										// Yihua Pu
+												texture = texture_creator.load_texture("images/credits/Yihua_credit.png")?;
+												self.core.wincan.copy(&texture, None, None)?;
+												self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 9 => {
+										// Marshall Lentz
+											texture = texture_creator.load_texture("images/credits/credits_marshall.png")?;
+											self.core.wincan.copy(&texture, None, None)?;
+											self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 10 => {
+										// Josh Friedman
+											texture = texture_creator.load_texture("images/credits/friedman_credits.png")?;
+											self.core.wincan.copy(&texture, None, None)?;
+											self.core.wincan.present();
+											}
+											i if i < FRAME_GAP * 11 => {
+										// Daniel Stirling
+											texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
+											self.core.wincan.copy(&texture, None, None)?;
+											self.core.wincan.present();
+										}
+											_ => {}
+									}
+								
+									i += 1;
+										if i > FRAME_GAP * 12 {
+											i = 0;
+										}
+									}							// QUIT
 							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
 								exit = true;
@@ -568,8 +657,8 @@ impl Game for ROGUELIKE  {
 }
 
 pub fn main() -> Result<(), String> {
-    rogue_sdl::runner(TITLE, ROGUELIKE::init);
-	// credits::run_credits();
+rogue_sdl::runner(TITLE, ROGUELIKE::init);	
+
 	Ok(())
 }
 

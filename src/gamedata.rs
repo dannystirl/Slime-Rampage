@@ -19,6 +19,7 @@ pub const CAM_W: u32 = 1280;
 pub const CAM_H: u32 = 720;
 pub const TILE_SIZE_64: u32 = 64;                           // tile sizes are all 64 px
 pub const TILE_SIZE_32: u32 = 32;                           // tile sizes are all 64 px
+pub const FRAME_GAP: u32 = 200;
 
 pub const TILE_SIZE: u32 = 64;                              // overall tile size 
 pub const TILE_SIZE_HALF: u32 = TILE_SIZE/2;                // generic half tile size
