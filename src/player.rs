@@ -49,6 +49,7 @@ pub enum PlayerType{
 pub struct Player<'a> {
 	// position values
 	cam_pos: Rect,
+	hat_pos: Rect,
 	height: u32,
 	width: u32,
 	// display values
@@ -95,6 +96,12 @@ impl<'a> Player<'a> {
 	pub fn new(texture: Texture<'a>, mod_texture: Texture<'a>, class: PlayerType, modifier: Modifier) -> Player<'a> {
 		// position values
 		let cam_pos = Rect::new(
+			0,
+			0,
+			TILE_SIZE_CAM,
+			TILE_SIZE_CAM,
+		);
+		let hat_pos = Rect::new(
 			0,
 			0,
 			TILE_SIZE_CAM,
@@ -182,6 +189,7 @@ impl<'a> Player<'a> {
 		Player {
 			// position values
 			cam_pos,
+			hat_pos, 
 			height,
 			width,
 			// display values
@@ -388,8 +396,8 @@ impl<'a> Player<'a> {
 
 	pub fn set_cam_pos(&mut self, x: i32, y: i32) {
 		self.cam_pos = Rect::new(
-			self.x() as i32 - x, //- (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
-			self.y() as i32 - y, //- (TILE_SIZE_CAM as i32 - TILE_SIZE_PLAYER as i32).abs() / 2 + (TILE_SIZE_CAM as i32)/8,
+			self.x() as i32 - x,
+			self.y() as i32 - y,
 			TILE_SIZE_CAM,
 			TILE_SIZE_CAM,
 		);
@@ -397,6 +405,29 @@ impl<'a> Player<'a> {
 
 	pub fn get_cam_pos(&self) -> Rect {
 		self.cam_pos
+	}
+
+	pub fn set_hat_pos(&mut self, x: i32, y: i32) {
+		if self.facing_right {
+			self.hat_pos = Rect::new(
+				self.x() as i32 - x - (TILE_SIZE_CAM/2) as i32,
+				self.y() as i32 - y,
+				TILE_SIZE_CAM*2,
+				TILE_SIZE_CAM*2,
+			);
+		} else {
+			self.hat_pos = Rect::new(
+				self.x() as i32 - x + (TILE_SIZE_CAM/2) as i32,
+				self.y() as i32 - y,
+				TILE_SIZE_CAM*2,
+				TILE_SIZE_CAM*2,
+			);
+		}
+		
+	}
+
+	pub fn get_hat_pos(&self) -> Rect {
+		self.hat_pos
 	}
 
 	pub fn get_mass(&self) -> f64 { self.rb.mass }
