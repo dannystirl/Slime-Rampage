@@ -86,7 +86,6 @@ impl Game for ROGUELIKE  {
 		let lock = texture_creator.load_texture("images/ui/lock.png")?;
 
 		let mut menu_state = MenuState::Title;
-		let mut exit = false;
 		let mut click_timer = Instant::now();
 		let mut credit_timer = Instant::now(); 
 		let mut credits_done = false; 
@@ -105,7 +104,6 @@ impl Game for ROGUELIKE  {
 					Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
 						let store = self.game_data.blue_gold_count.to_string();
 						fs::write("currency.txt", store).expect("Unable to write file");
-						exit = true;
 						break 'menuloop;
 					},
 					_ => {},
@@ -134,7 +132,6 @@ impl Game for ROGUELIKE  {
 									menu_state = MenuState::Credits;  
 							} else if mousestate.x() >= 724 && mousestate.x() <= 1174 &&
 								mousestate.y() >= 458 && mousestate.y() <= 542 {
-								exit = true;
 								break 'menuloop;
 							}
 						},
@@ -876,9 +873,6 @@ impl Game for ROGUELIKE  {
 				}
 			}
 			self.core.wincan.present();
-		}
-		if exit {
-			return Ok(());
 		}
 		Ok(())
 	}
