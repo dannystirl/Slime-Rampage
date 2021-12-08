@@ -52,11 +52,14 @@ pub enum MenuState {
 	ClassSelection,
 	Credits, 
 	Store, 
+	Play, 
 }
 
 pub struct ROGUELIKE {
 	core: SDLCore,
 	game_data: GameData,
+	class: PlayerType, 
+	modifier_type: ModifierType, 
 }
 
 // CREATE GAME
@@ -65,7 +68,9 @@ impl Game for ROGUELIKE  {
 	fn init() -> Result<Self, String> {
 		let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
 		let game_data = GameData::new();
-		Ok(ROGUELIKE{ core, game_data, })
+		let class = PlayerType::Jelly; 
+		let modifier_type = ModifierType::None; 
+		Ok(ROGUELIKE{ core, game_data, class, modifier_type })
 	}
 
 	fn run(&mut self) -> Result<(), String> {
@@ -77,8 +82,6 @@ impl Game for ROGUELIKE  {
 		let shop_screen = texture_creator.load_texture("images/menu/hat_shop.png")?;
 		let player_shop = texture_creator.load_texture("images/player/blue_slime_l.png")?;
 
-		let mut class = PlayerType::Jelly; 
-		let mut modifier_type = ModifierType::None; 
 		let mut menu_state = MenuState::Title;
 		let mut exit = false;
 		let mut click_timer = Instant::now();
@@ -125,44 +128,47 @@ impl Game for ROGUELIKE  {
 						MenuState::ClassSelection => {
 							if mousestate.x() >= 42 && mousestate.x() <= 415 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								class = PlayerType::Jelly;
-								break 'menuloop;
+								self.class = PlayerType::Jelly;
+								menu_state = MenuState::Play; 
 							} else if mousestate.x() >= 454 && mousestate.x() <= 827 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								class = PlayerType::Warrior;
-								break 'menuloop;
+								self.class = PlayerType::Warrior;
+								menu_state = MenuState::Play; 
 							} else if mousestate.x() >= 866 && mousestate.x() <= 1239 &&
 								mousestate.y() >= 93 && mousestate.y() <= 628 {
-								class = PlayerType::Assassin;
-								break 'menuloop;
+								self.class = PlayerType::Assassin;
+								menu_state = MenuState::Play; 
 							}
 						},
 						MenuState::Store => {
 							if mousestate.x() >= 900 && mousestate.x() <= 1200 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if modifier_type != ModifierType::Fast {
-										modifier_type = ModifierType::Fast;
+									if self.modifier_type != ModifierType::Fast {
+										self.modifier_type = ModifierType::Fast;
 									}
-									else { modifier_type = ModifierType::None; }
+									else { self.modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 100 && mousestate.x() <= 400 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if modifier_type != ModifierType::Heavy {
-										modifier_type = ModifierType::Heavy;
+									if self.modifier_type != ModifierType::Heavy {
+										self.modifier_type = ModifierType::Heavy;
 									}
-									else { modifier_type = ModifierType::None; }
+									else { self.modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 500 && mousestate.x() <= 800 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if modifier_type != ModifierType::Healthy {
-										modifier_type = ModifierType::Healthy;
+									if self.modifier_type != ModifierType::Healthy {
+										self.modifier_type = ModifierType::Healthy;
 									}
-									else { modifier_type = ModifierType::None; }
+									else { self.modifier_type = ModifierType::None; }
 									menu_state = MenuState::Title; 
 							}
 						}
 						MenuState::Credits => {
 							menu_state = MenuState::Title; 
+						}
+						MenuState::Play => {
+							
 						}
 					}
 				}
@@ -177,7 +183,7 @@ impl Game for ROGUELIKE  {
 				}
 				MenuState::Store => {
 					self.core.wincan.copy(&shop_screen, None, None)?;
-					match modifier_type {
+					match self.modifier_type {
 						ModifierType::Fast => {
 							let pos = Rect::new(1000, 100, TILE_SIZE_64, TILE_SIZE_64); 
 							let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64); 
@@ -269,461 +275,469 @@ impl Game for ROGUELIKE  {
 					}
 					if credits_done { menu_state = MenuState::Title; }
 				}
-			}
+				MenuState::Play => {
+					let texture_creator = self.core.wincan.texture_creator();
+					// AUDIO SYSTEM; TAKEN FROM SDL2 MIXER DEMO FOR RUST
+					let frequency = 44_100;
+					let format = AUDIO_S16LSB; // signed 16 bit samples, in little-endian byte order
+					let channels = DEFAULT_CHANNELS; // Stereo
+					let chunk_size = 1_024;
+					sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
+					let _mixer_context = sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
+					// Number of mixing channels available for sound effect `Chunk`s to play simultaneously.
+					sdl2::mixer::allocate_channels(4);
+				
+					if DEBUG {
+						let n = sdl2::mixer::get_chunk_decoders_number();
+						println!("available chunk(sample) decoders: {}", n);
+						for i in 0..n {
+							println!("  decoder {} => {}", i, sdl2::mixer::get_chunk_decoder(i));
+						}
+						println!("available music decoders: {}", n);
+						let n = sdl2::mixer::get_music_decoders_number();
+						for i in 0..n {
+							println!("  decoder {} => {}", i, sdl2::mixer::get_music_decoder(i));
+						}
+						println!("query spec => {:?}", sdl2::mixer::query_spec());
+					}
 
+					let path = Path::new("./music/Rampage.wav");
+					let music = sdl2::mixer::Music::from_file(path)?;
+					music.play(-1)?;
+					
+					let modifier = Modifier::new(self.modifier_type);
+					let mod_texture; 
+					match self.modifier_type {
+						ModifierType::Fast => {
+							mod_texture = texture_creator.load_texture("images/player/propeller_hat.png").unwrap(); 
+						}, 
+						ModifierType::Healthy => {
+							mod_texture = texture_creator.load_texture("images/player/gnome_hat.png").unwrap(); 
+						}, 
+						ModifierType::Heavy => {
+							mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap(); 
+						}, 
+						_ => {
+							mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap()
+						}
+					}
+
+					// create player 
+					let mut player: Player; 
+					#[allow(unreachable_patterns)]
+					match self.class {
+						PlayerType::Warrior => {
+							player = player::Player::new(
+								texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
+								mod_texture, 
+								self.class,
+								modifier, 
+							);
+						}, 
+						PlayerType::Assassin => {
+							player = player::Player::new(
+								texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
+								mod_texture, 
+								self.class,
+								modifier, 
+							);
+						}, 
+						PlayerType::Jelly => {
+							player = player::Player::new(
+								texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+								mod_texture, 
+								self.class,
+								modifier, 
+							);
+						}, 
+						_ => {
+							player = player::Player::new(
+								texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
+								mod_texture, 
+								self.class,
+								modifier, 
+							);
+						}, 
+					};
+					
+					let mut rng = rand::thread_rng();
+					// create ui
+					let mut ui = ui::UI::new(
+						Rect::new(
+							(10) as i32 *(TILE_SIZE_64 as f64 *1.2) as i32,
+							(CAM_H-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
+							(TILE_SIZE_64 as f64 *1.2) as u32,
+							(TILE_SIZE_64 as f64 *1.2) as u32,
+						), 
+						texture_creator.load_texture("images/ui/heart.png")?,
+					);
+					// LOAD TEXTURES
+					// projectile textures
+					let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
+					let bullet_player = texture_creator.load_texture("images/abilities/bullet_player.png")?; 
+					let bullet_enemy = texture_creator.load_texture("images/abilities/bullet_enemy.png")?;
+					let fireball = texture_creator.load_texture("images/abilities/new_fireball.png")?;
+					let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
+					let wall = texture_creator.load_texture("images/abilities/wall.png")?;
+					let shrapnel = texture_creator.load_texture("images/objects/shrapnel.png")?;
+					let rock = texture_creator.load_texture("images/abilities/rock.png")?;
+					ability_textures.push(bullet_player);
+					ability_textures.push(fireball);
+					ability_textures.push(bullet_enemy);
+					ability_textures.push(shield);
+					ability_textures.push(wall);
+					ability_textures.push(shrapnel);
+					ability_textures.push(rock);
+					// object textures
+					let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
+					let crate_texture = texture_creator.load_texture("images/objects/crate.png")?;
+					let heavy = texture_creator.load_texture("images/objects/metal_crate.png")?;
+					let explosive = texture_creator.load_texture("images/objects/new_barrel.png")?;
+					crate_textures.push(crate_texture);
+					crate_textures.push(heavy);
+					crate_textures.push(explosive);
+					
+					let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
+					let gold_coin_texture = texture_creator.load_texture("images/player/slime_old.png")?;
+					let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
+					let slimeball_texture = texture_creator.load_texture("images/abilities/bullet_pickup.png")?;
+					let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
+					let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
+					let sword_texture = texture_creator.load_texture("images/weapons/sword.png")?;
+					let spear_texture = texture_creator.load_texture("images/weapons/spear.png")?;
+					let dagger_texture = texture_creator.load_texture("images/weapons/dagger.png")?;
+					let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
+					let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
+					let mana_upgrade_texture = texture_creator.load_texture("images/ui/mana_upgrade.png")?;
+					let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?; //need to change it to a new texture
+
+					// MAIN GAME LOOP
+					'gameloop: loop {
+						// CREATE MAPS
+						let background = background::Background::new(
+							texture_creator.load_texture("images/background/bb.png")?,
+							texture_creator.load_texture("images/background/floor_tile_1.png")?,
+							texture_creator.load_texture("images/background/floor_tile_2.png")?,
+							texture_creator.load_texture("images/background/tile.png")?,
+							texture_creator.load_texture("images/background/skull.png")?,
+							texture_creator.load_texture("images/background/upstairs.png")?,
+							texture_creator.load_texture("images/background/downstairs.png")?,
+							texture_creator.load_texture("images/background/dirt_sheet.png")?,
+							Rect::new(
+								(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_W / 2) as i32),
+								(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_H / 2) as i32),
+								CAM_W,
+								CAM_H,
+							),
+						);
+						let mut map_data = map::Map::new(self.game_data.current_floor, background);
+						if self.game_data.current_floor == 4 {
+							map_data.create_boss();
+						} else if self.game_data.current_floor == 5 {
+							let store = self.game_data.blue_gold_count.to_string();
+							fs::write("currency.txt", store).expect("Unable to write file");
+							self.game_data = GameData::new();
+							break 'gameloop; 
+						} else {
+							map_data.create_map();
+						}
+
+						// set starting position
+						player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
+						player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
+
+						// reset arrays
+						self.game_data.crates = Vec::<Crate>::with_capacity(0);
+						self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
+						self.game_data.dropped_weapons = Vec::<Weapon>::with_capacity(0);
+						self.game_data.gold = Vec::<Gold>::with_capacity(0);
+						self.game_data.blue_gold = Vec::<Gold>::with_capacity(0);
+						self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
+						self.game_data.enemy_projectiles = Vec::<Projectile>::with_capacity(0);
+						// OBJECT GENERATION
+						if DEVELOP {
+							let pos = Rect::new(
+								player.x() as i32 -200 + rng.gen_range(1..10),
+								player.y() as i32 -200 + rng.gen_range(0..10),
+								TILE_SIZE,
+								TILE_SIZE
+							);
+							self.game_data.crates.push(crateobj::Crate::new(pos, CrateType::Regular));
+						}
+
+						// create enemies
+						let mut enemies: Vec<Enemy> = Vec::new();
+						let mut rngt = Vec::new();
+
+						let mut enemy_count = 0;
+						let max_h = MAP_SIZE_H; 
+						let max_w = MAP_SIZE_W;
+						for h in 0..max_h {
+							for w in 0..max_w {
+								if map_data.enemy_and_object_spawns[h][w] == 0 {
+									continue;
+								}
+								match map_data.enemy_and_object_spawns[h][w] {
+									1 => {
+										let e = enemy::Enemy::new(
+											Rect::new(
+												w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+												h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+												TILE_SIZE_CAM,
+												TILE_SIZE_CAM
+											),
+											texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
+											EnemyType::Melee,
+											enemy_count,
+											self.game_data.current_floor, 
+										);
+										enemies.push(e);
+										rngt.push(rng.gen_range(1..5));
+										enemy_count += 1;
+									}
+									2 => {
+										let e = enemy::Enemy::new(
+											Rect::new(
+												w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+												h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+												TILE_SIZE_CAM,
+												TILE_SIZE_CAM
+											),
+											texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
+											EnemyType::Ranged,
+											enemy_count,
+											self.game_data.current_floor, 
+										);
+										enemies.push(e);
+										rngt.push(rng.gen_range(1..5));
+										enemy_count += 1;
+									}
+									3 => {
+										let roll= rng.gen_range(0..12);
+										let c: crateobj::Crate; 
+										match roll {
+											0..=2 => {
+												c = crateobj::Crate::new(
+													Rect::new(
+														w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+														h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+														62,
+														62
+													), 
+													CrateType::Heavy, 
+												); 
+											}
+											3..=4 => {
+												c = crateobj::Crate::new(
+													Rect::new(
+														w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+														h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+														TILE_SIZE_PLAYER*3/2,
+														TILE_SIZE_PLAYER*3/2
+													), 
+													CrateType::Explosive, 
+												);
+											}
+											_ => {
+												c = crateobj::Crate::new(
+													Rect::new(
+														w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
+														h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
+														TILE_SIZE_PLAYER,
+														TILE_SIZE_PLAYER
+													), 
+													CrateType::Regular, 
+												);
+											}
+										}
+										self.game_data.crates.push(c);
+									}
+									4 => {
+										let e = enemy::Enemy::new(
+											Rect::new(
+												w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+												h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+												TILE_SIZE_CAM,
+												TILE_SIZE_CAM
+											),
+											texture_creator.load_texture("images/enemies/Shield_skeleton.png")?,
+											EnemyType::Skeleton,
+											enemy_count,
+											self.game_data.current_floor, 
+										);
+										enemies.push(e);
+										rngt.push(rng.gen_range(1..5));
+										enemy_count += 1;
+									}
+									5 => {
+										let e = enemy::Enemy::new(
+											Rect::new(
+												w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+												h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+												TILE_SIZE_CAM,
+												TILE_SIZE_CAM
+											),
+											texture_creator.load_texture("images/enemies/eyeball.png")?,
+											EnemyType::Eyeball,
+											enemy_count,
+											self.game_data.current_floor, 
+										);
+										enemies.push(e);
+										rngt.push(rng.gen_range(1..5));
+										enemy_count += 1;
+									}
+									6 => {
+										let e = enemy::Enemy::new(
+											Rect::new(
+												w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+												h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+												TILE_SIZE_CAM,
+												TILE_SIZE_CAM
+											),
+											texture_creator.load_texture("images/enemies/rock.png")?,
+											EnemyType::Rock,
+											enemy_count,
+											self.game_data.current_floor,
+										);
+										enemies.push(e);
+										rngt.push(rng.gen_range(1..5));
+										enemy_count += 1;
+									}
+									7 => {
+										let e = enemy::Enemy::new(
+											Rect::new(
+												w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
+												h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
+												128,
+												128
+											),
+											texture_creator.load_texture("images/enemies/boss.png")?,
+											EnemyType::Boss,
+											enemy_count,
+											self.game_data.current_floor, 
+										);
+										enemies.push(e);
+										rngt.push(rng.gen_range(1..5));
+										enemy_count += 1;
+									}
+									_ => {}
+								}
+							}
+						}
+
+						let mut all_frames = 0;
+						let last_time = Instant::now();
+
+						// INDIVIDUAL LEVEL LOOP
+						'level: loop {
+							for event in self.core.event_pump.poll_iter() {
+								match event {
+									Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
+										let store = self.game_data.blue_gold_count.to_string();
+										fs::write("currency.txt", store).expect("Unable to write file");
+										break 'gameloop; 
+									}, 
+									_ => {},
+								}
+							}
+							// fps calculations
+							let mut fps_avg: f64 = 60.0; 
+							all_frames += 1;
+							let elapsed = last_time.elapsed();
+							if elapsed > Duration::from_secs(1) {
+								fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
+								self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
+								self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
+							}
+							// reset frame values
+							player.set_x_accel(0);
+							player.set_y_accel(0);
+
+							// Array that adds newly spawned shrapnel to projectiles
+							// I had to do this because i cant add to a list while iterating over it (thanks Rust)
+							let mut explosion_shrapnel = Vec::<Projectile>::with_capacity(0);
+
+							// Draw background
+							self.core.wincan.copy(&map_data.background.black, None, None)?;
+
+							// GET INPUT
+							let mousestate= self.core.event_pump.mouse_state();
+							let keystate: HashSet<Keycode> = self.core.event_pump
+								.keyboard_state()
+								.pressed_scancodes()
+								.filter_map(Keycode::from_scancode)
+								.collect();
+							if keystate.contains(&Keycode::E){
+								let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
+								map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
+								TILE_SIZE, TILE_SIZE);
+								let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
+								if check_collision(&ppos, &mpos) {
+									break 'level
+								}
+							}
+							ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
+
+							// UPDATE BACKGROUND
+							ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map, map_data.colored_map)?;
+
+							// UPDATE PLAYER
+							player.update_player(&self.game_data, map_data.map, &mut self.core)?;
+							ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
+							ROGUELIKE::update_crates(self, &crate_textures, &mut player, map_data.map);
+
+							// UPDATE ENEMIES
+							rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player, map_data.map);
+							// UPDATE ATTACKS
+							ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
+							ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
+							ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
+							ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture, &dagger_texture);
+							
+							// UPDATE INTERACTABLES
+							ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture, &gold_coin_texture, 
+													&fireball_texture, &slimeball_texture, &shield_texture,
+													&dash_texture, &health_texture, &health_upgrade_texture,
+													&sword_texture, &spear_texture, &dagger_texture, &rock_texture,
+													&mana_upgrade_texture);
+
+							// CHECK COLLISIONS
+							ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
+							if player.is_dead(){
+								self.game_data = GameData::new();
+								break 'gameloop;
+							}
+
+							// Check if any shrapnel has been added and append
+							if explosion_shrapnel.len() > 0{
+								for scrap in explosion_shrapnel{
+									self.game_data.player_projectiles.push(scrap);
+								}
+							}
+
+							// UPDATE UI
+							ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
+							
+							// UPDATE FRAME
+							self.core.wincan.present();
+						}
+						// give player permanent coins upon beating a level
+						let store = (self.game_data.blue_gold_count+(1*self.game_data.current_floor as u32)).to_string();
+						fs::write("currency.txt", store).expect("Unable to write file");
+						self.game_data.current_floor += 1;
+						self.game_data.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
+						self.game_data.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
+					}
+					menu_state = MenuState::Title; 
+					self.game_data = GameData::new();
+				}
+			}
 			self.core.wincan.present();
 		}
 		if exit {
 			return Ok(());
 		}
-
-		// AUDIO SYSTEM
-		let frequency = 44_100;
-		let format = AUDIO_S16LSB; // signed 16 bit samples, in little-endian byte order
-		let channels = DEFAULT_CHANNELS; // Stereo
-		let chunk_size = 1_024;
-		sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
-		let _mixer_context = sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
-		// Number of mixing channels available for sound effect `Chunk`s to play simultaneously.
-		sdl2::mixer::allocate_channels(4);
-	
-		if DEBUG {
-			let n = sdl2::mixer::get_chunk_decoders_number();
-			println!("available chunk(sample) decoders: {}", n);
-			for i in 0..n {
-				println!("  decoder {} => {}", i, sdl2::mixer::get_chunk_decoder(i));
-			}
-			println!("available music decoders: {}", n);
-			let n = sdl2::mixer::get_music_decoders_number();
-			for i in 0..n {
-				println!("  decoder {} => {}", i, sdl2::mixer::get_music_decoder(i));
-			}
-			println!("query spec => {:?}", sdl2::mixer::query_spec());
-		}
-
-		let path = Path::new("./music/Rampage.wav");
-		let music = sdl2::mixer::Music::from_file(path)?;
-		music.play(-1)?;
-		
-		let modifier = Modifier::new(modifier_type);
-		let mod_texture; 
-		match modifier_type {
-			ModifierType::Fast => {
-				mod_texture = texture_creator.load_texture("images/player/propeller_hat.png").unwrap(); 
-			}, 
-			ModifierType::Healthy => {
-				mod_texture = texture_creator.load_texture("images/player/gnome_hat.png").unwrap(); 
-			}, 
-			ModifierType::Heavy => {
-				mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap(); 
-			}, 
-			_ => {
-				mod_texture = texture_creator.load_texture("images/player/ten_gallon.png").unwrap()
-			}
-		}
-
-		// create player 
-		let mut player: Player; 
-		#[allow(unreachable_patterns)]
-		match class {
-			PlayerType::Warrior => {
-				player = player::Player::new(
-					texture_creator.load_texture("images/player/green_slime_sheet.png").unwrap(), 
-					mod_texture, 
-					class,
-					modifier, 
-				);
-			}, 
-			PlayerType::Assassin => {
-				player = player::Player::new(
-					texture_creator.load_texture("images/player/pink_slime_sheet.png").unwrap(), 
-					mod_texture, 
-					class,
-					modifier, 
-				);
-			}, 
-			PlayerType::Jelly => {
-				player = player::Player::new(
-					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
-					mod_texture, 
-					class,
-					modifier, 
-				);
-			}, 
-			_ => {
-				player = player::Player::new(
-					texture_creator.load_texture("images/player/blue_slime_sheet.png").unwrap(), 
-					mod_texture, 
-					class,
-					modifier, 
-				);
-			}, 
-		};
-		
-		let mut rng = rand::thread_rng();
-		// create ui
-		let mut ui = ui::UI::new(
-			Rect::new(
-				(10) as i32 *(TILE_SIZE_64 as f64 *1.2) as i32,
-				(CAM_H-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
-				(TILE_SIZE_64 as f64 *1.2) as u32,
-				(TILE_SIZE_64 as f64 *1.2) as u32,
-			), 
-			texture_creator.load_texture("images/ui/heart.png")?,
-		);
-		// LOAD TEXTURES
-		// projectile textures
-		let mut ability_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
-		let bullet_player = texture_creator.load_texture("images/abilities/bullet_player.png")?; 
-		let bullet_enemy = texture_creator.load_texture("images/abilities/bullet_enemy.png")?;
-		let fireball = texture_creator.load_texture("images/abilities/new_fireball.png")?;
-		let shield = texture_creator.load_texture("images/abilities/shield_outline.png")?;
-		let wall = texture_creator.load_texture("images/abilities/wall.png")?;
-		let shrapnel = texture_creator.load_texture("images/objects/shrapnel.png")?;
-		let rock = texture_creator.load_texture("images/abilities/rock.png")?;
-		ability_textures.push(bullet_player);
-		ability_textures.push(fireball);
-		ability_textures.push(bullet_enemy);
-		ability_textures.push(shield);
-		ability_textures.push(wall);
-		ability_textures.push(shrapnel);
-		ability_textures.push(rock);
-		// object textures
-		let mut crate_textures: Vec<Texture> = Vec::<Texture>::with_capacity(5);
-		let crate_texture = texture_creator.load_texture("images/objects/crate.png")?;
-		let heavy = texture_creator.load_texture("images/objects/metal_crate.png")?;
-		let explosive = texture_creator.load_texture("images/objects/new_barrel.png")?;
-		crate_textures.push(crate_texture);
-		crate_textures.push(heavy);
-		crate_textures.push(explosive);
-		
-		let coin_texture = texture_creator.load_texture("images/ui/gold_coin.png")?;
-		let gold_coin_texture = texture_creator.load_texture("images/player/slime_old.png")?;
-		let fireball_texture = texture_creator.load_texture("images/abilities/fireball_pickup.png")?;
-		let slimeball_texture = texture_creator.load_texture("images/abilities/bullet_pickup.png")?;
-		let shield_texture = texture_creator.load_texture("images/abilities/shield_pickup.png")?;
-		let dash_texture = texture_creator.load_texture("images/abilities/dash_pickup.png")?;
-		let sword_texture = texture_creator.load_texture("images/weapons/sword.png")?;
-		let spear_texture = texture_creator.load_texture("images/weapons/spear.png")?;
-		let dagger_texture = texture_creator.load_texture("images/weapons/dagger.png")?;
-		let health_texture = texture_creator.load_texture("images/ui/heart.png")?; 
-		let health_upgrade_texture = texture_creator.load_texture("images/ui/heart_upgrade.png")?;
-		let mana_upgrade_texture = texture_creator.load_texture("images/ui/mana_upgrade.png")?;
-		let rock_texture = texture_creator.load_texture("images/abilities/rock.png")?; //need to change it to a new texture
-
-		// MAIN GAME LOOP
-		'gameloop: loop {
-			// CREATE MAPS
-			let background = background::Background::new(
-				texture_creator.load_texture("images/background/bb.png")?,
-				texture_creator.load_texture("images/background/floor_tile_1.png")?,
-				texture_creator.load_texture("images/background/floor_tile_2.png")?,
-				texture_creator.load_texture("images/background/tile.png")?,
-				texture_creator.load_texture("images/background/skull.png")?,
-				texture_creator.load_texture("images/background/upstairs.png")?,
-				texture_creator.load_texture("images/background/downstairs.png")?,
-				texture_creator.load_texture("images/background/dirt_sheet.png")?,
-				Rect::new(
-					(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_W / 2) as i32),
-					(0 + ((TILE_SIZE_CAM / 2) as i32)) - ((CAM_H / 2) as i32),
-					CAM_W,
-					CAM_H,
-				),
-			);
-			let mut map_data = map::Map::new(self.game_data.current_floor, background);
-			if self.game_data.current_floor > 3 {
-				map_data.create_boss();
-			} else {
-				map_data.create_map();
-			}
-
-			// set starting position
-			player.set_x((map_data.starting_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
-			player.set_y((map_data.starting_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - 2*TILE_SIZE_PLAYER) as i32 / 2) as f64);
-
-			// reset arrays
-			self.game_data.crates = Vec::<Crate>::with_capacity(0);
-			self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
-			self.game_data.dropped_weapons = Vec::<Weapon>::with_capacity(0);
-			self.game_data.gold = Vec::<Gold>::with_capacity(0);
-			self.game_data.blue_gold = Vec::<Gold>::with_capacity(0);
-			self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
-			self.game_data.enemy_projectiles = Vec::<Projectile>::with_capacity(0);
-			// OBJECT GENERATION
-			if DEVELOP {
-				let pos = Rect::new(
-					player.x() as i32 -200 + rng.gen_range(1..10),
-					player.y() as i32 -200 + rng.gen_range(0..10),
-					TILE_SIZE,
-					TILE_SIZE
-				);
-				self.game_data.crates.push(crateobj::Crate::new(pos, CrateType::Regular));
-			}
-
-			// create enemies
-			let mut enemies: Vec<Enemy> = Vec::new();
-			let mut rngt = Vec::new();
-
-			let mut enemy_count = 0;
-			let max_h = MAP_SIZE_H; 
-			let max_w = MAP_SIZE_W;
-			for h in 0..max_h {
-				for w in 0..max_w {
-					if map_data.enemy_and_object_spawns[h][w] == 0 {
-						continue;
-					}
-					match map_data.enemy_and_object_spawns[h][w] {
-						1 => {
-							let e = enemy::Enemy::new(
-								Rect::new(
-									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-									TILE_SIZE_CAM,
-									TILE_SIZE_CAM
-								),
-								texture_creator.load_texture("images/enemies/place_holder_enemy.png")?,
-								EnemyType::Melee,
-								enemy_count,
-								self.game_data.current_floor, 
-							);
-							enemies.push(e);
-							rngt.push(rng.gen_range(1..5));
-							enemy_count += 1;
-						}
-						2 => {
-							let e = enemy::Enemy::new(
-								Rect::new(
-									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-									TILE_SIZE_CAM,
-									TILE_SIZE_CAM
-								),
-								texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
-								EnemyType::Ranged,
-								enemy_count,
-								self.game_data.current_floor, 
-							);
-							enemies.push(e);
-							rngt.push(rng.gen_range(1..5));
-							enemy_count += 1;
-						}
-						3 => {
-							let roll= rng.gen_range(0..12);
-							let c: crateobj::Crate; 
-							match roll {
-								0..=2 => {
-									c = crateobj::Crate::new(
-										Rect::new(
-											w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-											h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-											62,
-											62
-										), 
-										CrateType::Heavy, 
-									); 
-								}
-								3..=4 => {
-									c = crateobj::Crate::new(
-										Rect::new(
-											w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-											h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-											TILE_SIZE_PLAYER*3/2,
-											TILE_SIZE_PLAYER*3/2
-										), 
-										CrateType::Explosive, 
-									);
-								}
-								_ => {
-									c = crateobj::Crate::new(
-										Rect::new(
-											w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
-											h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) /2,
-											TILE_SIZE_PLAYER,
-											TILE_SIZE_PLAYER
-										), 
-										CrateType::Regular, 
-									);
-								}
-							}
-							self.game_data.crates.push(c);
-						}
-						4 => {
-							let e = enemy::Enemy::new(
-								Rect::new(
-									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-									h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-									TILE_SIZE_CAM,
-									TILE_SIZE_CAM
-								),
-								texture_creator.load_texture("images/enemies/Shield_skeleton.png")?,
-								EnemyType::Skeleton,
-								enemy_count,
-								self.game_data.current_floor, 
-							);
-							enemies.push(e);
-							rngt.push(rng.gen_range(1..5));
-							enemy_count += 1;
-						}
-						5 => {
-                            let e = enemy::Enemy::new(
-                                Rect::new(
-                                    w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-                                    TILE_SIZE_CAM,
-                                    TILE_SIZE_CAM
-                                ),
-                                texture_creator.load_texture("images/enemies/eyeball.png")?,
-                                EnemyType::Eyeball,
-                                enemy_count,
-								self.game_data.current_floor, 
-                            );
-                            enemies.push(e);
-                            rngt.push(rng.gen_range(1..5));
-                            enemy_count += 1;
-                        }
-                        6 => {
-                            let e = enemy::Enemy::new(
-                                Rect::new(
-                                    w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-                                    TILE_SIZE_CAM,
-                                    TILE_SIZE_CAM
-                                ),
-                                texture_creator.load_texture("images/enemies/rock.png")?,
-                                EnemyType::Rock,
-                                enemy_count,
-                                self.game_data.current_floor,
-                            );
-                            enemies.push(e);
-                            rngt.push(rng.gen_range(1..5));
-                            enemy_count += 1;
-                        }
-						7 => {
-							let e = enemy::Enemy::new(
-								Rect::new(
-									w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
-                                    h as i32 * TILE_SIZE as i32 - (CAM_H as i32 - TILE_SIZE as i32) / 2,
-                                    128,
-                                    128
-								),
-								texture_creator.load_texture("images/enemies/boss.png")?,
-								EnemyType::Boss,
-								enemy_count,
-								self.game_data.current_floor, 
-							);
-							enemies.push(e);
-							rngt.push(rng.gen_range(1..5));
-							enemy_count += 1;
-						}
-						_ => {}
-					}
-				}
-			}
-
-			let mut all_frames = 0;
-			let last_time = Instant::now();
-
-			// INDIVIDUAL LEVEL LOOP
-			'level: loop {
-				for event in self.core.event_pump.poll_iter() {
-					match event {
-						Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => {
-							let store = self.game_data.blue_gold_count.to_string();
-							fs::write("currency.txt", store).expect("Unable to write file");
-							break 'gameloop; 
-						}, 
-						_ => {},
-					}
-				}
-				// fps calculations
-				let mut fps_avg: f64 = 60.0; 
-				all_frames += 1;
-				let elapsed = last_time.elapsed();
-				if elapsed > Duration::from_secs(1) {
-					fps_avg = (all_frames as f64) / elapsed.as_secs_f64();
-					self.game_data.set_speed_limit(fps_avg.recip() * SPEED_LIMIT);
-					self.game_data.set_accel_rate(fps_avg.recip() * ACCEL_RATE);
-				}
-				// reset frame values
-				player.set_x_accel(0);
-				player.set_y_accel(0);
-
-				// Array that adds newly spawned shrapnel to projectiles
-				// I had to do this because i cant add to a list while iterating over it (thanks Rust)
-				let mut explosion_shrapnel = Vec::<Projectile>::with_capacity(0);
-
-				// Draw background
-				self.core.wincan.copy(&map_data.background.black, None, None)?;
-
-				// GET INPUT
-				let mousestate= self.core.event_pump.mouse_state();
-				let keystate: HashSet<Keycode> = self.core.event_pump
-					.keyboard_state()
-					.pressed_scancodes()
-					.filter_map(Keycode::from_scancode)
-					.collect();
-				if keystate.contains(&Keycode::E){
-					let mpos = Rect::new(map_data.ending_position.0 as i32 * TILE_SIZE as i32 - (CAM_W - TILE_SIZE) as i32 / 2, 
-					map_data.ending_position.1 as i32 * TILE_SIZE as i32 - (CAM_H - TILE_SIZE) as i32 / 2, 
-					TILE_SIZE, TILE_SIZE);
-					let ppos = Rect::new(player.x() as i32, player.y() as i32, TILE_SIZE_CAM, TILE_SIZE_CAM);
-					if check_collision(&ppos, &mpos) {
-						break 'level
-					}
-				}
-				ROGUELIKE::check_inputs(self, &keystate, mousestate, &mut player, fps_avg, &mut map_data)?;
-
-				// UPDATE BACKGROUND
-				ROGUELIKE::draw_background(self, &player, &mut map_data.background, map_data.map, map_data.colored_map)?;
-
-				// UPDATE PLAYER
-				player.update_player(&self.game_data, map_data.map, &mut self.core)?;
-				ROGUELIKE::draw_player(self, fps_avg, &mut player, map_data.background.get_curr_background());
-				ROGUELIKE::update_crates(self, &crate_textures, &mut player, map_data.map);
-
-				// UPDATE ENEMIES
-				rngt = ROGUELIKE::update_enemies(self, &mut rngt, &mut enemies, &player, map_data.map);
-				// UPDATE ATTACKS
-				ROGUELIKE::update_projectiles(&mut self.game_data.player_projectiles, &mut self.game_data.enemy_projectiles);
-				ROGUELIKE::draw_enemy_projectile(self, &ability_textures, &player);	
-				ROGUELIKE::draw_player_projectile(self, &ability_textures,  &player, mousestate)?;	
-				ROGUELIKE::draw_weapon(self, &player, &sword_texture, &spear_texture, &dagger_texture);
-				
-				// UPDATE INTERACTABLES
-				ROGUELIKE::update_drops(self, &mut enemies, &mut player, &mut map_data, &coin_texture, &gold_coin_texture, 
-										&fireball_texture, &slimeball_texture, &shield_texture,
-										&dash_texture, &health_texture, &health_upgrade_texture,
-										&sword_texture, &spear_texture, &dagger_texture, &rock_texture,
-										&mana_upgrade_texture);
-
-				// CHECK COLLISIONS
-				ROGUELIKE::check_collisions(self, &mut player, &mut enemies, &mut map_data, &crate_textures, fps_avg, &mut explosion_shrapnel);
-				if player.is_dead(){
-					break 'gameloop;
-				}
-
-				// Check if any shrapnel has been added and append
-				if explosion_shrapnel.len() > 0{
-					for scrap in explosion_shrapnel{
-						self.game_data.player_projectiles.push(scrap);
-					}
-				}
-
-				// UPDATE UI
-				ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
-				
-				// UPDATE FRAME
-				self.core.wincan.present();
-			}
-			// give player permanent coins upon beating a level
-			let store = (self.game_data.blue_gold_count+(1*self.game_data.current_floor as u32)).to_string();
-			fs::write("currency.txt", store).expect("Unable to write file");
-			self.game_data.current_floor += 1;
-        	self.game_data.map_size_w = 61 + ((self.game_data.current_floor-1)*30) as usize;
-        	self.game_data.map_size_h = 61 + ((self.game_data.current_floor-1)*30) as usize;
-		}
-		// Out of game loop, return Ok
-		Ok(()) 
+		Ok(())
 	}
 }
 
@@ -786,7 +800,14 @@ impl ROGUELIKE {
 						5 => { self.core.wincan.copy_ex(&moss_tile, src, pos, 0.0, None, false, false).unwrap(); },  	// moss tiles
 						6 => { self.core.wincan.copy_ex(&shop, src, pos, 0.0, None, false, false).unwrap(); },  		// shop tile
 						3 => { self.core.wincan.copy_ex(&upstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// upstairs tile
-						_ => { self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap(); },  	// downstairs tile
+						4 => { 
+							if self.game_data.current_floor == 4 && !self.game_data.boss_killed {
+								self.core.wincan.copy_ex(&dirt_sheet, src, pos, 0.0, None, false, false).unwrap(); 		// hide exit stairs
+							} else {
+								self.core.wincan.copy_ex(&downstairs, src, pos, 0.0, None, false, false).unwrap();   	// downstairs tile
+							}
+						}
+						_ => {  }, 
 					}
 				}
 			}
@@ -1183,7 +1204,7 @@ impl ROGUELIKE {
 				if player.get_attacking() {
 					if check_collision(&player.get_attack_box(), &enemy.pos()) {
 						enemy.knockback(player.x().into(), player.y().into());
-						enemy.minus_hp(player.get_weapon().damage);
+						if enemy.minus_hp(player.get_weapon().damage) { self.game_data.boss_killed = true; }
 					}
 				}
 			}
@@ -1233,7 +1254,7 @@ impl ROGUELIKE {
 								}
 								_ => {
 									if c.rb.vel.length() > (c.killing_weight) * 16.0 {
-										enemy.minus_hp(c.rb.vel.length() as i32);
+										if enemy.minus_hp(c.rb.vel.length() as i32) { self.game_data.boss_killed = true; }
 									}
 								}
 							}
@@ -1275,7 +1296,7 @@ impl ROGUELIKE {
 							match enemy.enemy_type {
 								EnemyType::Boss => {
 									enemy.projectile_knockback(projectile.x_vel(), projectile.y_vel());
-									enemy.minus_hp(projectile.power.damage/3);
+									if enemy.minus_hp(projectile.power.damage/3) { self.game_data.boss_killed = true; }
 								}
 								EnemyType::Skeleton=>{
 									enemy.minus_hp(projectile.power.damage/2);

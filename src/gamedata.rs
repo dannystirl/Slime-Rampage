@@ -158,6 +158,8 @@ pub struct GameData {
     pub current_floor: i32, 
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
     pub rooms: Vec<Room>,
+
+    pub boss_killed: bool, 
 }
 
 impl GameData {
@@ -187,6 +189,7 @@ impl GameData {
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
         let frame_counter = Instant::now();
+        let boss_killed = false; 
 
         let read_coins = fs::read_to_string("currency.txt").expect("Unable to read file");
         let blue_gold_count = read_coins.parse::<u32>().unwrap();
@@ -208,6 +211,7 @@ impl GameData {
             speed_limit,
             accel_rate,
             crates,
+            boss_killed, 
         }
     }
 

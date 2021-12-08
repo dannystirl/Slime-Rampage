@@ -102,13 +102,21 @@ impl<'a> Map<'a> {
 				}
 			}
 		}
-
-		self.map = new_map;
-
 		self.starting_position = (BOSS_ROOM_W as f64 / 2.0, BOSS_ROOM_H as f64 - 7.0);
-
 		self.enemy_and_object_spawns[7][BOSS_ROOM_W / 2] = 7;
-
+		// place stairs
+		let mut stairs = 0; 
+		while stairs < 1 {
+			// set stairs in smaller rooms
+			let h = rng.gen_range(10..BOSS_ROOM_H-10);	
+			let w = rng.gen_range(10..BOSS_ROOM_W-10);
+			if new_map[h][w] == 1 && self.surroundings_clear(w, h, vec![2], new_map) {
+				new_map[h][w] = 4;
+				self.ending_position = (w as i32, h as i32);
+				stairs += 1; 
+			}
+		}
+		self.map = new_map;
 		self.add_color();
 	}
 
