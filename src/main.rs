@@ -76,6 +76,7 @@ impl Game for ROGUELIKE  {
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 		let shop_screen = texture_creator.load_texture("images/menu/hat_shop.png")?;
 		let player_shop = texture_creator.load_texture("images/player/blue_slime_l.png")?;
+		let lock = texture_creator.load_texture("images/ui/lock.png")?;
 
 		let mut class = PlayerType::Jelly; 
 		let mut modifier_type = ModifierType::None; 
@@ -84,6 +85,12 @@ impl Game for ROGUELIKE  {
 		let mut click_timer = Instant::now();
 		let mut credit_timer = Instant::now(); 
 		let mut credits_done = false; 
+
+		let mut read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    	let mut cowboy = &read_hats[..1];
+		let mut gnome = &read_hats[1..2];
+		let mut propeller = &read_hats[2..3];
+
 		'menuloop: loop {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -96,6 +103,7 @@ impl Game for ROGUELIKE  {
 					_ => {},
 				}
 			}
+
 			let mousestate= self.core.event_pump.mouse_state();
 			if mousestate.left() {
 				if click_timer.elapsed().as_millis() > 200 {
@@ -140,25 +148,65 @@ impl Game for ROGUELIKE  {
 						MenuState::Store => {
 							if mousestate.x() >= 900 && mousestate.x() <= 1200 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if modifier_type != ModifierType::Fast {
-										modifier_type = ModifierType::Fast;
+									if propeller == "t" {
+										if modifier_type != ModifierType::Fast {
+											modifier_type = ModifierType::Fast;
+										}
+										else { modifier_type = ModifierType::None; }
+										menu_state = MenuState::Title; 
+									} else {
+										if self.game_data.blue_gold_count >= 5 {
+											self.game_data.blue_gold_count -= 5;
+											let others = &read_hats[..2];
+											let unlock = others.to_owned() + "t";
+											fs::write("hats.txt", unlock).expect("Unable to write file");
+											read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    										cowboy = &read_hats[..1];
+											gnome = &read_hats[1..2];
+											propeller = &read_hats[2..3];
+										}
 									}
-									else { modifier_type = ModifierType::None; }
-									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 100 && mousestate.x() <= 400 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if modifier_type != ModifierType::Heavy {
-										modifier_type = ModifierType::Heavy;
+									if cowboy == "t" {
+										if modifier_type != ModifierType::Heavy {
+											modifier_type = ModifierType::Heavy;
+										}
+										else { modifier_type = ModifierType::None; }
+										menu_state = MenuState::Title; 
+									} else {
+										if self.game_data.blue_gold_count >= 5 {
+											self.game_data.blue_gold_count -= 5;
+											let others = &read_hats[1..3];
+											let unlock = "t".to_owned() + others;
+											fs::write("hats.txt", unlock).expect("Unable to write file");
+											read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    										cowboy = &read_hats[..1];
+											gnome = &read_hats[1..2];
+											propeller = &read_hats[2..3];
+										}
 									}
-									else { modifier_type = ModifierType::None; }
-									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 500 && mousestate.x() <= 800 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if modifier_type != ModifierType::Healthy {
-										modifier_type = ModifierType::Healthy;
+									if gnome == "t" {
+										if modifier_type != ModifierType::Healthy {
+											modifier_type = ModifierType::Healthy;
+										}
+										else { modifier_type = ModifierType::None; }
+										menu_state = MenuState::Title; 
+									} else {
+										if self.game_data.blue_gold_count >= 5 {
+											self.game_data.blue_gold_count -= 5;
+											let others_first = &read_hats[..1];
+											let others_last = &read_hats[2..3];
+											let unlock = others_first.to_owned() + "t" + others_last;
+											fs::write("hats.txt", unlock).expect("Unable to write file");
+											read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    										cowboy = &read_hats[..1];
+											gnome = &read_hats[1..2];
+											propeller = &read_hats[2..3];
+										}
 									}
-									else { modifier_type = ModifierType::None; }
-									menu_state = MenuState::Title; 
 							}
 						}
 						MenuState::Credits => {
@@ -196,6 +244,24 @@ impl Game for ROGUELIKE  {
 						_ => {
 							
 						}
+					}
+
+					if cowboy != "t" {
+						let pos = Rect::new(340, 170, TILE_SIZE_64, TILE_SIZE_64);
+						let src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+						self.core.wincan.copy(&lock, src, pos)?;
+					}
+
+					if gnome != "t" {
+						let pos2 = Rect::new(720, 170, TILE_SIZE_64, TILE_SIZE_64);
+						let src2 = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+						self.core.wincan.copy(&lock, src2, pos2)?;
+					}
+
+					if propeller != "t" {
+						let pos3 = Rect::new(1120, 170, TILE_SIZE_64, TILE_SIZE_64);
+						let src3 = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+						self.core.wincan.copy(&lock, src3, pos3)?;
 					}
 				}
 				MenuState::Credits => {
