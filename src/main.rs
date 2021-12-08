@@ -263,9 +263,8 @@ impl Game for ROGUELIKE  {
 						// Daniel Stirling
 							texture = texture_creator.load_texture("images/credits/credits_daniel.png")?;
 							self.core.wincan.copy(&texture, None, None)?;
-							credits_done = true; 
 						}
-						_ => { println!("idk lol"); } 
+						_ => { credits_done = true; } 
 					}
 					if credits_done { menu_state = MenuState::Title; }
 				}
