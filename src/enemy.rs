@@ -584,15 +584,23 @@ pub struct Enemy<'a> {
 		self.is_stunned = stunned;
 	}
 
-	pub fn minus_hp(&mut self, dmg: i32) {
+	pub fn minus_hp(&mut self, dmg: i32) -> bool {
 		if self.damage_timer.elapsed().as_millis() < self.stun_time {
-			return;
+			false
 		} else {
 			self.damage_timer = Instant::now();
 			self.hp -= dmg;
 			if self.hp <= 0 {
 				self.die();
+				match self.enemy_type {
+					EnemyType::Boss => {
+						if !self.is_alive() { true }
+						else { false }
+					}
+					_ => { false }
+				}
 			}
+			else { false }
 		}
 	}
 

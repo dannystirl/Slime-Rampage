@@ -53,8 +53,6 @@ impl<'a> UI<'a> {
 		core.wincan.copy(&ui_textures[0], src, pos)?;
 		let pos = Rect::new(0, (CAM_H - TILE_SIZE_64) as i32 - 8, CAM_W, TILE_SIZE_64*3/2);
 		core.wincan.copy(&ui_textures[1], src, pos)?;
-		//let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
-		//let get_font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
 
 		//create hearts
 		let mut i=0;
