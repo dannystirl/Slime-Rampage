@@ -16,6 +16,7 @@ use sdl2::mouse::{MouseState};
 use sdl2::rect::{Rect, Point};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
+use sdl2::pixels::Color;
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
 //use std::env;
@@ -46,6 +47,7 @@ use crate::weapon::*;
 use crate::map::*;
 use crate::crateobj::*;
 use crate::gold::*;
+use crate::ui::*;
 
 pub enum MenuState {
 	Title,
@@ -81,12 +83,22 @@ impl Game for ROGUELIKE  {
 		let class_selection_screen = texture_creator.load_texture("images/menu/class_selection.png")?;
 		let shop_screen = texture_creator.load_texture("images/menu/hat_shop.png")?;
 		let player_shop = texture_creator.load_texture("images/player/blue_slime_l.png")?;
+		let lock = texture_creator.load_texture("images/ui/lock.png")?;
 
 		let mut menu_state = MenuState::Title;
 		let mut exit = false;
 		let mut click_timer = Instant::now();
 		let mut credit_timer = Instant::now(); 
 		let mut credits_done = false; 
+
+		let mut read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    	let mut cowboy = &read_hats[..1];
+		let mut gnome = &read_hats[1..2];
+		let mut propeller = &read_hats[2..3];
+
+		let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
+		let font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
+
 		'menuloop: loop {
 			for event in self.core.event_pump.poll_iter() {
 				match event {
@@ -99,6 +111,7 @@ impl Game for ROGUELIKE  {
 					_ => {},
 				}
 			}
+
 			let mousestate= self.core.event_pump.mouse_state();
 			if mousestate.left() {
 				if click_timer.elapsed().as_millis() > 200 {
@@ -143,26 +156,66 @@ impl Game for ROGUELIKE  {
 						MenuState::Store => {
 							if mousestate.x() >= 900 && mousestate.x() <= 1200 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if self.modifier_type != ModifierType::Fast {
-										self.modifier_type = ModifierType::Fast;
+									if propeller == "t" {
+										if self.modifier_type != ModifierType::Fast {
+											self.modifier_type = ModifierType::Fast;
+										}
+										else { self.modifier_type = ModifierType::None; }
+									} else {
+										if self.game_data.blue_gold_count >= 10 {
+											self.game_data.blue_gold_count -= 10;
+											let others = &read_hats[..2];
+											let unlock = others.to_owned() + "t";
+											fs::write("hats.txt", unlock).expect("Unable to write file");
+											read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    										cowboy = &read_hats[..1];
+											gnome = &read_hats[1..2];
+											propeller = &read_hats[2..3];
+										}
 									}
-									else { self.modifier_type = ModifierType::None; }
-									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 100 && mousestate.x() <= 400 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if self.modifier_type != ModifierType::Heavy {
-										self.modifier_type = ModifierType::Heavy;
+									if cowboy == "t" {
+										if self.modifier_type != ModifierType::Heavy {
+											self.modifier_type = ModifierType::Heavy;
+										}
+										else { self.modifier_type = ModifierType::None; }
+									} else {
+										if self.game_data.blue_gold_count >= 10 {
+											self.game_data.blue_gold_count -= 10;
+											let others = &read_hats[1..3];
+											let unlock = "t".to_owned() + others;
+											fs::write("hats.txt", unlock).expect("Unable to write file");
+											read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    										cowboy = &read_hats[..1];
+											gnome = &read_hats[1..2];
+											propeller = &read_hats[2..3];
+										}
 									}
-									else { self.modifier_type = ModifierType::None; }
-									menu_state = MenuState::Title; 
 							} else if mousestate.x() >= 500 && mousestate.x() <= 800 &&
 								mousestate.y() >= 500 && mousestate.y() <= 628 {
-									if self.modifier_type != ModifierType::Healthy {
-										self.modifier_type = ModifierType::Healthy;
+									if gnome == "t" {
+										if self.modifier_type != ModifierType::Healthy {
+											self.modifier_type = ModifierType::Healthy;
+										}
+										else { self.modifier_type = ModifierType::None; }
+									} else {
+										if self.game_data.blue_gold_count >= 10 {
+											self.game_data.blue_gold_count -= 10;
+											let others_first = &read_hats[..1];
+											let others_last = &read_hats[2..3];
+											let unlock = others_first.to_owned() + "t" + others_last;
+											fs::write("hats.txt", unlock).expect("Unable to write file");
+											read_hats = fs::read_to_string("hats.txt").expect("Unable to read file");
+    										cowboy = &read_hats[..1];
+											gnome = &read_hats[1..2];
+											propeller = &read_hats[2..3];
+										}
 									}
-									else { self.modifier_type = ModifierType::None; }
-									menu_state = MenuState::Title; 
-							}
+							} else if mousestate.x() >= 20 && mousestate.x() <= 120 &&
+								mousestate.y() >= 660 && mousestate.y() <= 708 {
+									menu_state = MenuState::Title;
+								}
 						}
 						MenuState::Credits => {
 							menu_state = MenuState::Title; 
@@ -203,6 +256,85 @@ impl Game for ROGUELIKE  {
 							
 						}
 					}
+
+					if cowboy != "t" {
+						let cowboy_pos = Rect::new(340, 170, TILE_SIZE_64, TILE_SIZE_64);
+						let cowboy_src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+						self.core.wincan.copy(&lock, cowboy_src, cowboy_pos)?;
+
+						let cowboy_price = UI::new(
+							Rect::new(
+								280,
+								175,
+								(TILE_SIZE_64 as f64 * 0.8) as u32,
+								(TILE_SIZE_64 as f64 * 0.8) as u32,
+							),
+							texture_creator.load_texture("images/player/slime_old.png")?,
+						);
+						self.core.wincan.copy(cowboy_price.texture(), cowboy_price.src(), cowboy_price.pos())?;
+						let cowboy_price_text = font.render(format!("{}", 10).as_str()).blended(Color::WHITE).unwrap();
+						let display_cowboy_price = texture_creator.create_texture_from_surface(&cowboy_price_text).unwrap();
+						self.core.wincan.copy(&display_cowboy_price, None, Rect::new(cowboy_price.pos().x - 16 as i32, cowboy_price.pos().y + 12 as i32, 32, 48))?;
+					}
+
+					if gnome != "t" {
+						let gnome_pos = Rect::new(720, 170, TILE_SIZE_64, TILE_SIZE_64);
+						let gnome_src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+						self.core.wincan.copy(&lock, gnome_src, gnome_pos)?;
+
+						let gnome_price = UI::new(
+							Rect::new(
+								660,
+								175,
+								(TILE_SIZE_64 as f64 * 0.8) as u32,
+								(TILE_SIZE_64 as f64 * 0.8) as u32,
+							),
+							texture_creator.load_texture("images/player/slime_old.png")?,
+						);
+						self.core.wincan.copy(gnome_price.texture(), gnome_price.src(), gnome_price.pos())?;
+						let gnome_price_text = font.render(format!("{}", 10).as_str()).blended(Color::WHITE).unwrap();
+						let display_gnome_price = texture_creator.create_texture_from_surface(&gnome_price_text).unwrap();
+						self.core.wincan.copy(&display_gnome_price, None, Rect::new(gnome_price.pos().x - 16 as i32, gnome_price.pos().y + 12 as i32, 32, 48))?;
+					}
+
+					if propeller != "t" {
+						let propeller_pos = Rect::new(1120, 170, TILE_SIZE_64, TILE_SIZE_64);
+						let propeller_src = Rect::new(0, 0, TILE_SIZE_64, TILE_SIZE_64);
+						self.core.wincan.copy(&lock, propeller_src, propeller_pos)?;
+
+						let propeller_price = UI::new(
+							Rect::new(
+								1060,
+								175,
+								(TILE_SIZE_64 as f64 * 0.8) as u32,
+								(TILE_SIZE_64 as f64 * 0.8) as u32,
+							),
+							texture_creator.load_texture("images/player/slime_old.png")?,
+						);
+						self.core.wincan.copy(propeller_price.texture(), propeller_price.src(), propeller_price.pos())?;
+						let propeller_price_text = font.render(format!("{}", 10).as_str()).blended(Color::WHITE).unwrap();
+						let display_propeller_price = texture_creator.create_texture_from_surface(&propeller_price_text).unwrap();
+						self.core.wincan.copy(&display_propeller_price, None, Rect::new(propeller_price.pos().x - 16 as i32, propeller_price.pos().y + 12 as i32, 32, 48))?;
+					}
+
+					let blue_coin = UI::new(
+						Rect::new(
+							(CAM_W-(TILE_SIZE_64 as f64 * 1.0) as u32 - (TILE_SIZE_64 / 3) as u32) as i32,
+							(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32 + (TILE_SIZE_64 / 5) as u32) as i32,
+							(TILE_SIZE_64 as f64 * 0.8) as u32,
+							(TILE_SIZE_64 as f64 * 0.8) as u32,
+						),
+						texture_creator.load_texture("images/player/slime_old.png")?,
+					);
+					self.core.wincan.copy(blue_coin.texture(), blue_coin.src(), blue_coin.pos())?;
+					let blue_coin_count = font.render(format!("{}", self.game_data.blue_gold_count).as_str()).blended(Color::WHITE).unwrap();
+					let display_blue_coin_count = texture_creator.create_texture_from_surface(&blue_coin_count).unwrap();
+					self.core.wincan.copy(&display_blue_coin_count, None, Rect::new(blue_coin.pos().x - 16 as i32, blue_coin.pos().y + 12 as i32, 32, 48))?;
+
+					let back_text = "Back";
+					let back_button = font.render(&back_text).blended(Color::WHITE).unwrap();
+					let display_back_button = texture_creator.create_texture_from_surface( &back_button ).unwrap();
+					self.core.wincan.copy(&display_back_button, None, Rect::new(20 as i32, 660 as i32, 100, 48))?;
 				}
 				MenuState::Credits => {
 					for event in self.core.event_pump.poll_iter() {
@@ -421,9 +553,6 @@ impl Game for ROGUELIKE  {
 					let half = texture_creator.load_texture("images/ui/half_heart.png")?;
 					ui_textures.push(half);//3
 					ui_textures.push(texture_creator.load_texture("images/ui/mana.png")?	);//4
-
-					let ttf_creator = sdl2::ttf::init().map_err( |e| e.to_string() )?;
-					let font = ttf_creator.load_font("font/comic_sans.ttf", 80)?;
 
 					// MAIN GAME LOOP
 					'gameloop: loop {

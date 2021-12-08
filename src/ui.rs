@@ -88,7 +88,7 @@ impl<'a> UI<'a> {
 		//display mana
 		let mut mana = UI::new(
 			Rect::new(
-				(CAM_W-(TILE_SIZE_64*4)) as i32,
+				(CAM_W-(TILE_SIZE_64*5)) as i32,
 				(CAM_H-(TILE_SIZE_64)) as i32,
 				(TILE_SIZE_64 as f64 / 1.2) as u32,
 				(TILE_SIZE_64 as f64 / 1.2) as u32,
@@ -244,12 +244,26 @@ impl<'a> UI<'a> {
 			}
 			_ => {},
 		}
+
+		let blue_coin = UI::new(
+			Rect::new(
+				(CAM_W-(TILE_SIZE_64 as f64 * 3.0) as u32 - (TILE_SIZE_64 / 3) as u32) as i32,
+				(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32 + (TILE_SIZE_64 / 5) as u32) as i32,
+				(TILE_SIZE_64 as f64 * 0.8) as u32,
+				(TILE_SIZE_64 as f64 * 0.8) as u32,
+			),
+			texture_creator.load_texture("images/player/slime_old.png")?,
+		);
+		core.wincan.copy(blue_coin.texture(), blue_coin.src(), blue_coin.pos())?;
+		let blue_coin_count = get_font.render(format!("{}", game_data.blue_gold_count).as_str()).blended(Color::WHITE).unwrap();
+		let display_blue_coin_count = texture_creator.create_texture_from_surface(&blue_coin_count).unwrap();
+		core.wincan.copy(&display_blue_coin_count, None, Rect::new(blue_coin.pos().x - 16 as i32, blue_coin.pos().y + 12 as i32, 32, 48))?;
 	
 		// create coins
 		let coin = UI::new(
 			Rect::new(
-				(CAM_W-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
-				(CAM_H-(TILE_SIZE_64 as f64 *1.2) as u32) as i32,
+				(CAM_W-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
+				(CAM_H-(TILE_SIZE_64 as f64 * 1.2) as u32) as i32,
 				(TILE_SIZE_64 as f64 *1.2) as u32,
 				(TILE_SIZE_64 as f64 *1.2) as u32,
 			),
