@@ -110,8 +110,6 @@ impl<'a> Map<'a> {
 		self.enemy_and_object_spawns[7][BOSS_ROOM_W / 2] = 7;
 
 		self.add_color();
-
-		self.print_map(self.map);
 	}
 
 	// 1: create a new map
