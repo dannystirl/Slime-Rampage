@@ -730,7 +730,7 @@ impl Game for ROGUELIKE  {
 							}
 
 							// UPDATE UI
-							ui.update_ui(&player, &mut self.core, &map_data, &self.game_data)?;
+							ui.update_ui(&player, &mut self.core, &map_data, &self.game_data, &ui_textures, &font)?;
 							
 							// UPDATE FRAME
 							self.core.wincan.present();
