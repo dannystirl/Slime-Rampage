@@ -6,12 +6,9 @@ use sdl2::render::{Texture};
 use crate::player::*;
 use crate::rigidbody::*;
 use crate::player::Direction::{Down, Up, Left, Right};
-//use crate::rigidbody::*;
 use sdl2::rect::Point;
 use crate::projectile;
 use crate::projectile::*;
-
-//use sdl2::pixels;
 use crate::SDLCore;
 
 pub const EXPLODE_SPEED: f64 = 6.0;
@@ -122,7 +119,6 @@ impl Crate {
 					continue;
 				} else if map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 2 ||
 					map[(h as i32 + h_bounds_offset) as usize][(w as i32 + w_bounds_offset) as usize] == 5  {
-					//let p_pos = self.rb.pos();//this kind of works?
 					let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
 					let pen = &mut 0.0;
 					let mut wall = Rigidbody::new_static(w_pos, 0.0,0.0, 100.0);

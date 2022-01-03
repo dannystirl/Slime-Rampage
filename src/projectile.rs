@@ -1,7 +1,5 @@
 extern crate rogue_sdl;
 
-//use std::sync::Mutex;
-
 use crate::Player;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;

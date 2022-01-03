@@ -261,7 +261,6 @@ impl<'a> Map<'a> {
 									recurse[rec_length].2.3), 
 									recurse[rec_length].3 - 1);
 								if y > 2 && new_map[y-2][x] == 0 { 	// can move direction
-									//println!("North");
 									recurse.push((y-2,x,(false,false,true,false), 3));	// push a new point for recursion
 									rec_length+=1;
 									update = true;
@@ -283,7 +282,6 @@ impl<'a> Map<'a> {
 									recurse[rec_length].2.3), 
 									recurse[rec_length].3 - 1);
 								if x < MAP_SIZE_W - 2 && new_map[y][x+2] == 0 {
-									//println!("East");
 									recurse.push((y,x+2,(false,false,false,true), 3));
 									rec_length+=1;
 									update = true;
@@ -305,7 +303,6 @@ impl<'a> Map<'a> {
 									recurse[rec_length].2.3), 
 									recurse[rec_length].3 - 1);
 								if y < MAP_SIZE_H - 2 && new_map[y+2][x] == 0 {
-									//println!("South");
 									recurse.push((y+2,x,(true,false,false,false), 3));
 									rec_length+=1;
 									update = true;
@@ -327,7 +324,6 @@ impl<'a> Map<'a> {
 									true), 
 									recurse[rec_length].3 - 1);
 								if x > 2 && new_map[y][x-2] == 0{
-									//println!("West");
 									recurse.push((y,x-2,(false,true,false,false), 3));
 									rec_length+=1;
 									update = true;

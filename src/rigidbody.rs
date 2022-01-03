@@ -50,7 +50,6 @@ pub struct Rigidbody{
     pub radius: f64,
     pub s: bool,
     pub friction: f64,
-    //pub circle_center: Vector2D,
 }
 impl Copy for Rigidbody { }
 impl Clone for Rigidbody {
@@ -249,7 +248,7 @@ impl Rigidbody{
        
     }
 
-    //might use later for very fast objects
+    // IN PROGRESS: might use later for very fast objects
     /* fn swept(self, other: Rigidbody,  normal_x : &mut f64,  normal_y : &mut f64 )-> f64{//moving self and other is static
         let inv_entry_x : f64;
         let inv_entry_y : f64;

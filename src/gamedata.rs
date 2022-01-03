@@ -2,7 +2,6 @@ pub const DEVELOP: bool = false;
 pub const DEBUG: bool = false; 
 pub const DEBUG_NO_WALLS: bool = false;
 
-use rand::Rng;
 use sdl2::rect::Rect;
 use std::time::Instant;
 use std::fs;
@@ -11,7 +10,6 @@ use crate::gold::*;
 use crate::power::*;
 use crate::weapon::*;
 use crate::projectile::*;
-use crate::room::*;
 use crate::crateobj::*;
 
 // window globals
@@ -157,7 +155,6 @@ pub struct GameData {
     pub map_size_h: usize,
     pub current_floor: i32, 
     pub current_room: usize, // used to keep track of the room the player is in once we have multiple rooms
-    pub rooms: Vec<Room>,
 
     pub boss_killed: bool, 
 }
@@ -169,12 +166,6 @@ impl GameData {
         let map_size_h = 61;
         let current_floor = 1; // starting floor
         let current_room = 0; // starting room
-        let mut rooms: Vec<Room> = Vec::with_capacity(rand::thread_rng().gen_range(8..11));
-        let mut i = 0;
-        while i < rooms.capacity() {
-            rooms.push(Room::new());
-            i += 1;
-        }
 
         // global values:
         let speed_limit = 3.0;
@@ -207,7 +198,6 @@ impl GameData {
             dropped_weapons,
             player_projectiles,
             enemy_projectiles,
-            rooms,
             speed_limit,
             accel_rate,
             crates,

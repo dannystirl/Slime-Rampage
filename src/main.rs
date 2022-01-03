@@ -1,13 +1,8 @@
 extern crate rogue_sdl;
 use rogue_sdl::{Game, SDLCore};
 use vector::Vector2D;
-//use sdl2::audio::AudioSpecDesired;
-//use sdl2::audio::AudioSpecWAV;
-//use sdl2::audio::AudioCVT;
-//use sdl2::audio::AudioCallback;
 use std::time::Duration;
 use std::time::Instant;
-//use std::cmp;
 use std::collections::HashSet;
 use std::fs;
 use sdl2::event::Event;
@@ -19,7 +14,6 @@ use sdl2::render::{Texture};
 use sdl2::pixels::Color;
 use rand::Rng;
 use sdl2::mixer::{InitFlag, AUDIO_S16LSB, DEFAULT_CHANNELS};
-//use std::env;
 use std::path::Path;
 mod background;
 mod credits;
@@ -1166,9 +1160,9 @@ impl ROGUELIKE {
 				PowerType::Shield => {
 					if !player.get_shielded() && player.get_mana() >= player.get_power().mana_cost {
 						player.set_shielded(true);
-						// code for placeable shield. 
-						//let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, PowerType::Shield, 0);
-						//self.game_data.player_projectiles.push(bullet);
+						// IN PROGRESS code for placeable shield
+						/* let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, PowerType::Shield, 0);
+						self.game_data.player_projectiles.push(bullet); */
 					}
 				},
 				PowerType::Dash => {
@@ -1182,6 +1176,12 @@ impl ROGUELIKE {
                         self.game_data.player_projectiles.push(rock);
                     }
                 },
+				/* PowerType::Wall => { // placeable shield IN PROGRESS
+					if player.get_mana() >= player.get_power().mana_cost {
+						let bullet = player.fire(player.x() as i32, player.y() as i32, 0.0, PowerType::Wall, 0);
+						self.game_data.player_projectiles.push(bullet); 
+					}
+				}, */
 				_ => {},
 			}
 		}
@@ -1300,8 +1300,6 @@ impl ROGUELIKE {
 		}
 		// FOR TESTING ONLY: USE TO FOR PRINT VALUES
 		if keystate.contains(&Keycode::P) {
-			//println!("\nx:{} y:{} ", enemies[0].x() as i32, enemies[0].y() as i32);
-			//println!("{} {} {} {}", enemies[0].x() as i32, enemies[0].x() as i32 + (enemies[0].width() as i32), enemies[0].y() as i32, enemies[0].y() as i32 + (enemies[0].height() as i32));
 			println!("{} {}", player.x(), player.y());	
 			for item in map_data.shop_spawns.iter() {
 				let pos = Rect::new((item.1 as i32) * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) / 2,
@@ -1624,30 +1622,20 @@ impl ROGUELIKE {
 						//starting time, how many time for each frame, row of the pic, col of the pic, size of each frame
 						let s = ROGUELIKE::display_animation(time, 4, 6, 6, TILE_SIZE);
 
-						if mousestate.x() > player.get_cam_pos().x() && time == 0{
+						if mousestate.x() > player.get_cam_pos().x() && time == 0 {
 							projectile.facing_right = true;
-							if mousestate.y() < player.get_cam_pos().y(){//1st quadrant
-								//println!("NE");
+							if mousestate.y() < player.get_cam_pos().y() { //1st quadrant
 								projectile.angle = projectile.angle- 2.0*projectile.angle;
-								//projectile.facing_up = true;
 							}
-							
-						}else if mousestate.x() < player.get_cam_pos().x()  && time == 0{
+						} else if mousestate.x() < player.get_cam_pos().x()  && time == 0 {
 							projectile.facing_right = false;
-							if mousestate.y() < player.get_cam_pos().y(){//2nd quadrant
+							if mousestate.y() < player.get_cam_pos().y() { //2nd quadrant
 								projectile.angle = projectile.angle - 180.0;
 							
-							}else if mousestate.y() > player.get_cam_pos().y(){//third quadrant
+							} else if mousestate.y() > player.get_cam_pos().y() { //third quadrant
 								projectile.angle = projectile.angle- 2.0*projectile.angle - 180.0;
 							}
 						}
-						/*
-						if mousestate.y() > player.get_cam_pos().y() && time == 0{
-							//projectile.facing_up = false;
-						}else if mousestate.y() < player.get_cam_pos().y()  && time == 0{
-							//projectile.facing_up = true;
-						}
-						*/
 						projectile.elapsed += 1;
 						if projectile.elapsed == 127 {projectile.die();}
 
@@ -1743,7 +1731,7 @@ impl ROGUELIKE {
 				self.core.wincan.copy_ex(&dagger_texture, None, pos, angle, rotation_point,
 					player.facing_right, false).unwrap();
 			},
-			WeaponType::None => {} // this should never occur. 
+			WeaponType::None => {}
 		}
 	}
 
