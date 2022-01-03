@@ -24,7 +24,6 @@ mod power;
 mod weapon;
 mod player;
 mod projectile;
-mod room;
 mod map;
 mod ui;
 mod crateobj;

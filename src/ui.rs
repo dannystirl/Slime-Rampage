@@ -102,8 +102,8 @@ impl<'a> UI<'a> {
 			2 => cur_mana = 32 * 2,
 			3 => cur_mana = 32 * 3,
 			4 => cur_mana = 32 * 4,
-			5..=10 => cur_mana = 32 * 4, // in case theres mana upgrades
-			_ => cur_mana = 32 * 0,		 // in case theres less than 0 mana somehow. 
+			5..=10 => cur_mana = 32 * 4, 
+			_ => cur_mana = 32 * 0,		 // in case there's less than 0 mana somehow. 
 		}
 		let mana_src = Rect::new(cur_mana, 0, TILE_SIZE_HALF, TILE_SIZE_HALF);
 		mana.set_src(mana_src);
