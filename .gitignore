@@ -5,5 +5,9 @@
 
 # Added by cargo
 /target
+
+# Prevent transferring save data
 currency.txt
 .currency.txt
+hats.txt
+.hats.txt
