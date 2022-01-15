@@ -75,4 +75,8 @@ impl Weapon {
             _ => { self.damage = 2; self.attack_cooldown = 300; self.attack_length = TILE_SIZE_CAM * 3/2; }
         }
     }
+
+    pub fn upgrade_weapon_damage(&mut self, damage: i32) {
+        self.damage += damage; 
+    }
 }

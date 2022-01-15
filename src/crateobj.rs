@@ -1,15 +1,18 @@
 extern crate rogue_sdl;
-use crate::gamedata::*;
-use crate::vector::Vector2D;
+use crate::SDLCore;
+use rand::Rng;
 use sdl2::rect::Rect;
-use sdl2::render::{Texture};
-use crate::player::*;
-use crate::rigidbody::*;
-use crate::player::Direction::{Down, Up, Left, Right};
 use sdl2::rect::Point;
+use crate::vector::Vector2D;
+use sdl2::render::{Texture};
+use crate::player::Direction::{Down, Up, Left, Right};
+
+use crate::gamedata::*;
+use crate::player::*;
+use crate::power::*;
+use crate::rigidbody::*;
 use crate::projectile;
 use crate::projectile::*;
-use crate::SDLCore;
 
 pub const EXPLODE_SPEED: f64 = 6.0;
 
@@ -298,8 +301,21 @@ impl Crate {
 	// Method for explosive crate.
 	pub fn explode(&mut self, elapsed: u128) -> Vec<Projectile>{
 		self.active = false;
-		let mut shrapnel: Vec<Projectile> = Vec::with_capacity(69);
+		let mut shrapnel: Vec<Projectile> = Vec::with_capacity(20);
+		let shards = rand::thread_rng().gen_range(7..20);
+
 		for i in 0..8 {
+			/* let scrap = projectile::Projectile::new(
+				Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y - 40.0) as i32,
+						  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+				false,
+				vec!(f64::sin(360.0/i as f64) * EXPLODE_SPEED, -f64::cos(360.0/i as f64) * EXPLODE_SPEED), 
+				PowerType::Shrapnel,
+				elapsed,
+				360.0/i as f64
+			);
+			shrapnel.push(scrap); */
+			println!("x: {}, y: {}", f64::sin(360.0/i as f64) * EXPLODE_SPEED, -f64::cos(360.0/i as f64) * EXPLODE_SPEED);  
 			// N
 			if i == 0 {
 				let scrap = projectile::Projectile::new(

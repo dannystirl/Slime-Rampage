@@ -53,17 +53,6 @@ pub const SHIELD_TIME: u128 = 1800;         // how long player shield lasts
 pub const FIRE_COOLDOWN_E: u128 = 2500;     // how quickly enemy can attack
 
 #[derive(PartialEq, Debug, Copy, Clone)]
-pub enum PowerType {
-    None,
-    Fireball,
-    Slimeball,
-    Shield,
-    Dash,
-    Rock,
-    Shrapnel,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum CrateType {
     Explosive, 
     Heavy, 
@@ -146,7 +135,6 @@ pub struct GameData {
     pub blue_gold: Vec<Gold>,
     pub blue_gold_count: u32, // permanent currency
     pub dropped_powers: Vec<Power>,
-    pub dropped_weapons: Vec<Weapon>,
     pub player_projectiles: Vec<Projectile>,
     pub enemy_projectiles: Vec<Projectile>,
     pub crates: Vec<Crate>,
@@ -164,7 +152,7 @@ impl GameData {
         // creating a level: room data
         let map_size_w = 61;
         let map_size_h = 61;
-        let current_floor = 1; // starting floor
+        let current_floor = 2; // starting floor
         let current_room = 0; // starting room
 
         // global values:
@@ -175,7 +163,6 @@ impl GameData {
         let gold: Vec<Gold> = Vec::with_capacity(5);
         let blue_gold: Vec<Gold> = Vec::with_capacity(10);
         let dropped_powers: Vec<Power> = Vec::new();
-        let dropped_weapons: Vec<Weapon> = Vec::new();
         let player_projectiles: Vec<Projectile> = Vec::with_capacity(5);
         let enemy_projectiles: Vec<Projectile> = Vec::with_capacity(4);
         let crates: Vec<Crate> = Vec::<Crate>::with_capacity(5);
@@ -195,7 +182,6 @@ impl GameData {
             blue_gold, 
             blue_gold_count, 
             dropped_powers,
-            dropped_weapons,
             player_projectiles,
             enemy_projectiles,
             speed_limit,

@@ -70,7 +70,7 @@ pub struct Player<'a> {
 	pub class: PlayerType, 
 	hp: i32,
 	mana: i32,
-	weapon: Weapon,
+	pub weapon: Weapon,
 	pub power: Power,
 	coins: u32,
 	pub speed_delta: f64, 
@@ -170,7 +170,7 @@ impl<'a> Player<'a> {
 		let mana = max_mana;
 		let mut coins: u32 = 0; 
 		if DEBUG {
-			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock); 
+			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield); 
 			coins = 30; 
 		}
 		// check values
@@ -567,10 +567,6 @@ impl<'a> Player<'a> {
 		self.weapon = Weapon::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), weapon_type); 
 	}
 
-	pub fn set_weapon_damage(&mut self, damage: i32) {
-        self.weapon.damage = damage; 
-    }
-
     pub fn get_weapon_damage(&mut self) -> i32 {
         return self.weapon.damage 
     }
@@ -628,6 +624,7 @@ impl<'a> Player<'a> {
 		self.shield_timer = Instant::now();
 		self.mana -= 3;
 		self.shielded = b;
+		println!("shield: {}", b); 
 	}
 
 	pub fn get_shielded(&self) -> bool {

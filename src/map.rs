@@ -45,7 +45,7 @@ impl<'a> Map<'a> {
 		let numbered_map = [[0; MAP_SIZE_W]; MAP_SIZE_H]; 
 		let colored_map = [[(8,8); MAP_SIZE_W]; MAP_SIZE_H]; 
 		let room_sizes = Vec::with_capacity(0);
-		let num_rooms=1; 
+		let num_rooms = 1; 
 		let starting_room = 1;
 		let starting_position = (0.0,0.0);
 		let ending_room = 2;
@@ -566,15 +566,15 @@ impl<'a> Map<'a> {
 								// type, purchased, cost
 								match item {
 									1..=3 => {
-										self.shop_items.push((ShopItems::Fireball, false, 4)); 
+										self.shop_items.push((ShopItems::Fireball, false, 5)); 
 										self.shop_creation.extend(1..=3); 
 									}
 									4..=5 => {
-										self.shop_items.push((ShopItems::Slimeball, false, 3)); 
+										self.shop_items.push((ShopItems::Slimeball, false, 6)); 
 										self.shop_creation.extend(4..=5); 
 									}
 									6 => {
-										self.shop_items.push((ShopItems::Shield, false, 6)); 
+										self.shop_items.push((ShopItems::Shield, false, 8)); 
 										self.shop_creation.push(6); 
 									}
 									7 => {
@@ -582,7 +582,7 @@ impl<'a> Map<'a> {
 										self.shop_creation.push(7); 
 									}
 									8 => {
-										self.shop_items.push((ShopItems::HealthUpgrade, false, 7)); 
+										self.shop_items.push((ShopItems::HealthUpgrade, false, 10)); 
 										self.shop_creation.push(8); 
 									}
 									9..=10 => {
@@ -598,15 +598,15 @@ impl<'a> Map<'a> {
 										self.shop_creation.extend(13..=14); 
 									}
 									15 => {
-                                        self.shop_items.push((ShopItems::Rock, false, 10));
+                                        self.shop_items.push((ShopItems::Rock, false, 12));
                                         self.shop_creation.push(13);
                                     }
 									16 => {
-										self.shop_items.push((ShopItems::ManaUpgrade, false, 9)); 
+										self.shop_items.push((ShopItems::ManaUpgrade, false, 10)); 
 										self.shop_creation.push(16); 
 									}
 									_ => {
-										self.shop_items.push((ShopItems::Health, false, 4)); 
+										self.shop_items.push((ShopItems::Health, false, 6)); 
 										self.shop_creation.push(item); 
 									}
 								}

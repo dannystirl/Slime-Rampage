@@ -564,14 +564,14 @@ impl Game for ROGUELIKE  {
 							),
 						);
 						let mut map_data = map::Map::new(self.game_data.current_floor, background);
-						if self.game_data.current_floor == 4 {
+						if self.game_data.current_floor == 4 {	// boss level
 							map_data.create_boss();
-						} else if self.game_data.current_floor == 5 {
+						} else if self.game_data.current_floor == 5 {	// post boss level
 							let store = self.game_data.blue_gold_count.to_string();
 							fs::write("currency.txt", store).expect("Unable to write file");
 							self.game_data = GameData::new();
 							break 'gameloop; 
-						} else {
+						} else {	// regular levels
 							map_data.create_map();
 						}
 
@@ -582,7 +582,6 @@ impl Game for ROGUELIKE  {
 						// reset arrays
 						self.game_data.crates = Vec::<Crate>::with_capacity(0);
 						self.game_data.dropped_powers = Vec::<Power>::with_capacity(0);
-						self.game_data.dropped_weapons = Vec::<Weapon>::with_capacity(0);
 						self.game_data.gold = Vec::<Gold>::with_capacity(0);
 						self.game_data.blue_gold = Vec::<Gold>::with_capacity(0);
 						self.game_data.player_projectiles = Vec::<Projectile>::with_capacity(0);
@@ -637,7 +636,7 @@ impl Game for ROGUELIKE  {
 												TILE_SIZE_CAM
 											),
 											texture_creator.load_texture("images/enemies/ranged_enemy.png")?,
-											EnemyType::Ranged,
+											EnemyType::Gellem,
 											enemy_count,
 											self.game_data.current_floor, 
 										);
@@ -646,7 +645,8 @@ impl Game for ROGUELIKE  {
 										enemy_count += 1;
 									}
 									3 => {
-										let roll= rng.gen_range(0..12);
+										let roll= rng.gen_range(0..10);
+										let roll= 5; // REVERT
 										let c: crateobj::Crate; 
 										match roll {
 											0..=2 => {
@@ -660,7 +660,7 @@ impl Game for ROGUELIKE  {
 													CrateType::Heavy, 
 												); 
 											}
-											3..=4 => {
+											3..=5 => {
 												c = crateobj::Crate::new(
 													Rect::new(
 														w as i32 * TILE_SIZE as i32 - (CAM_W as i32 - TILE_SIZE as i32) /2,
@@ -756,6 +756,16 @@ impl Game for ROGUELIKE  {
 									_ => {}
 								}
 							}
+						}
+
+						if DEBUG {
+							let mut total_health = 0; 
+							for enemy in enemies.iter_mut() {
+								total_health += enemy.hp; 
+							}
+							println!("average enemy health of {} enemies on floor {}: {}", enemy_count as i32, self.game_data.current_floor, total_health/enemy_count as i32)
+							// average floor 1 health: 15
+							// enemies gain about 12 health per level
 						}
 
 						let mut all_frames = 0;
@@ -1043,25 +1053,6 @@ impl ROGUELIKE {
 			}
 		}
 
-		// draw weapons
-		for weapon in self.game_data.dropped_weapons.iter_mut() {
-			let pos = Rect::new(weapon.x() as i32 + (CENTER_W - player.x() as i32),
-								weapon.y() as i32 + (CENTER_H - player.y() as i32),
-								TILE_SIZE_POWER, TILE_SIZE_POWER);
-			match weapon.weapon_type() {
-				WeaponType::Sword => {
-					self.core.wincan.copy_ex(&sword_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
-				},
-				WeaponType::Spear => {
-					self.core.wincan.copy_ex(&spear_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
-				},
-				WeaponType::Dagger => {
-					self.core.wincan.copy_ex(&dagger_texture, weapon.src(), pos, 0.0, None, false, false).unwrap();
-				},
-				_ => {} 
-			}
-		}
-
 		// draw shop items
 		let mut i = 0; 
 		while i < map_data.shop_spawns.len() {
@@ -1114,6 +1105,7 @@ impl ROGUELIKE {
 	}
 
 	// check input values
+	#[allow(unused_assignments)]
 	pub fn check_inputs(&mut self, keystate: &HashSet<Keycode>, mousestate: MouseState, mut player: &mut Player, fps_avg: f64, map_data: &mut Map)-> Result<(), String>  {
 		// move up
 		if keystate.contains(&Keycode::W) {
@@ -1212,6 +1204,8 @@ impl ROGUELIKE {
 						(player.get_coins() >= map_data.shop_items[i].2 || map_data.shop_items[i].1 == true ) {
 							player.reset_pickup_timer();
 							player.sub_coins(map_data.shop_items[i].2);
+							// [i].0 - item type
+							// [i].1 - item has been purchased. used for selectable items 
 							match map_data.shop_items[i].0 {
 								ShopItems::Fireball => {
 									player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball));
@@ -1233,8 +1227,7 @@ impl ROGUELIKE {
 										if player.get_weapon().weapon_type != WeaponType::Sword {
 											player.set_weapon(WeaponType::Sword)
 										} else {
-											let damage = player.get_weapon_damage(); 
-											player.set_weapon_damage(damage+2);
+											player.weapon.upgrade_weapon_damage(5);
 										}
 									}
 								}
@@ -1243,8 +1236,7 @@ impl ROGUELIKE {
 										if player.get_weapon().weapon_type != WeaponType::Spear {
 											player.set_weapon(WeaponType::Spear)
 										} else {
-											let damage = player.get_weapon_damage(); 
-											player.set_weapon_damage(damage+4);
+											player.weapon.upgrade_weapon_damage(8);
 										}
 									}
 								}
@@ -1270,22 +1262,6 @@ impl ROGUELIKE {
 							break;
 						}
 						i+=1; 
-					}
-				}
-				if !picked_up {
-					for drop in self.game_data.dropped_weapons.iter_mut() {
-						if check_collision(&player.pos(), &drop.pos()) && player.get_pickup_timer() > 1000 {
-							player.reset_pickup_timer();
-							let weapon_type = drop.weapon_type; 
-							if player.get_weapon().weapon_type != weapon_type {
-								player.set_weapon(weapon_type)
-							} else {
-								let damage = player.get_weapon_damage(); 
-								player.set_weapon_damage(damage+15);
-							}
-							drop.set_weapon_type(weapon_type);
-							break;
-						}
 					}
 				}
 			}
@@ -1374,7 +1350,7 @@ impl ROGUELIKE {
 							match c.crate_type {
 								CrateType::Explosive => {
 									if c.rb.vel.length() > (c.killing_weight) * 7.0 {
-										let  scraps = c.explode(0);
+										let scraps = c.explode(0);
 										for scrap in scraps {
 											explosion_shrapnel.push(scrap);
 										}
@@ -1451,7 +1427,7 @@ impl ROGUELIKE {
 					let pen = &mut 0.0;
 					if c.is_active() {
 						if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) && projectile.is_active() {
-							if projectile.is_flammable() && c.crate_type == CrateType::Explosive {
+							if projectile.power.flammable && c.crate_type == CrateType::Explosive {
 								// Explode
 								let  scraps = c.explode(0);
 								for scrap in scraps {
@@ -1500,11 +1476,17 @@ impl ROGUELIKE {
 			}
 			// ENEMY PROJECTILE vs CRATES
 			for c in self.game_data.crates.iter_mut(){
+				let normal_collision = &mut Vector2D{x : 0.0, y : 0.0};
+				let pen = &mut 0.0;
 				if c.is_active() {
-					let normal_collision = &mut Vector2D { x: 0.0, y: 0.0 };
-					let pen = &mut 0.0;
 					if c.rb.rect_vs_circle(projectile.rb, normal_collision, pen) && projectile.is_active() {
-						c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen);
+						if projectile.power.flammable && c.crate_type == CrateType::Explosive {
+							// Explode
+							let  scraps = c.explode(0);
+							for scrap in scraps {
+								explosion_shrapnel.push(scrap);
+							}
+						} else { c.rb.resolve_col(&mut projectile.rb, *normal_collision, *pen); }
 						projectile.inc_bounce();
 					}
 				}
@@ -1546,13 +1528,6 @@ impl ROGUELIKE {
 			}
 		}
 		player.set_can_pickup(can_pickup);
-		let mut can_pickup_weapon = false;
-		for drop in self.game_data.dropped_weapons.iter_mut() {
-			if check_collision(&player.pos(), &drop.pos()) {
-				can_pickup_weapon = true;
-			}
-		}
-		player.set_can_pickup_weapon(can_pickup_weapon);
 		let mut can_pickup_shop = false;
 		let mut price = 0;
 		let mut i = 0; 

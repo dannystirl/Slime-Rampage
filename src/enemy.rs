@@ -12,12 +12,12 @@ use rand::Rng;
 use crate::{gold};
 use crate::{power};
 use crate::gold::Gold;
-use crate::power::Power;
+use crate::power::*;
 use crate::rigidbody::{Rigidbody};
 
 pub enum EnemyType{
 	Melee,
-	Ranged,
+	Gellem,
 	Skeleton,
 	Eyeball,
 	Rock,
@@ -47,6 +47,7 @@ pub struct Enemy<'a> {
 	pub hp: i32,
 	pub collision_damage: i32, 
 	pub power: Power,
+	pub ranged: bool, // enemy has ranged or collision attack
 	stun_time: u128, 
 	knockback_vel: f64,
 	pub speed_delta: f64, 
@@ -77,19 +78,26 @@ pub struct Enemy<'a> {
 		let collision_damage: i32; 
 		let power: Power; 
 		let money: i32; 
+		let ranged: bool; 
 		match enemy_type {
-			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 15.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=5; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None); money=1; }
-			EnemyType::Ranged => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 12.0; speed_delta = 0.5 ; aggro_range = 5.0; collision_damage=3; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball); money=2;}
-			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 10*(floor_modifier-1); knockback_vel = 3.0; speed_delta = 0.2 ; aggro_range = 7.0; collision_damage=8; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield); money=3;}
-			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 10*(floor_modifier-1); knockback_vel = 10.0; speed_delta = 1.0 ; aggro_range = 6.0; collision_damage=3; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); money=1;}
-			EnemyType::Rock => { stun_time = 250; hp = 20 + 10*(floor_modifier-1); knockback_vel = 5.0; speed_delta = 0.3 ; aggro_range = 6.0; collision_damage=3; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock); money=3;}
-			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; speed_delta = 0.3 ; aggro_range = 100.0; collision_damage=10; 
-				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None); money=10;}
+			EnemyType::Melee => { stun_time = 500; hp = 15 + 10*(floor_modifier-1); knockback_vel = 15.0; 
+				speed_delta = 0.5 ; aggro_range = 6.0; collision_damage=5; money=1; ranged = false; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None); }
+			EnemyType::Gellem => { stun_time = 250; hp = 10 + 10*(floor_modifier-1); knockback_vel = 12.0; 
+				speed_delta = 0.5 ; aggro_range = 6.0; collision_damage=3; money=2; ranged = true; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Slimeball); }
+			EnemyType::Skeleton => { stun_time = 100; hp = 30 + 12*(floor_modifier-1); knockback_vel = 3.0; 
+				speed_delta = 0.2 ; aggro_range = 5.0; collision_damage=8; money=3; ranged = false; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield); }
+			EnemyType::Eyeball => { stun_time = 200; hp = 10 + 7*(floor_modifier-1); knockback_vel = 10.0; 
+				speed_delta = 1.0 ; aggro_range = 8.0; collision_damage=3; money=1;  ranged = false; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Dash); }
+			EnemyType::Rock => { stun_time = 250; hp = 20 + 15*(floor_modifier-1); knockback_vel = 5.0; 
+				speed_delta = 0.3 ; aggro_range = 9.0; collision_damage=3; money=3; ranged = true; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Rock);}
+			EnemyType::Boss => { stun_time = 50; hp = 150; knockback_vel = 0.0; 
+				speed_delta = 0.3 ; aggro_range = 100.0; collision_damage=10; money=10; ranged = false; 
+				power=Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::None);}
 		}
 
 		Enemy {
@@ -110,6 +118,7 @@ pub struct Enemy<'a> {
 			hp,
 			collision_damage, 
 			power, 
+			ranged, 
 			alive,
 			is_firing,
 			enemy_type,
@@ -207,7 +216,7 @@ pub struct Enemy<'a> {
 				EnemyType::Melee => {
 					self.aggro(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
-				EnemyType::Ranged => {
+				EnemyType::Gellem => {
 					self.flee(x.into(), y.into(), game_data.get_speed_limit() * self.speed_delta);
 				}
 				EnemyType::Skeleton => {
@@ -476,81 +485,40 @@ pub struct Enemy<'a> {
 	// attacking
 	pub fn check_attack(&mut self, game_data: &mut GameData, (x,y): (f64, f64)) {
 		let mut rng = rand::thread_rng();
-		match self.enemy_type {
-			EnemyType::Ranged=>{
-				if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < 8.0 {	// only fire if close enough
-					if self.get_fire_timer() > self.get_fire_cooldown() {
-						self.set_fire_cooldown();
-						let fire_chance = rng.gen_range(1..60);
-						if fire_chance < 5 { // chance to fire
-							self.fire(); // sets is firing true
-							let vec = vec![x - self.x(), y - self.y()];
-							let angle = ((vec[0] / vec[1]).abs()).atan();
-							let mut x = &game_data.get_speed_limit() * angle.sin();
-							let mut y = &game_data.get_speed_limit() * angle.cos();
-							if vec[0] < 0.0 {
-								x *= -1.0;
-							}
-							if vec[1] < 0.0  {
-								y *= -1.0;
-							}
-							let bullet = Projectile::new(
-								Rect::new(
-									self.rb.hitbox.x as i32,
-									self.rb.hitbox.y as i32,
-									TILE_SIZE_PROJECTILE,
-									TILE_SIZE_PROJECTILE,
-								),
-								true,
-								vec![x,y],
-								PowerType::Slimeball,
-								0,//elapsed
-								0.0
-							);
-						game_data.enemy_projectiles.push(bullet);
+		if self.ranged {
+			if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < self.aggro_range {	// only fire if close enough
+				if self.get_fire_timer() > self.get_fire_cooldown() {
+					self.set_fire_cooldown();
+					let fire_chance = rng.gen_range(1..60);
+					if fire_chance < 5 { // chance to fire
+						self.fire(); // sets is firing true
+						let vec = vec![x - self.x(), y - self.y()];
+						let angle = ((vec[0] / vec[1]).abs()).atan();
+						let mut x = &game_data.get_speed_limit() * angle.sin();
+						let mut y = &game_data.get_speed_limit() * angle.cos();
+						if vec[0] < 0.0 {
+							x *= -1.0;
 						}
+						if vec[1] < 0.0  {
+							y *= -1.0;
+						}
+						let bullet = Projectile::new(
+							Rect::new(
+								self.rb.hitbox.x as i32,
+								self.rb.hitbox.y as i32,
+								TILE_SIZE_PROJECTILE,
+								TILE_SIZE_PROJECTILE,
+							),
+							true,
+							vec![x,y],
+							self.power.power_type, 
+							0,//elapsed
+							0.0
+						);
+					game_data.enemy_projectiles.push(bullet);
 					}
 				}
 			}
-            EnemyType::Rock=>{
-				if (self.radius_from_point((x,y)) / TILE_SIZE as f64) < 8.0 {	// only fire if close enough
-					if self.get_fire_timer() > self.get_fire_cooldown() {
-						self.set_fire_cooldown();
-						let fire_chance = rng.gen_range(1..60);
-						if fire_chance < 3 { // chance to fire
-							self.fire(); // sets is firing true
-							let vec = vec![x - self.x(), y - self.y()];
-							let angle = ((vec[0] / vec[1]).abs()).atan();
-							let mut x = &game_data.get_speed_limit() * angle.sin();
-							let mut y = &game_data.get_speed_limit() * angle.cos();
-							if vec[0] < 0.0 {
-								x *= -1.0;
-							}
-							if vec[1] < 0.0  {
-								y *= -1.0;
-							}
-							let rock = Projectile::new(
-								Rect::new(
-									self.pos().x(),
-									self.pos().y(),
-									TILE_SIZE_PROJECTILE,
-									TILE_SIZE_PROJECTILE,
-								),
-								true,
-								vec![x,y],
-								PowerType::Rock,
-								0,//elapsed
-								0.0
-							);
-						game_data.enemy_projectiles.push(rock);
-						}
-					}
-				}
-			}
-            EnemyType::Eyeball => {}
-			EnemyType::Melee => {}
-			EnemyType::Skeleton => {}
-			EnemyType::Boss => {}
 		}
 	}
 
@@ -668,7 +636,7 @@ pub struct Enemy<'a> {
 					PowerType::Fireball,
 				);
 			},
-			EnemyType::Ranged => {
+			EnemyType::Gellem => {
 				power = power::Power::new(
 					Rect::new(
 						self.x() as i32,

@@ -7,6 +7,7 @@ use crate::SDLCore;
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture};
 use crate::weapon::*;
+use crate::power::*;
 use crate::map::*;
 use sdl2::pixels::Color;
 use sdl2::ttf::Font;
