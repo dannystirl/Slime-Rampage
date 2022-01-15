@@ -15,7 +15,7 @@ pub enum PowerType {
     None,
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Power {
     pos: Rect,
     src: Rect,

@@ -585,7 +585,11 @@ impl<'a> Player<'a> {
 	}
 
 	pub fn set_power(&mut self, power: Power) {
-		self.power = power;
+		if self.power == power {
+			self.power.upgrade_power_damage(self.power.damage/2)
+		} else {
+			self.power = power;
+		}
 	}
 
 	pub fn can_pickup(&self) -> bool {

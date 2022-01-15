@@ -1193,6 +1193,7 @@ impl ROGUELIKE {
 							player.sub_coins(map_data.shop_items[i].2);
 							// [i].0 - item type
 							// [i].1 - item has been purchased. used for selectable items 
+							// set power upgrades the power by default if it matches the player's current power
 							match map_data.shop_items[i].0 {
 								ShopItems::Fireball => {
 									player.set_power(Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball));
