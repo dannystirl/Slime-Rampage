@@ -558,12 +558,11 @@ impl<'a> Map<'a> {
 							if !self.shop_spawns.contains(&(h,w)) {
 								new_map[h][w] = 6;
 								self.shop_spawns.push((h,w)); 
-								// should ensure no duplicate powers at some point
-								let mut item = rng.gen_range(1..9);
+								let mut item = rng.gen_range(1..21);
 								while self.shop_creation.contains(&item) {
 									item = rng.gen_range(1..21);
 								}
-								// type, purchased, cost
+								// type, purchased (false), cost
 								match item {
 									1..=3 => {
 										self.shop_items.push((ShopItems::Fireball, false, 5)); 
@@ -599,7 +598,7 @@ impl<'a> Map<'a> {
 									}
 									15 => {
                                         self.shop_items.push((ShopItems::Rock, false, 12));
-                                        self.shop_creation.push(13);
+                                        self.shop_creation.push(15);
                                     }
 									16 => {
 										self.shop_items.push((ShopItems::ManaUpgrade, false, 10)); 

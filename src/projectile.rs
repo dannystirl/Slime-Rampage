@@ -171,24 +171,28 @@ impl Projectile {
 				Direction::Up=>{
 					if self.y_vel() < 0.0 {
 						self.set_y_vel(-self.y_vel());
+						self.angle = -self.angle;
 						self.inc_bounce();
 					}
 				}
 				Direction::Down=>{
 					if self.y_vel() > 0.0 {
 						self.set_y_vel(-self.y_vel());
+						self.angle = -self.angle;
 						self.inc_bounce();
 					}
 				}
 				Direction::Right=>{
 					if self.x_vel() > 0.0 {
 						self.set_x_vel(-self.x_vel());
+						self.angle = -self.angle;
 						self.inc_bounce();
 					}
 				}
 				Direction::Left=>{
 					if self.x_vel() < 0.0 {
 						self.set_x_vel(-self.x_vel());
+						self.angle = -self.angle;
 						self.inc_bounce();
 					}
 				}

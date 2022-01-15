@@ -14,7 +14,7 @@ use crate::rigidbody::*;
 use crate::projectile;
 use crate::projectile::*;
 
-pub const EXPLODE_SPEED: f64 = 6.0;
+pub const EXPLODE_SPEED: f64 = 600.0; // actual value is x/100
 
 pub struct Crate{
 	src: Rect,
@@ -301,126 +301,29 @@ impl Crate {
 	// Method for explosive crate.
 	pub fn explode(&mut self, elapsed: u128) -> Vec<Projectile>{
 		self.active = false;
-		let mut shrapnel: Vec<Projectile> = Vec::with_capacity(20);
-		let shards = rand::thread_rng().gen_range(7..20);
+		let mut shrapnel: Vec<Projectile> = Vec::with_capacity(13);
+		let shards = rand::thread_rng().gen_range(7..13);
+		for i in 0..shards {
+			let deg = i as f64 * 360.0 / shards as f64; 
+			let rad = deg * std::f32::consts::PI as f64/180.0; 
+			println!("x: {}, y: {}", 
+			(f64::cos(rad)*EXPLODE_SPEED).round()/100.0, 
+			(f64::sin(rad)*EXPLODE_SPEED).round()/100.0); 
 
-		for i in 0..8 {
-			/* let scrap = projectile::Projectile::new(
-				Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y - 40.0) as i32,
-						  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
+			let scrap = projectile::Projectile::new(
+				Rect::new(self.rb.hitbox.x as i32 + ((f64::cos(rad)*20.0).round()) as i32, 
+						  self.rb.hitbox.y as i32 + ((f64::sin(rad)*20.0).round()) as i32,
+						  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE),
 				false,
-				vec!(f64::sin(360.0/i as f64) * EXPLODE_SPEED, -f64::cos(360.0/i as f64) * EXPLODE_SPEED), 
+				vec!((f64::cos(rad)*EXPLODE_SPEED).round()/100.0, 
+					 (f64::sin(rad)*EXPLODE_SPEED).round()/100.0), 
 				PowerType::Shrapnel,
 				elapsed,
-				360.0/i as f64
+				deg - 90.0, 
 			);
-			shrapnel.push(scrap); */
-			println!("x: {}, y: {}", f64::sin(360.0/i as f64) * EXPLODE_SPEED, -f64::cos(360.0/i as f64) * EXPLODE_SPEED);  
-			// N
-			if i == 0 {
-				let scrap = projectile::Projectile::new(
-					Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y - 40.0) as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![0.0, -EXPLODE_SPEED],
-					PowerType::Shrapnel,
-					elapsed,
-					0.0
-				);
-				shrapnel.push(scrap);
-			}
-			// NE
-			if i == 1 {
-				let scrap = projectile::Projectile::new(
-					Rect::new((self.rb.hitbox.x + 40.0) as i32, (self.rb.hitbox.y - 40.0) as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![EXPLODE_SPEED, -EXPLODE_SPEED],
-					PowerType::Shrapnel,
-					elapsed,
-					45.0,
-				);
-				shrapnel.push(scrap);
-			}
-			// E
-			if i == 2 {
-				let scrap = projectile::Projectile::new(
-					Rect::new((self.rb.hitbox.x + 40.0) as i32, self.rb.hitbox.y as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![EXPLODE_SPEED, 0.0],
-					PowerType::Shrapnel,
-					elapsed,
-					90.0
-				);
-				shrapnel.push(scrap);
-			}
-			// SE
-			if i == 3 {
-				let scrap = projectile::Projectile::new(
-					Rect::new((self.rb.hitbox.x + 40.0) as i32, (self.rb.hitbox.y + 40.0) as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![EXPLODE_SPEED, EXPLODE_SPEED],
-					PowerType::Shrapnel,
-					elapsed,
-					135.0
-				);
-				shrapnel.push(scrap);
-			}
-			// S
-			if i == 4 {
-				let scrap = projectile::Projectile::new(
-					Rect::new(self.rb.hitbox.x as i32, (self.rb.hitbox.y + 40.0) as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![0.0, EXPLODE_SPEED],
-					PowerType::Shrapnel,
-					elapsed,
-					180.0
-				);
-				shrapnel.push(scrap);
-			}
-			// SW
-			if i == 5 {
-				let scrap = projectile::Projectile::new(
-					Rect::new((self.rb.hitbox.x - 40.0) as i32, (self.rb.hitbox.y + 40.0) as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![-EXPLODE_SPEED, EXPLODE_SPEED],
-					PowerType::Shrapnel,
-					elapsed,
-					225.0
-				);
-				shrapnel.push(scrap);
-			}
-			// W
-			if i == 6 {
-				let scrap = projectile::Projectile::new(
-					Rect::new((self.rb.hitbox.x - 40.0) as i32, self.rb.hitbox.y as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![-EXPLODE_SPEED, 0.0],
-					PowerType::Shrapnel,
-					elapsed,
-					270.0
-				);
-				shrapnel.push(scrap);
-			}
-			// NW
-			if i == 7 {
-				let scrap = projectile::Projectile::new(
-					Rect::new((self.rb.hitbox.x - 40.0) as i32, (self.rb.hitbox.y - 40.0) as i32,
-							  TILE_SIZE_PROJECTILE, TILE_SIZE_PROJECTILE, ),
-					false,
-					vec![-EXPLODE_SPEED, -EXPLODE_SPEED],
-					PowerType::Shrapnel,
-					elapsed,
-					315.0
-				);
-				shrapnel.push(scrap);
-			}
+			shrapnel.push(scrap); 
 		}
+		println!(); 
 		return shrapnel
 	}
 }

@@ -152,7 +152,7 @@ impl GameData {
         // creating a level: room data
         let map_size_w = 61;
         let map_size_h = 61;
-        let current_floor = 2; // starting floor
+        let current_floor = 1; // starting floor
         let current_room = 0; // starting room
 
         // global values:

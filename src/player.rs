@@ -170,7 +170,7 @@ impl<'a> Player<'a> {
 		let mana = max_mana;
 		let mut coins: u32 = 0; 
 		if DEBUG {
-			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Shield); 
+			power = Power::new(Rect::new(0 as i32, 0 as i32, TILE_SIZE, TILE_SIZE), PowerType::Fireball); 
 			coins = 30; 
 		}
 		// check values

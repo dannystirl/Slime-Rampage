@@ -407,20 +407,6 @@ impl Game for ROGUELIKE  {
 					let _mixer_context = sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC | InitFlag::MOD | InitFlag::OGG)?;
 					// Number of mixing channels available for sound effect `Chunk`s to play simultaneously.
 					sdl2::mixer::allocate_channels(4);
-				
-					if DEBUG {
-						let n = sdl2::mixer::get_chunk_decoders_number();
-						println!("available chunk(sample) decoders: {}", n);
-						for i in 0..n {
-							println!("  decoder {} => {}", i, sdl2::mixer::get_chunk_decoder(i));
-						}
-						println!("available music decoders: {}", n);
-						let n = sdl2::mixer::get_music_decoders_number();
-						for i in 0..n {
-							println!("  decoder {} => {}", i, sdl2::mixer::get_music_decoder(i));
-						}
-						println!("query spec => {:?}", sdl2::mixer::query_spec());
-					}
 
 					let path = Path::new("./music/Rampage.wav");
 					let music = sdl2::mixer::Music::from_file(path)?;
@@ -589,12 +575,12 @@ impl Game for ROGUELIKE  {
 						// OBJECT GENERATION
 						if DEVELOP {
 							let pos = Rect::new(
-								player.x() as i32 -200 + rng.gen_range(1..10),
-								player.y() as i32 -200 + rng.gen_range(0..10),
+								player.x() as i32 -200, 
+								player.y() as i32, 
 								TILE_SIZE,
 								TILE_SIZE
 							);
-							self.game_data.crates.push(crateobj::Crate::new(pos, CrateType::Regular));
+							self.game_data.crates.push(crateobj::Crate::new(pos, CrateType::Explosive));
 						}
 
 						// create enemies
@@ -646,7 +632,6 @@ impl Game for ROGUELIKE  {
 									}
 									3 => {
 										let roll= rng.gen_range(0..10);
-										let roll= 5; // REVERT
 										let c: crateobj::Crate; 
 										match roll {
 											0..=2 => {
@@ -763,7 +748,9 @@ impl Game for ROGUELIKE  {
 							for enemy in enemies.iter_mut() {
 								total_health += enemy.hp; 
 							}
-							println!("average enemy health of {} enemies on floor {}: {}", enemy_count as i32, self.game_data.current_floor, total_health/enemy_count as i32)
+							if enemy_count != 0 {
+								println!("average enemy health of {} enemies on floor {}: {}", enemy_count as i32, self.game_data.current_floor, total_health/enemy_count as i32)
+							}
 							// average floor 1 health: 15
 							// enemies gain about 12 health per level
 						}
